@@ -2,4 +2,4 @@
 
 SUBDIRS = src
 dist_doc_DATA = README
-include_HEADER = include
+include_HEADERS = include
