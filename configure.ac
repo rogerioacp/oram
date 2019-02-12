@@ -5,6 +5,5 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	Makefile
     src/Makefile
-    include
     ])
 AC_OUTPUT
