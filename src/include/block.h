@@ -15,6 +15,8 @@
 
 #define DUMMY_BLOCK -1
 
+#include <stdlib.h>
+
 typedef size_t BlockNumber;
 
 typedef struct PLBlock{
@@ -23,6 +25,5 @@ typedef struct PLBlock{
 } *PLBlock; //Plaintext block
 
 typedef PLBlock* PLBList;
-
 
 #endif 		/*BLOCK_H*/

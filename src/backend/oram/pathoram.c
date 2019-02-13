@@ -74,6 +74,8 @@ ORAMState init(char* file, size_t fileSize, size_t blockSize, size_t bucketCapac
 	size_t nblocks = 0;
 	size_t minimumNumberOfNodes = 0;
 	size_t treeHeight;
+	size_t totalNodes;
+
 	int result;
 	ORAMState state = NULL;
 
@@ -99,13 +101,14 @@ ORAMState init(char* file, size_t fileSize, size_t blockSize, size_t bucketCapac
 	}
 
 	treeHeight = calculateTreeHeight(minimumNumberOfNodes);
+	totalNodes = ((size_t) pow(2, treeHeight))- 1;
 
 	state = buildORAMState(file, nblocks, fileSize, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, amgr);
 
 	/*Initialize external files (oblivious file, stash, possitionMap)*/
 	amgr->am_stash->stashinit(state->file, state->blockSize);
-	amgr->am_pmap->pminit(state->file, state->blockSize, state->treeHeight);
-	amgr->am_ofile->ofileinit(state->file);
+	amgr->am_pmap->pminit(state->file, nblocks);
+	amgr->am_ofile->ofileinit(state->file, totalNodes, blockSize);
 
 	return state;
 	
@@ -421,7 +424,7 @@ size_t read(void **ptr, BlockNumber blkno, ORAMState state){
 	TreePath path = NULL;
 	PLBList list = NULL;
 	PLBList blocks_to_write = NULL;
-	void* block;
+	PLBlock plblock = NULL;
 
 	// line 1 and 2 of original paper
 	leaf = state->amgr->am_pmap->pmget(state->file, blkno);
@@ -433,7 +436,7 @@ size_t read(void **ptr, BlockNumber blkno, ORAMState state){
 	addBlocksToStash(state, list);
 
 	//Line 6 of original paper
-	state->amgr->am_stash->stashget(&block, blkno, state->file);
+	state->amgr->am_stash->stashget(&plblock, blkno, state->file);
 
 	//line 10 to 15 of original paper
 	getBlocksToWrite(&blocks_to_write, leaf, state);
@@ -445,7 +448,7 @@ size_t read(void **ptr, BlockNumber blkno, ORAMState state){
 	/*The plblocks of the list cannot be freed as they may be in the stash*/
 	free(list);
 
-	*ptr = block;
+	*ptr = plblock->block;
 	return state->blockSize;
 }
 

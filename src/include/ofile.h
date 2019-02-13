@@ -15,7 +15,7 @@
 
 #include "block.h"
 
-typedef int (*ofileinit_function) (const char *fileName);
+typedef int (*ofileinit_function) (const char *fileName, size_t totalNodes, size_t blockSize);
 typedef void (*ofileread_function) (PLBlock* block, const char *fileName, const BlockNumber ob_blkno);
 typedef size_t (*ofilewrite_function) (const PLBlock block, const char *fileName, const BlockNumber ob_blkno);
 

@@ -16,7 +16,7 @@
 
 
 typedef void (*stashinit_function) (const char *filename, const size_t blockSize);
-typedef void (*stashget_function) (void** block, const BlockNumber pl_blkno, const char *fileName);
+typedef void (*stashget_function) (PLBlock* block, const BlockNumber pl_blkno, const char *fileName);
 typedef void (*stashadd_function) (const char *fileName, const PLBlock block);
 typedef void (*stashremove_function) (const char* filename, const PLBlock block);
 
