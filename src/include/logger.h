@@ -17,5 +17,4 @@
 
 extern void logger(int error_code);
 
-
 #endif /* LOG_H */

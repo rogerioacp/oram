@@ -19,11 +19,13 @@
 
 typedef size_t BlockNumber;
 
-typedef struct PLBlock{
-	int blkno; //Original File BlockNumber, -1 if dummy block.
-	void* block;
-} *PLBlock; //Plaintext block
+typedef struct PLBlock
+{
+	int			blkno; // blkno is -1 if its dummy block.
+	int			size;
+	void	   *block;
+}		   *PLBlock;
 
-typedef PLBlock* PLBList;
+typedef PLBlock *PLBList;
 
-#endif 		/*BLOCK_H*/
+#endif   /* BLOCK_H */
