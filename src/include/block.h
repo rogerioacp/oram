@@ -19,12 +19,11 @@
 
 typedef size_t BlockNumber;
 
-typedef struct PLBlock
-{
-	int			blkno; // blkno is -1 if its dummy block.
-	int			size;
-	void	   *block;
-}		   *PLBlock;
+typedef struct PLBlock {
+    int blkno; // blkno is -1 if its dummy block.
+    int size;
+    void *block;
+} *PLBlock;
 
 typedef PLBlock *PLBList;
 

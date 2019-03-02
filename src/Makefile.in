@@ -14,7 +14,6 @@
 
 @SET_MAKE@
 
-
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -87,8 +86,9 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = memory$(EXEEXT)
-TESTS = memory$(EXEEXT)
+check_PROGRAMS = singleread$(EXEEXT) singlewrite$(EXEEXT) \
+	singlereadwrite$(EXEEXT) multiread$(EXEEXT) \
+	multiwriteread$(EXEEXT)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -100,19 +100,60 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(includedir)"
-PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
-am_memory_OBJECTS = backend/oram/memory-pathoram.$(OBJEXT) \
-	backend/logger/memory-logger.$(OBJEXT) \
-	backend/ofile/memory-ofile.$(OBJEXT) \
-	backend/pmap/memory-pmap.$(OBJEXT) \
-	backend/stash/memory-stash.$(OBJEXT) \
-	tests/memory-memory.$(OBJEXT)
-memory_OBJECTS = $(am_memory_OBJECTS)
-memory_LDADD = $(LDADD)
-memory_LINK = $(CCLD) $(memory_CFLAGS) $(CFLAGS) $(memory_LDFLAGS) \
-	$(LDFLAGS) -o $@
+am__objects_1 = backend/logger/multiread-logger.$(OBJEXT) \
+	backend/ofile/multiread-ofile.$(OBJEXT) \
+	backend/pmap/multiread-pmap.$(OBJEXT) \
+	backend/stash/multiread-stash.$(OBJEXT)
+am_multiread_OBJECTS = backend/oram/multiread-pathoram.$(OBJEXT) \
+	$(am__objects_1) tests/multiread-multiread.$(OBJEXT)
+multiread_OBJECTS = $(am_multiread_OBJECTS)
+multiread_LDADD = $(LDADD)
+multiread_LINK = $(CCLD) $(multiread_CFLAGS) $(CFLAGS) \
+	$(multiread_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_2 = backend/logger/multiwriteread-logger.$(OBJEXT) \
+	backend/ofile/multiwriteread-ofile.$(OBJEXT) \
+	backend/pmap/multiwriteread-pmap.$(OBJEXT) \
+	backend/stash/multiwriteread-stash.$(OBJEXT)
+am_multiwriteread_OBJECTS =  \
+	backend/oram/multiwriteread-pathoram.$(OBJEXT) \
+	$(am__objects_2) tests/multiwriteread-multiwriteread.$(OBJEXT)
+multiwriteread_OBJECTS = $(am_multiwriteread_OBJECTS)
+multiwriteread_LDADD = $(LDADD)
+multiwriteread_LINK = $(CCLD) $(multiwriteread_CFLAGS) $(CFLAGS) \
+	$(multiwriteread_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_3 = backend/logger/singleread-logger.$(OBJEXT) \
+	backend/ofile/singleread-ofile.$(OBJEXT) \
+	backend/pmap/singleread-pmap.$(OBJEXT) \
+	backend/stash/singleread-stash.$(OBJEXT)
+am_singleread_OBJECTS = backend/oram/singleread-pathoram.$(OBJEXT) \
+	$(am__objects_3) tests/singleread-singleread.$(OBJEXT)
+singleread_OBJECTS = $(am_singleread_OBJECTS)
+singleread_LDADD = $(LDADD)
+singleread_LINK = $(CCLD) $(singleread_CFLAGS) $(CFLAGS) \
+	$(singleread_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_4 = backend/logger/singlereadwrite-logger.$(OBJEXT) \
+	backend/ofile/singlereadwrite-ofile.$(OBJEXT) \
+	backend/pmap/singlereadwrite-pmap.$(OBJEXT) \
+	backend/stash/singlereadwrite-stash.$(OBJEXT)
+am_singlereadwrite_OBJECTS =  \
+	backend/oram/singlereadwrite-pathoram.$(OBJEXT) \
+	$(am__objects_4) \
+	tests/singlereadwrite-singlereadwrite.$(OBJEXT)
+singlereadwrite_OBJECTS = $(am_singlereadwrite_OBJECTS)
+singlereadwrite_LDADD = $(LDADD)
+singlereadwrite_LINK = $(CCLD) $(singlereadwrite_CFLAGS) $(CFLAGS) \
+	$(singlereadwrite_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_5 = backend/logger/singlewrite-logger.$(OBJEXT) \
+	backend/ofile/singlewrite-ofile.$(OBJEXT) \
+	backend/pmap/singlewrite-pmap.$(OBJEXT) \
+	backend/stash/singlewrite-stash.$(OBJEXT)
+am_singlewrite_OBJECTS = backend/oram/singlewrite-pathoram.$(OBJEXT) \
+	$(am__objects_5) tests/singlewrite-singlewrite.$(OBJEXT)
+singlewrite_OBJECTS = $(am_singlewrite_OBJECTS)
+singlewrite_LDADD = $(LDADD)
+singlewrite_LINK = $(CCLD) $(singlewrite_CFLAGS) $(CFLAGS) \
+	$(singlewrite_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -128,12 +169,36 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = backend/logger/$(DEPDIR)/memory-logger.Po \
-	backend/ofile/$(DEPDIR)/memory-ofile.Po \
-	backend/oram/$(DEPDIR)/memory-pathoram.Po \
-	backend/pmap/$(DEPDIR)/memory-pmap.Po \
-	backend/stash/$(DEPDIR)/memory-stash.Po \
-	tests/$(DEPDIR)/memory-memory.Po
+am__depfiles_remade = backend/logger/$(DEPDIR)/multiread-logger.Po \
+	backend/logger/$(DEPDIR)/multiwriteread-logger.Po \
+	backend/logger/$(DEPDIR)/singleread-logger.Po \
+	backend/logger/$(DEPDIR)/singlereadwrite-logger.Po \
+	backend/logger/$(DEPDIR)/singlewrite-logger.Po \
+	backend/ofile/$(DEPDIR)/multiread-ofile.Po \
+	backend/ofile/$(DEPDIR)/multiwriteread-ofile.Po \
+	backend/ofile/$(DEPDIR)/singleread-ofile.Po \
+	backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Po \
+	backend/ofile/$(DEPDIR)/singlewrite-ofile.Po \
+	backend/oram/$(DEPDIR)/multiread-pathoram.Po \
+	backend/oram/$(DEPDIR)/multiwriteread-pathoram.Po \
+	backend/oram/$(DEPDIR)/singleread-pathoram.Po \
+	backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Po \
+	backend/oram/$(DEPDIR)/singlewrite-pathoram.Po \
+	backend/pmap/$(DEPDIR)/multiread-pmap.Po \
+	backend/pmap/$(DEPDIR)/multiwriteread-pmap.Po \
+	backend/pmap/$(DEPDIR)/singleread-pmap.Po \
+	backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Po \
+	backend/pmap/$(DEPDIR)/singlewrite-pmap.Po \
+	backend/stash/$(DEPDIR)/multiread-stash.Po \
+	backend/stash/$(DEPDIR)/multiwriteread-stash.Po \
+	backend/stash/$(DEPDIR)/singleread-stash.Po \
+	backend/stash/$(DEPDIR)/singlereadwrite-stash.Po \
+	backend/stash/$(DEPDIR)/singlewrite-stash.Po \
+	tests/$(DEPDIR)/multiread-multiread.Po \
+	tests/$(DEPDIR)/multiwriteread-multiwriteread.Po \
+	tests/$(DEPDIR)/singleread-singleread.Po \
+	tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Po \
+	tests/$(DEPDIR)/singlewrite-singlewrite.Po
 am__mv = mv -f
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -151,8 +216,12 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(memory_SOURCES)
-DIST_SOURCES = $(memory_SOURCES)
+SOURCES = $(multiread_SOURCES) $(multiwriteread_SOURCES) \
+	$(singleread_SOURCES) $(singlereadwrite_SOURCES) \
+	$(singlewrite_SOURCES)
+DIST_SOURCES = $(multiread_SOURCES) $(multiwriteread_SOURCES) \
+	$(singleread_SOURCES) $(singlereadwrite_SOURCES) \
+	$(singlewrite_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -185,6 +254,7 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
+am__installdirs = "$(DESTDIR)$(includedir)"
 HEADERS = $(include_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
@@ -476,9 +546,23 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = subdir-objects
 include_HEADERS = include/block.h include/logger.h include/ofile.h include/oram.h include/pmap.h include/stash.h
-memory_SOURCES = backend/oram/pathoram.c backend/logger/logger.c backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/stash.c tests/memory.c
-memory_CFLAGS = $(GLIB_CFLAGS) -I $(srcdir)/include  
-memory_LDFLAGS = $(GLIB_LIBS)
+memory_test_files = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/stash.c
+singleread_SOURCES = backend/oram/pathoram.c $(memory_test_files) tests/singleread.c
+singleread_CFLAGS = $(GLIB_CFLAGS) -I $(srcdir)/include  
+singleread_LDFLAGS = $(GLIB_LIBS)
+singlewrite_SOURCES = backend/oram/pathoram.c $(memory_test_files) tests/singlewrite.c
+singlewrite_CFLAGS = $(GLIB_CFLAGS) -I $(srcdir)/include  
+singlewrite_LDFLAGS = $(GLIB_LIBS)
+singlereadwrite_SOURCES = backend/oram/pathoram.c $(memory_test_files) tests/singlereadwrite.c
+singlereadwrite_CFLAGS = $(GLIB_CFLAGS) -I $(srcdir)/include  
+singlereadwrite_LDFLAGS = $(GLIB_LIBS)
+multiread_SOURCES = backend/oram/pathoram.c $(memory_test_files) tests/multiread.c
+multiread_CFLAGS = $(GLIB_CFLAGS) -I $(srcdir)/include  
+multiread_LDFLAGS = $(GLIB_LIBS)
+multiwriteread_SOURCES = backend/oram/pathoram.c $(memory_test_files) tests/multiwriteread.c
+multiwriteread_CFLAGS = $(GLIB_CFLAGS) -I $(srcdir)/include  
+multiwriteread_LDFLAGS = $(GLIB_LIBS)
+TESTS = $(check_PROGRAMS)
 all: all-am
 
 .SUFFIXES:
@@ -512,55 +596,17 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-binPROGRAMS: $(bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(bindir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
-	fi; \
-	for p in $$list; do echo "$$p $$p"; done | \
-	sed 's/$(EXEEXT)$$//' | \
-	while read p p1; do if test -f $$p \
-	  ; then echo "$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n;h' \
-	    -e 's|.*|.|' \
-	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
-	sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
-	    else { print "f", $$3 "/" $$4, $$1; } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	    test -z "$$files" || { \
-	      echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
-	      $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
-	    } \
-	; done
 
-uninstall-binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
-	      -e 's/$$/$(EXEEXT)/' \
-	`; \
-	test -n "$$list" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(bindir)" && rm -f $$files
-
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+clean-checkPROGRAMS:
+	-test -z "$(check_PROGRAMS)" || rm -f $(check_PROGRAMS)
 backend/oram/$(am__dirstamp):
 	@$(MKDIR_P) backend/oram
 	@: > backend/oram/$(am__dirstamp)
 backend/oram/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) backend/oram/$(DEPDIR)
 	@: > backend/oram/$(DEPDIR)/$(am__dirstamp)
-backend/oram/memory-pathoram.$(OBJEXT): backend/oram/$(am__dirstamp) \
+backend/oram/multiread-pathoram.$(OBJEXT):  \
+	backend/oram/$(am__dirstamp) \
 	backend/oram/$(DEPDIR)/$(am__dirstamp)
 backend/logger/$(am__dirstamp):
 	@$(MKDIR_P) backend/logger
@@ -568,7 +614,7 @@ backend/logger/$(am__dirstamp):
 backend/logger/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) backend/logger/$(DEPDIR)
 	@: > backend/logger/$(DEPDIR)/$(am__dirstamp)
-backend/logger/memory-logger.$(OBJEXT):  \
+backend/logger/multiread-logger.$(OBJEXT):  \
 	backend/logger/$(am__dirstamp) \
 	backend/logger/$(DEPDIR)/$(am__dirstamp)
 backend/ofile/$(am__dirstamp):
@@ -577,7 +623,8 @@ backend/ofile/$(am__dirstamp):
 backend/ofile/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) backend/ofile/$(DEPDIR)
 	@: > backend/ofile/$(DEPDIR)/$(am__dirstamp)
-backend/ofile/memory-ofile.$(OBJEXT): backend/ofile/$(am__dirstamp) \
+backend/ofile/multiread-ofile.$(OBJEXT):  \
+	backend/ofile/$(am__dirstamp) \
 	backend/ofile/$(DEPDIR)/$(am__dirstamp)
 backend/pmap/$(am__dirstamp):
 	@$(MKDIR_P) backend/pmap
@@ -585,7 +632,7 @@ backend/pmap/$(am__dirstamp):
 backend/pmap/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) backend/pmap/$(DEPDIR)
 	@: > backend/pmap/$(DEPDIR)/$(am__dirstamp)
-backend/pmap/memory-pmap.$(OBJEXT): backend/pmap/$(am__dirstamp) \
+backend/pmap/multiread-pmap.$(OBJEXT): backend/pmap/$(am__dirstamp) \
 	backend/pmap/$(DEPDIR)/$(am__dirstamp)
 backend/stash/$(am__dirstamp):
 	@$(MKDIR_P) backend/stash
@@ -593,7 +640,8 @@ backend/stash/$(am__dirstamp):
 backend/stash/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) backend/stash/$(DEPDIR)
 	@: > backend/stash/$(DEPDIR)/$(am__dirstamp)
-backend/stash/memory-stash.$(OBJEXT): backend/stash/$(am__dirstamp) \
+backend/stash/multiread-stash.$(OBJEXT):  \
+	backend/stash/$(am__dirstamp) \
 	backend/stash/$(DEPDIR)/$(am__dirstamp)
 tests/$(am__dirstamp):
 	@$(MKDIR_P) tests
@@ -601,12 +649,94 @@ tests/$(am__dirstamp):
 tests/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) tests/$(DEPDIR)
 	@: > tests/$(DEPDIR)/$(am__dirstamp)
-tests/memory-memory.$(OBJEXT): tests/$(am__dirstamp) \
+tests/multiread-multiread.$(OBJEXT): tests/$(am__dirstamp) \
 	tests/$(DEPDIR)/$(am__dirstamp)
 
-memory$(EXEEXT): $(memory_OBJECTS) $(memory_DEPENDENCIES) $(EXTRA_memory_DEPENDENCIES) 
-	@rm -f memory$(EXEEXT)
-	$(AM_V_CCLD)$(memory_LINK) $(memory_OBJECTS) $(memory_LDADD) $(LIBS)
+multiread$(EXEEXT): $(multiread_OBJECTS) $(multiread_DEPENDENCIES) $(EXTRA_multiread_DEPENDENCIES) 
+	@rm -f multiread$(EXEEXT)
+	$(AM_V_CCLD)$(multiread_LINK) $(multiread_OBJECTS) $(multiread_LDADD) $(LIBS)
+backend/oram/multiwriteread-pathoram.$(OBJEXT):  \
+	backend/oram/$(am__dirstamp) \
+	backend/oram/$(DEPDIR)/$(am__dirstamp)
+backend/logger/multiwriteread-logger.$(OBJEXT):  \
+	backend/logger/$(am__dirstamp) \
+	backend/logger/$(DEPDIR)/$(am__dirstamp)
+backend/ofile/multiwriteread-ofile.$(OBJEXT):  \
+	backend/ofile/$(am__dirstamp) \
+	backend/ofile/$(DEPDIR)/$(am__dirstamp)
+backend/pmap/multiwriteread-pmap.$(OBJEXT):  \
+	backend/pmap/$(am__dirstamp) \
+	backend/pmap/$(DEPDIR)/$(am__dirstamp)
+backend/stash/multiwriteread-stash.$(OBJEXT):  \
+	backend/stash/$(am__dirstamp) \
+	backend/stash/$(DEPDIR)/$(am__dirstamp)
+tests/multiwriteread-multiwriteread.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+
+multiwriteread$(EXEEXT): $(multiwriteread_OBJECTS) $(multiwriteread_DEPENDENCIES) $(EXTRA_multiwriteread_DEPENDENCIES) 
+	@rm -f multiwriteread$(EXEEXT)
+	$(AM_V_CCLD)$(multiwriteread_LINK) $(multiwriteread_OBJECTS) $(multiwriteread_LDADD) $(LIBS)
+backend/oram/singleread-pathoram.$(OBJEXT):  \
+	backend/oram/$(am__dirstamp) \
+	backend/oram/$(DEPDIR)/$(am__dirstamp)
+backend/logger/singleread-logger.$(OBJEXT):  \
+	backend/logger/$(am__dirstamp) \
+	backend/logger/$(DEPDIR)/$(am__dirstamp)
+backend/ofile/singleread-ofile.$(OBJEXT):  \
+	backend/ofile/$(am__dirstamp) \
+	backend/ofile/$(DEPDIR)/$(am__dirstamp)
+backend/pmap/singleread-pmap.$(OBJEXT): backend/pmap/$(am__dirstamp) \
+	backend/pmap/$(DEPDIR)/$(am__dirstamp)
+backend/stash/singleread-stash.$(OBJEXT):  \
+	backend/stash/$(am__dirstamp) \
+	backend/stash/$(DEPDIR)/$(am__dirstamp)
+tests/singleread-singleread.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+
+singleread$(EXEEXT): $(singleread_OBJECTS) $(singleread_DEPENDENCIES) $(EXTRA_singleread_DEPENDENCIES) 
+	@rm -f singleread$(EXEEXT)
+	$(AM_V_CCLD)$(singleread_LINK) $(singleread_OBJECTS) $(singleread_LDADD) $(LIBS)
+backend/oram/singlereadwrite-pathoram.$(OBJEXT):  \
+	backend/oram/$(am__dirstamp) \
+	backend/oram/$(DEPDIR)/$(am__dirstamp)
+backend/logger/singlereadwrite-logger.$(OBJEXT):  \
+	backend/logger/$(am__dirstamp) \
+	backend/logger/$(DEPDIR)/$(am__dirstamp)
+backend/ofile/singlereadwrite-ofile.$(OBJEXT):  \
+	backend/ofile/$(am__dirstamp) \
+	backend/ofile/$(DEPDIR)/$(am__dirstamp)
+backend/pmap/singlereadwrite-pmap.$(OBJEXT):  \
+	backend/pmap/$(am__dirstamp) \
+	backend/pmap/$(DEPDIR)/$(am__dirstamp)
+backend/stash/singlereadwrite-stash.$(OBJEXT):  \
+	backend/stash/$(am__dirstamp) \
+	backend/stash/$(DEPDIR)/$(am__dirstamp)
+tests/singlereadwrite-singlereadwrite.$(OBJEXT):  \
+	tests/$(am__dirstamp) tests/$(DEPDIR)/$(am__dirstamp)
+
+singlereadwrite$(EXEEXT): $(singlereadwrite_OBJECTS) $(singlereadwrite_DEPENDENCIES) $(EXTRA_singlereadwrite_DEPENDENCIES) 
+	@rm -f singlereadwrite$(EXEEXT)
+	$(AM_V_CCLD)$(singlereadwrite_LINK) $(singlereadwrite_OBJECTS) $(singlereadwrite_LDADD) $(LIBS)
+backend/oram/singlewrite-pathoram.$(OBJEXT):  \
+	backend/oram/$(am__dirstamp) \
+	backend/oram/$(DEPDIR)/$(am__dirstamp)
+backend/logger/singlewrite-logger.$(OBJEXT):  \
+	backend/logger/$(am__dirstamp) \
+	backend/logger/$(DEPDIR)/$(am__dirstamp)
+backend/ofile/singlewrite-ofile.$(OBJEXT):  \
+	backend/ofile/$(am__dirstamp) \
+	backend/ofile/$(DEPDIR)/$(am__dirstamp)
+backend/pmap/singlewrite-pmap.$(OBJEXT): backend/pmap/$(am__dirstamp) \
+	backend/pmap/$(DEPDIR)/$(am__dirstamp)
+backend/stash/singlewrite-stash.$(OBJEXT):  \
+	backend/stash/$(am__dirstamp) \
+	backend/stash/$(DEPDIR)/$(am__dirstamp)
+tests/singlewrite-singlewrite.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+
+singlewrite$(EXEEXT): $(singlewrite_OBJECTS) $(singlewrite_DEPENDENCIES) $(EXTRA_singlewrite_DEPENDENCIES) 
+	@rm -f singlewrite$(EXEEXT)
+	$(AM_V_CCLD)$(singlewrite_LINK) $(singlewrite_OBJECTS) $(singlewrite_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -620,12 +750,36 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@backend/logger/$(DEPDIR)/memory-logger.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@backend/ofile/$(DEPDIR)/memory-ofile.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@backend/oram/$(DEPDIR)/memory-pathoram.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@backend/pmap/$(DEPDIR)/memory-pmap.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@backend/stash/$(DEPDIR)/memory-stash.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/memory-memory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/logger/$(DEPDIR)/multiread-logger.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/logger/$(DEPDIR)/multiwriteread-logger.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/logger/$(DEPDIR)/singleread-logger.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/logger/$(DEPDIR)/singlereadwrite-logger.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/logger/$(DEPDIR)/singlewrite-logger.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/ofile/$(DEPDIR)/multiread-ofile.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/ofile/$(DEPDIR)/multiwriteread-ofile.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/ofile/$(DEPDIR)/singleread-ofile.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/ofile/$(DEPDIR)/singlewrite-ofile.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/oram/$(DEPDIR)/multiread-pathoram.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/oram/$(DEPDIR)/multiwriteread-pathoram.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/oram/$(DEPDIR)/singleread-pathoram.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/oram/$(DEPDIR)/singlewrite-pathoram.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/pmap/$(DEPDIR)/multiread-pmap.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/pmap/$(DEPDIR)/multiwriteread-pmap.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/pmap/$(DEPDIR)/singleread-pmap.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/pmap/$(DEPDIR)/singlewrite-pmap.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/stash/$(DEPDIR)/multiread-stash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/stash/$(DEPDIR)/multiwriteread-stash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/stash/$(DEPDIR)/singleread-stash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/stash/$(DEPDIR)/singlereadwrite-stash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@backend/stash/$(DEPDIR)/singlewrite-stash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/multiread-multiread.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/multiwriteread-multiwriteread.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/singleread-singleread.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/singlewrite-singlewrite.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -649,89 +803,425 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-backend/oram/memory-pathoram.o: backend/oram/pathoram.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/oram/memory-pathoram.o -MD -MP -MF backend/oram/$(DEPDIR)/memory-pathoram.Tpo -c -o backend/oram/memory-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/memory-pathoram.Tpo backend/oram/$(DEPDIR)/memory-pathoram.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/memory-pathoram.o' libtool=no @AMDEPBACKSLASH@
+backend/oram/multiread-pathoram.o: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/oram/multiread-pathoram.o -MD -MP -MF backend/oram/$(DEPDIR)/multiread-pathoram.Tpo -c -o backend/oram/multiread-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/multiread-pathoram.Tpo backend/oram/$(DEPDIR)/multiread-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/multiread-pathoram.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/oram/memory-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/oram/multiread-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
 
-backend/oram/memory-pathoram.obj: backend/oram/pathoram.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/oram/memory-pathoram.obj -MD -MP -MF backend/oram/$(DEPDIR)/memory-pathoram.Tpo -c -o backend/oram/memory-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/memory-pathoram.Tpo backend/oram/$(DEPDIR)/memory-pathoram.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/memory-pathoram.obj' libtool=no @AMDEPBACKSLASH@
+backend/oram/multiread-pathoram.obj: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/oram/multiread-pathoram.obj -MD -MP -MF backend/oram/$(DEPDIR)/multiread-pathoram.Tpo -c -o backend/oram/multiread-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/multiread-pathoram.Tpo backend/oram/$(DEPDIR)/multiread-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/multiread-pathoram.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/oram/memory-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/oram/multiread-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
 
-backend/logger/memory-logger.o: backend/logger/logger.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/logger/memory-logger.o -MD -MP -MF backend/logger/$(DEPDIR)/memory-logger.Tpo -c -o backend/logger/memory-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/memory-logger.Tpo backend/logger/$(DEPDIR)/memory-logger.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/memory-logger.o' libtool=no @AMDEPBACKSLASH@
+backend/logger/multiread-logger.o: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/logger/multiread-logger.o -MD -MP -MF backend/logger/$(DEPDIR)/multiread-logger.Tpo -c -o backend/logger/multiread-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/multiread-logger.Tpo backend/logger/$(DEPDIR)/multiread-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/multiread-logger.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/logger/memory-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/logger/multiread-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
 
-backend/logger/memory-logger.obj: backend/logger/logger.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/logger/memory-logger.obj -MD -MP -MF backend/logger/$(DEPDIR)/memory-logger.Tpo -c -o backend/logger/memory-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/memory-logger.Tpo backend/logger/$(DEPDIR)/memory-logger.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/memory-logger.obj' libtool=no @AMDEPBACKSLASH@
+backend/logger/multiread-logger.obj: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/logger/multiread-logger.obj -MD -MP -MF backend/logger/$(DEPDIR)/multiread-logger.Tpo -c -o backend/logger/multiread-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/multiread-logger.Tpo backend/logger/$(DEPDIR)/multiread-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/multiread-logger.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/logger/memory-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/logger/multiread-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
 
-backend/ofile/memory-ofile.o: backend/ofile/ofile.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/ofile/memory-ofile.o -MD -MP -MF backend/ofile/$(DEPDIR)/memory-ofile.Tpo -c -o backend/ofile/memory-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/memory-ofile.Tpo backend/ofile/$(DEPDIR)/memory-ofile.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/memory-ofile.o' libtool=no @AMDEPBACKSLASH@
+backend/ofile/multiread-ofile.o: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/ofile/multiread-ofile.o -MD -MP -MF backend/ofile/$(DEPDIR)/multiread-ofile.Tpo -c -o backend/ofile/multiread-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/multiread-ofile.Tpo backend/ofile/$(DEPDIR)/multiread-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/multiread-ofile.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/ofile/memory-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/ofile/multiread-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
 
-backend/ofile/memory-ofile.obj: backend/ofile/ofile.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/ofile/memory-ofile.obj -MD -MP -MF backend/ofile/$(DEPDIR)/memory-ofile.Tpo -c -o backend/ofile/memory-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/memory-ofile.Tpo backend/ofile/$(DEPDIR)/memory-ofile.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/memory-ofile.obj' libtool=no @AMDEPBACKSLASH@
+backend/ofile/multiread-ofile.obj: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/ofile/multiread-ofile.obj -MD -MP -MF backend/ofile/$(DEPDIR)/multiread-ofile.Tpo -c -o backend/ofile/multiread-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/multiread-ofile.Tpo backend/ofile/$(DEPDIR)/multiread-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/multiread-ofile.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/ofile/memory-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/ofile/multiread-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
 
-backend/pmap/memory-pmap.o: backend/pmap/pmap.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/pmap/memory-pmap.o -MD -MP -MF backend/pmap/$(DEPDIR)/memory-pmap.Tpo -c -o backend/pmap/memory-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/memory-pmap.Tpo backend/pmap/$(DEPDIR)/memory-pmap.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/memory-pmap.o' libtool=no @AMDEPBACKSLASH@
+backend/pmap/multiread-pmap.o: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/pmap/multiread-pmap.o -MD -MP -MF backend/pmap/$(DEPDIR)/multiread-pmap.Tpo -c -o backend/pmap/multiread-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/multiread-pmap.Tpo backend/pmap/$(DEPDIR)/multiread-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/multiread-pmap.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/pmap/memory-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/pmap/multiread-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
 
-backend/pmap/memory-pmap.obj: backend/pmap/pmap.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/pmap/memory-pmap.obj -MD -MP -MF backend/pmap/$(DEPDIR)/memory-pmap.Tpo -c -o backend/pmap/memory-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/memory-pmap.Tpo backend/pmap/$(DEPDIR)/memory-pmap.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/memory-pmap.obj' libtool=no @AMDEPBACKSLASH@
+backend/pmap/multiread-pmap.obj: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/pmap/multiread-pmap.obj -MD -MP -MF backend/pmap/$(DEPDIR)/multiread-pmap.Tpo -c -o backend/pmap/multiread-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/multiread-pmap.Tpo backend/pmap/$(DEPDIR)/multiread-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/multiread-pmap.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/pmap/memory-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/pmap/multiread-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
 
-backend/stash/memory-stash.o: backend/stash/stash.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/stash/memory-stash.o -MD -MP -MF backend/stash/$(DEPDIR)/memory-stash.Tpo -c -o backend/stash/memory-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/memory-stash.Tpo backend/stash/$(DEPDIR)/memory-stash.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/memory-stash.o' libtool=no @AMDEPBACKSLASH@
+backend/stash/multiread-stash.o: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/stash/multiread-stash.o -MD -MP -MF backend/stash/$(DEPDIR)/multiread-stash.Tpo -c -o backend/stash/multiread-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/multiread-stash.Tpo backend/stash/$(DEPDIR)/multiread-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/multiread-stash.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/stash/memory-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/stash/multiread-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
 
-backend/stash/memory-stash.obj: backend/stash/stash.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT backend/stash/memory-stash.obj -MD -MP -MF backend/stash/$(DEPDIR)/memory-stash.Tpo -c -o backend/stash/memory-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/memory-stash.Tpo backend/stash/$(DEPDIR)/memory-stash.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/memory-stash.obj' libtool=no @AMDEPBACKSLASH@
+backend/stash/multiread-stash.obj: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT backend/stash/multiread-stash.obj -MD -MP -MF backend/stash/$(DEPDIR)/multiread-stash.Tpo -c -o backend/stash/multiread-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/multiread-stash.Tpo backend/stash/$(DEPDIR)/multiread-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/multiread-stash.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o backend/stash/memory-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o backend/stash/multiread-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
 
-tests/memory-memory.o: tests/memory.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT tests/memory-memory.o -MD -MP -MF tests/$(DEPDIR)/memory-memory.Tpo -c -o tests/memory-memory.o `test -f 'tests/memory.c' || echo '$(srcdir)/'`tests/memory.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/memory-memory.Tpo tests/$(DEPDIR)/memory-memory.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/memory.c' object='tests/memory-memory.o' libtool=no @AMDEPBACKSLASH@
+tests/multiread-multiread.o: tests/multiread.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT tests/multiread-multiread.o -MD -MP -MF tests/$(DEPDIR)/multiread-multiread.Tpo -c -o tests/multiread-multiread.o `test -f 'tests/multiread.c' || echo '$(srcdir)/'`tests/multiread.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/multiread-multiread.Tpo tests/$(DEPDIR)/multiread-multiread.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/multiread.c' object='tests/multiread-multiread.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o tests/memory-memory.o `test -f 'tests/memory.c' || echo '$(srcdir)/'`tests/memory.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o tests/multiread-multiread.o `test -f 'tests/multiread.c' || echo '$(srcdir)/'`tests/multiread.c
 
-tests/memory-memory.obj: tests/memory.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -MT tests/memory-memory.obj -MD -MP -MF tests/$(DEPDIR)/memory-memory.Tpo -c -o tests/memory-memory.obj `if test -f 'tests/memory.c'; then $(CYGPATH_W) 'tests/memory.c'; else $(CYGPATH_W) '$(srcdir)/tests/memory.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/memory-memory.Tpo tests/$(DEPDIR)/memory-memory.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/memory.c' object='tests/memory-memory.obj' libtool=no @AMDEPBACKSLASH@
+tests/multiread-multiread.obj: tests/multiread.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -MT tests/multiread-multiread.obj -MD -MP -MF tests/$(DEPDIR)/multiread-multiread.Tpo -c -o tests/multiread-multiread.obj `if test -f 'tests/multiread.c'; then $(CYGPATH_W) 'tests/multiread.c'; else $(CYGPATH_W) '$(srcdir)/tests/multiread.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/multiread-multiread.Tpo tests/$(DEPDIR)/multiread-multiread.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/multiread.c' object='tests/multiread-multiread.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(memory_CFLAGS) $(CFLAGS) -c -o tests/memory-memory.obj `if test -f 'tests/memory.c'; then $(CYGPATH_W) 'tests/memory.c'; else $(CYGPATH_W) '$(srcdir)/tests/memory.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiread_CFLAGS) $(CFLAGS) -c -o tests/multiread-multiread.obj `if test -f 'tests/multiread.c'; then $(CYGPATH_W) 'tests/multiread.c'; else $(CYGPATH_W) '$(srcdir)/tests/multiread.c'; fi`
+
+backend/oram/multiwriteread-pathoram.o: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/oram/multiwriteread-pathoram.o -MD -MP -MF backend/oram/$(DEPDIR)/multiwriteread-pathoram.Tpo -c -o backend/oram/multiwriteread-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/multiwriteread-pathoram.Tpo backend/oram/$(DEPDIR)/multiwriteread-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/multiwriteread-pathoram.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/oram/multiwriteread-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+
+backend/oram/multiwriteread-pathoram.obj: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/oram/multiwriteread-pathoram.obj -MD -MP -MF backend/oram/$(DEPDIR)/multiwriteread-pathoram.Tpo -c -o backend/oram/multiwriteread-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/multiwriteread-pathoram.Tpo backend/oram/$(DEPDIR)/multiwriteread-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/multiwriteread-pathoram.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/oram/multiwriteread-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+
+backend/logger/multiwriteread-logger.o: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/logger/multiwriteread-logger.o -MD -MP -MF backend/logger/$(DEPDIR)/multiwriteread-logger.Tpo -c -o backend/logger/multiwriteread-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/multiwriteread-logger.Tpo backend/logger/$(DEPDIR)/multiwriteread-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/multiwriteread-logger.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/logger/multiwriteread-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+
+backend/logger/multiwriteread-logger.obj: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/logger/multiwriteread-logger.obj -MD -MP -MF backend/logger/$(DEPDIR)/multiwriteread-logger.Tpo -c -o backend/logger/multiwriteread-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/multiwriteread-logger.Tpo backend/logger/$(DEPDIR)/multiwriteread-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/multiwriteread-logger.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/logger/multiwriteread-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+
+backend/ofile/multiwriteread-ofile.o: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/ofile/multiwriteread-ofile.o -MD -MP -MF backend/ofile/$(DEPDIR)/multiwriteread-ofile.Tpo -c -o backend/ofile/multiwriteread-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/multiwriteread-ofile.Tpo backend/ofile/$(DEPDIR)/multiwriteread-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/multiwriteread-ofile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/ofile/multiwriteread-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+
+backend/ofile/multiwriteread-ofile.obj: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/ofile/multiwriteread-ofile.obj -MD -MP -MF backend/ofile/$(DEPDIR)/multiwriteread-ofile.Tpo -c -o backend/ofile/multiwriteread-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/multiwriteread-ofile.Tpo backend/ofile/$(DEPDIR)/multiwriteread-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/multiwriteread-ofile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/ofile/multiwriteread-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+
+backend/pmap/multiwriteread-pmap.o: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/pmap/multiwriteread-pmap.o -MD -MP -MF backend/pmap/$(DEPDIR)/multiwriteread-pmap.Tpo -c -o backend/pmap/multiwriteread-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/multiwriteread-pmap.Tpo backend/pmap/$(DEPDIR)/multiwriteread-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/multiwriteread-pmap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/pmap/multiwriteread-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+
+backend/pmap/multiwriteread-pmap.obj: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/pmap/multiwriteread-pmap.obj -MD -MP -MF backend/pmap/$(DEPDIR)/multiwriteread-pmap.Tpo -c -o backend/pmap/multiwriteread-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/multiwriteread-pmap.Tpo backend/pmap/$(DEPDIR)/multiwriteread-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/multiwriteread-pmap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/pmap/multiwriteread-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+
+backend/stash/multiwriteread-stash.o: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/stash/multiwriteread-stash.o -MD -MP -MF backend/stash/$(DEPDIR)/multiwriteread-stash.Tpo -c -o backend/stash/multiwriteread-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/multiwriteread-stash.Tpo backend/stash/$(DEPDIR)/multiwriteread-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/multiwriteread-stash.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/stash/multiwriteread-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+
+backend/stash/multiwriteread-stash.obj: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT backend/stash/multiwriteread-stash.obj -MD -MP -MF backend/stash/$(DEPDIR)/multiwriteread-stash.Tpo -c -o backend/stash/multiwriteread-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/multiwriteread-stash.Tpo backend/stash/$(DEPDIR)/multiwriteread-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/multiwriteread-stash.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o backend/stash/multiwriteread-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+
+tests/multiwriteread-multiwriteread.o: tests/multiwriteread.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT tests/multiwriteread-multiwriteread.o -MD -MP -MF tests/$(DEPDIR)/multiwriteread-multiwriteread.Tpo -c -o tests/multiwriteread-multiwriteread.o `test -f 'tests/multiwriteread.c' || echo '$(srcdir)/'`tests/multiwriteread.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/multiwriteread-multiwriteread.Tpo tests/$(DEPDIR)/multiwriteread-multiwriteread.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/multiwriteread.c' object='tests/multiwriteread-multiwriteread.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o tests/multiwriteread-multiwriteread.o `test -f 'tests/multiwriteread.c' || echo '$(srcdir)/'`tests/multiwriteread.c
+
+tests/multiwriteread-multiwriteread.obj: tests/multiwriteread.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -MT tests/multiwriteread-multiwriteread.obj -MD -MP -MF tests/$(DEPDIR)/multiwriteread-multiwriteread.Tpo -c -o tests/multiwriteread-multiwriteread.obj `if test -f 'tests/multiwriteread.c'; then $(CYGPATH_W) 'tests/multiwriteread.c'; else $(CYGPATH_W) '$(srcdir)/tests/multiwriteread.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/multiwriteread-multiwriteread.Tpo tests/$(DEPDIR)/multiwriteread-multiwriteread.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/multiwriteread.c' object='tests/multiwriteread-multiwriteread.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multiwriteread_CFLAGS) $(CFLAGS) -c -o tests/multiwriteread-multiwriteread.obj `if test -f 'tests/multiwriteread.c'; then $(CYGPATH_W) 'tests/multiwriteread.c'; else $(CYGPATH_W) '$(srcdir)/tests/multiwriteread.c'; fi`
+
+backend/oram/singleread-pathoram.o: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/oram/singleread-pathoram.o -MD -MP -MF backend/oram/$(DEPDIR)/singleread-pathoram.Tpo -c -o backend/oram/singleread-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/singleread-pathoram.Tpo backend/oram/$(DEPDIR)/singleread-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/singleread-pathoram.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/oram/singleread-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+
+backend/oram/singleread-pathoram.obj: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/oram/singleread-pathoram.obj -MD -MP -MF backend/oram/$(DEPDIR)/singleread-pathoram.Tpo -c -o backend/oram/singleread-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/singleread-pathoram.Tpo backend/oram/$(DEPDIR)/singleread-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/singleread-pathoram.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/oram/singleread-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+
+backend/logger/singleread-logger.o: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/logger/singleread-logger.o -MD -MP -MF backend/logger/$(DEPDIR)/singleread-logger.Tpo -c -o backend/logger/singleread-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/singleread-logger.Tpo backend/logger/$(DEPDIR)/singleread-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/singleread-logger.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/logger/singleread-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+
+backend/logger/singleread-logger.obj: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/logger/singleread-logger.obj -MD -MP -MF backend/logger/$(DEPDIR)/singleread-logger.Tpo -c -o backend/logger/singleread-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/singleread-logger.Tpo backend/logger/$(DEPDIR)/singleread-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/singleread-logger.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/logger/singleread-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+
+backend/ofile/singleread-ofile.o: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/ofile/singleread-ofile.o -MD -MP -MF backend/ofile/$(DEPDIR)/singleread-ofile.Tpo -c -o backend/ofile/singleread-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/singleread-ofile.Tpo backend/ofile/$(DEPDIR)/singleread-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/singleread-ofile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/ofile/singleread-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+
+backend/ofile/singleread-ofile.obj: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/ofile/singleread-ofile.obj -MD -MP -MF backend/ofile/$(DEPDIR)/singleread-ofile.Tpo -c -o backend/ofile/singleread-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/singleread-ofile.Tpo backend/ofile/$(DEPDIR)/singleread-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/singleread-ofile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/ofile/singleread-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+
+backend/pmap/singleread-pmap.o: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/pmap/singleread-pmap.o -MD -MP -MF backend/pmap/$(DEPDIR)/singleread-pmap.Tpo -c -o backend/pmap/singleread-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/singleread-pmap.Tpo backend/pmap/$(DEPDIR)/singleread-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/singleread-pmap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/pmap/singleread-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+
+backend/pmap/singleread-pmap.obj: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/pmap/singleread-pmap.obj -MD -MP -MF backend/pmap/$(DEPDIR)/singleread-pmap.Tpo -c -o backend/pmap/singleread-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/singleread-pmap.Tpo backend/pmap/$(DEPDIR)/singleread-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/singleread-pmap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/pmap/singleread-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+
+backend/stash/singleread-stash.o: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/stash/singleread-stash.o -MD -MP -MF backend/stash/$(DEPDIR)/singleread-stash.Tpo -c -o backend/stash/singleread-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/singleread-stash.Tpo backend/stash/$(DEPDIR)/singleread-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/singleread-stash.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/stash/singleread-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+
+backend/stash/singleread-stash.obj: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT backend/stash/singleread-stash.obj -MD -MP -MF backend/stash/$(DEPDIR)/singleread-stash.Tpo -c -o backend/stash/singleread-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/singleread-stash.Tpo backend/stash/$(DEPDIR)/singleread-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/singleread-stash.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o backend/stash/singleread-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+
+tests/singleread-singleread.o: tests/singleread.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT tests/singleread-singleread.o -MD -MP -MF tests/$(DEPDIR)/singleread-singleread.Tpo -c -o tests/singleread-singleread.o `test -f 'tests/singleread.c' || echo '$(srcdir)/'`tests/singleread.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/singleread-singleread.Tpo tests/$(DEPDIR)/singleread-singleread.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/singleread.c' object='tests/singleread-singleread.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o tests/singleread-singleread.o `test -f 'tests/singleread.c' || echo '$(srcdir)/'`tests/singleread.c
+
+tests/singleread-singleread.obj: tests/singleread.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -MT tests/singleread-singleread.obj -MD -MP -MF tests/$(DEPDIR)/singleread-singleread.Tpo -c -o tests/singleread-singleread.obj `if test -f 'tests/singleread.c'; then $(CYGPATH_W) 'tests/singleread.c'; else $(CYGPATH_W) '$(srcdir)/tests/singleread.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/singleread-singleread.Tpo tests/$(DEPDIR)/singleread-singleread.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/singleread.c' object='tests/singleread-singleread.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singleread_CFLAGS) $(CFLAGS) -c -o tests/singleread-singleread.obj `if test -f 'tests/singleread.c'; then $(CYGPATH_W) 'tests/singleread.c'; else $(CYGPATH_W) '$(srcdir)/tests/singleread.c'; fi`
+
+backend/oram/singlereadwrite-pathoram.o: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/oram/singlereadwrite-pathoram.o -MD -MP -MF backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Tpo -c -o backend/oram/singlereadwrite-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Tpo backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/singlereadwrite-pathoram.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/oram/singlereadwrite-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+
+backend/oram/singlereadwrite-pathoram.obj: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/oram/singlereadwrite-pathoram.obj -MD -MP -MF backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Tpo -c -o backend/oram/singlereadwrite-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Tpo backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/singlereadwrite-pathoram.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/oram/singlereadwrite-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+
+backend/logger/singlereadwrite-logger.o: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/logger/singlereadwrite-logger.o -MD -MP -MF backend/logger/$(DEPDIR)/singlereadwrite-logger.Tpo -c -o backend/logger/singlereadwrite-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/singlereadwrite-logger.Tpo backend/logger/$(DEPDIR)/singlereadwrite-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/singlereadwrite-logger.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/logger/singlereadwrite-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+
+backend/logger/singlereadwrite-logger.obj: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/logger/singlereadwrite-logger.obj -MD -MP -MF backend/logger/$(DEPDIR)/singlereadwrite-logger.Tpo -c -o backend/logger/singlereadwrite-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/singlereadwrite-logger.Tpo backend/logger/$(DEPDIR)/singlereadwrite-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/singlereadwrite-logger.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/logger/singlereadwrite-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+
+backend/ofile/singlereadwrite-ofile.o: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/ofile/singlereadwrite-ofile.o -MD -MP -MF backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Tpo -c -o backend/ofile/singlereadwrite-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Tpo backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/singlereadwrite-ofile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/ofile/singlereadwrite-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+
+backend/ofile/singlereadwrite-ofile.obj: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/ofile/singlereadwrite-ofile.obj -MD -MP -MF backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Tpo -c -o backend/ofile/singlereadwrite-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Tpo backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/singlereadwrite-ofile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/ofile/singlereadwrite-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+
+backend/pmap/singlereadwrite-pmap.o: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/pmap/singlereadwrite-pmap.o -MD -MP -MF backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Tpo -c -o backend/pmap/singlereadwrite-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Tpo backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/singlereadwrite-pmap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/pmap/singlereadwrite-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+
+backend/pmap/singlereadwrite-pmap.obj: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/pmap/singlereadwrite-pmap.obj -MD -MP -MF backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Tpo -c -o backend/pmap/singlereadwrite-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Tpo backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/singlereadwrite-pmap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/pmap/singlereadwrite-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+
+backend/stash/singlereadwrite-stash.o: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/stash/singlereadwrite-stash.o -MD -MP -MF backend/stash/$(DEPDIR)/singlereadwrite-stash.Tpo -c -o backend/stash/singlereadwrite-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/singlereadwrite-stash.Tpo backend/stash/$(DEPDIR)/singlereadwrite-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/singlereadwrite-stash.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/stash/singlereadwrite-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+
+backend/stash/singlereadwrite-stash.obj: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT backend/stash/singlereadwrite-stash.obj -MD -MP -MF backend/stash/$(DEPDIR)/singlereadwrite-stash.Tpo -c -o backend/stash/singlereadwrite-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/singlereadwrite-stash.Tpo backend/stash/$(DEPDIR)/singlereadwrite-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/singlereadwrite-stash.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o backend/stash/singlereadwrite-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+
+tests/singlereadwrite-singlereadwrite.o: tests/singlereadwrite.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT tests/singlereadwrite-singlereadwrite.o -MD -MP -MF tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Tpo -c -o tests/singlereadwrite-singlereadwrite.o `test -f 'tests/singlereadwrite.c' || echo '$(srcdir)/'`tests/singlereadwrite.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Tpo tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/singlereadwrite.c' object='tests/singlereadwrite-singlereadwrite.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o tests/singlereadwrite-singlereadwrite.o `test -f 'tests/singlereadwrite.c' || echo '$(srcdir)/'`tests/singlereadwrite.c
+
+tests/singlereadwrite-singlereadwrite.obj: tests/singlereadwrite.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -MT tests/singlereadwrite-singlereadwrite.obj -MD -MP -MF tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Tpo -c -o tests/singlereadwrite-singlereadwrite.obj `if test -f 'tests/singlereadwrite.c'; then $(CYGPATH_W) 'tests/singlereadwrite.c'; else $(CYGPATH_W) '$(srcdir)/tests/singlereadwrite.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Tpo tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/singlereadwrite.c' object='tests/singlereadwrite-singlereadwrite.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlereadwrite_CFLAGS) $(CFLAGS) -c -o tests/singlereadwrite-singlereadwrite.obj `if test -f 'tests/singlereadwrite.c'; then $(CYGPATH_W) 'tests/singlereadwrite.c'; else $(CYGPATH_W) '$(srcdir)/tests/singlereadwrite.c'; fi`
+
+backend/oram/singlewrite-pathoram.o: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/oram/singlewrite-pathoram.o -MD -MP -MF backend/oram/$(DEPDIR)/singlewrite-pathoram.Tpo -c -o backend/oram/singlewrite-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/singlewrite-pathoram.Tpo backend/oram/$(DEPDIR)/singlewrite-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/singlewrite-pathoram.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/oram/singlewrite-pathoram.o `test -f 'backend/oram/pathoram.c' || echo '$(srcdir)/'`backend/oram/pathoram.c
+
+backend/oram/singlewrite-pathoram.obj: backend/oram/pathoram.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/oram/singlewrite-pathoram.obj -MD -MP -MF backend/oram/$(DEPDIR)/singlewrite-pathoram.Tpo -c -o backend/oram/singlewrite-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/oram/$(DEPDIR)/singlewrite-pathoram.Tpo backend/oram/$(DEPDIR)/singlewrite-pathoram.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/oram/pathoram.c' object='backend/oram/singlewrite-pathoram.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/oram/singlewrite-pathoram.obj `if test -f 'backend/oram/pathoram.c'; then $(CYGPATH_W) 'backend/oram/pathoram.c'; else $(CYGPATH_W) '$(srcdir)/backend/oram/pathoram.c'; fi`
+
+backend/logger/singlewrite-logger.o: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/logger/singlewrite-logger.o -MD -MP -MF backend/logger/$(DEPDIR)/singlewrite-logger.Tpo -c -o backend/logger/singlewrite-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/singlewrite-logger.Tpo backend/logger/$(DEPDIR)/singlewrite-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/singlewrite-logger.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/logger/singlewrite-logger.o `test -f 'backend/logger/logger.c' || echo '$(srcdir)/'`backend/logger/logger.c
+
+backend/logger/singlewrite-logger.obj: backend/logger/logger.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/logger/singlewrite-logger.obj -MD -MP -MF backend/logger/$(DEPDIR)/singlewrite-logger.Tpo -c -o backend/logger/singlewrite-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/logger/$(DEPDIR)/singlewrite-logger.Tpo backend/logger/$(DEPDIR)/singlewrite-logger.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/logger/logger.c' object='backend/logger/singlewrite-logger.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/logger/singlewrite-logger.obj `if test -f 'backend/logger/logger.c'; then $(CYGPATH_W) 'backend/logger/logger.c'; else $(CYGPATH_W) '$(srcdir)/backend/logger/logger.c'; fi`
+
+backend/ofile/singlewrite-ofile.o: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/ofile/singlewrite-ofile.o -MD -MP -MF backend/ofile/$(DEPDIR)/singlewrite-ofile.Tpo -c -o backend/ofile/singlewrite-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/singlewrite-ofile.Tpo backend/ofile/$(DEPDIR)/singlewrite-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/singlewrite-ofile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/ofile/singlewrite-ofile.o `test -f 'backend/ofile/ofile.c' || echo '$(srcdir)/'`backend/ofile/ofile.c
+
+backend/ofile/singlewrite-ofile.obj: backend/ofile/ofile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/ofile/singlewrite-ofile.obj -MD -MP -MF backend/ofile/$(DEPDIR)/singlewrite-ofile.Tpo -c -o backend/ofile/singlewrite-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/ofile/$(DEPDIR)/singlewrite-ofile.Tpo backend/ofile/$(DEPDIR)/singlewrite-ofile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/ofile/ofile.c' object='backend/ofile/singlewrite-ofile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/ofile/singlewrite-ofile.obj `if test -f 'backend/ofile/ofile.c'; then $(CYGPATH_W) 'backend/ofile/ofile.c'; else $(CYGPATH_W) '$(srcdir)/backend/ofile/ofile.c'; fi`
+
+backend/pmap/singlewrite-pmap.o: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/pmap/singlewrite-pmap.o -MD -MP -MF backend/pmap/$(DEPDIR)/singlewrite-pmap.Tpo -c -o backend/pmap/singlewrite-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/singlewrite-pmap.Tpo backend/pmap/$(DEPDIR)/singlewrite-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/singlewrite-pmap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/pmap/singlewrite-pmap.o `test -f 'backend/pmap/pmap.c' || echo '$(srcdir)/'`backend/pmap/pmap.c
+
+backend/pmap/singlewrite-pmap.obj: backend/pmap/pmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/pmap/singlewrite-pmap.obj -MD -MP -MF backend/pmap/$(DEPDIR)/singlewrite-pmap.Tpo -c -o backend/pmap/singlewrite-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/pmap/$(DEPDIR)/singlewrite-pmap.Tpo backend/pmap/$(DEPDIR)/singlewrite-pmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/pmap/pmap.c' object='backend/pmap/singlewrite-pmap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/pmap/singlewrite-pmap.obj `if test -f 'backend/pmap/pmap.c'; then $(CYGPATH_W) 'backend/pmap/pmap.c'; else $(CYGPATH_W) '$(srcdir)/backend/pmap/pmap.c'; fi`
+
+backend/stash/singlewrite-stash.o: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/stash/singlewrite-stash.o -MD -MP -MF backend/stash/$(DEPDIR)/singlewrite-stash.Tpo -c -o backend/stash/singlewrite-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/singlewrite-stash.Tpo backend/stash/$(DEPDIR)/singlewrite-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/singlewrite-stash.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/stash/singlewrite-stash.o `test -f 'backend/stash/stash.c' || echo '$(srcdir)/'`backend/stash/stash.c
+
+backend/stash/singlewrite-stash.obj: backend/stash/stash.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT backend/stash/singlewrite-stash.obj -MD -MP -MF backend/stash/$(DEPDIR)/singlewrite-stash.Tpo -c -o backend/stash/singlewrite-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) backend/stash/$(DEPDIR)/singlewrite-stash.Tpo backend/stash/$(DEPDIR)/singlewrite-stash.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='backend/stash/stash.c' object='backend/stash/singlewrite-stash.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o backend/stash/singlewrite-stash.obj `if test -f 'backend/stash/stash.c'; then $(CYGPATH_W) 'backend/stash/stash.c'; else $(CYGPATH_W) '$(srcdir)/backend/stash/stash.c'; fi`
+
+tests/singlewrite-singlewrite.o: tests/singlewrite.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT tests/singlewrite-singlewrite.o -MD -MP -MF tests/$(DEPDIR)/singlewrite-singlewrite.Tpo -c -o tests/singlewrite-singlewrite.o `test -f 'tests/singlewrite.c' || echo '$(srcdir)/'`tests/singlewrite.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/singlewrite-singlewrite.Tpo tests/$(DEPDIR)/singlewrite-singlewrite.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/singlewrite.c' object='tests/singlewrite-singlewrite.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o tests/singlewrite-singlewrite.o `test -f 'tests/singlewrite.c' || echo '$(srcdir)/'`tests/singlewrite.c
+
+tests/singlewrite-singlewrite.obj: tests/singlewrite.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -MT tests/singlewrite-singlewrite.obj -MD -MP -MF tests/$(DEPDIR)/singlewrite-singlewrite.Tpo -c -o tests/singlewrite-singlewrite.obj `if test -f 'tests/singlewrite.c'; then $(CYGPATH_W) 'tests/singlewrite.c'; else $(CYGPATH_W) '$(srcdir)/tests/singlewrite.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/singlewrite-singlewrite.Tpo tests/$(DEPDIR)/singlewrite-singlewrite.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/singlewrite.c' object='tests/singlewrite-singlewrite.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(singlewrite_CFLAGS) $(CFLAGS) -c -o tests/singlewrite-singlewrite.obj `if test -f 'tests/singlewrite.c'; then $(CYGPATH_W) 'tests/singlewrite.c'; else $(CYGPATH_W) '$(srcdir)/tests/singlewrite.c'; fi`
 install-includeHEADERS: $(include_HEADERS)
 	@$(NORMAL_INSTALL)
 	@list='$(include_HEADERS)'; test -n "$(includedir)" || list=; \
@@ -926,7 +1416,7 @@ $(TEST_SUITE_LOG): $(TEST_LOGS)
 	fi;								\
 	$$success || exit 1
 
-check-TESTS: 
+check-TESTS: $(check_PROGRAMS)
 	@list='$(RECHECK_LOGS)';           test -z "$$list" || rm -f $$list
 	@list='$(RECHECK_LOGS:.log=.trs)'; test -z "$$list" || rm -f $$list
 	@test -z "$(TEST_SUITE_LOG)" || rm -f $(TEST_SUITE_LOG)
@@ -936,7 +1426,7 @@ check-TESTS:
 	log_list=`echo $$log_list`; trs_list=`echo $$trs_list`; \
 	$(MAKE) $(AM_MAKEFLAGS) $(TEST_SUITE_LOG) TEST_LOGS="$$log_list"; \
 	exit $$?;
-recheck: all 
+recheck: all $(check_PROGRAMS)
 	@test -z "$(TEST_SUITE_LOG)" || rm -f $(TEST_SUITE_LOG)
 	@set +e; $(am__set_TESTS_bases); \
 	bases=`for i in $$bases; do echo $$i; done \
@@ -947,9 +1437,37 @@ recheck: all
 	        am__force_recheck=am--force-recheck \
 	        TEST_LOGS="$$log_list"; \
 	exit $$?
-memory.log: memory$(EXEEXT)
-	@p='memory$(EXEEXT)'; \
-	b='memory'; \
+singleread.log: singleread$(EXEEXT)
+	@p='singleread$(EXEEXT)'; \
+	b='singleread'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+singlewrite.log: singlewrite$(EXEEXT)
+	@p='singlewrite$(EXEEXT)'; \
+	b='singlewrite'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+singlereadwrite.log: singlereadwrite$(EXEEXT)
+	@p='singlereadwrite$(EXEEXT)'; \
+	b='singlereadwrite'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+multiread.log: multiread$(EXEEXT)
+	@p='multiread$(EXEEXT)'; \
+	b='multiread'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+multiwriteread.log: multiwriteread$(EXEEXT)
+	@p='multiwriteread$(EXEEXT)'; \
+	b='multiwriteread'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -1003,11 +1521,12 @@ distdir-am: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile $(PROGRAMS) $(HEADERS)
+all-am: Makefile $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(includedir)"; do \
+	for dir in "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -1057,15 +1576,39 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
+clean-am: clean-checkPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
-		-rm -f backend/logger/$(DEPDIR)/memory-logger.Po
-	-rm -f backend/ofile/$(DEPDIR)/memory-ofile.Po
-	-rm -f backend/oram/$(DEPDIR)/memory-pathoram.Po
-	-rm -f backend/pmap/$(DEPDIR)/memory-pmap.Po
-	-rm -f backend/stash/$(DEPDIR)/memory-stash.Po
-	-rm -f tests/$(DEPDIR)/memory-memory.Po
+		-rm -f backend/logger/$(DEPDIR)/multiread-logger.Po
+	-rm -f backend/logger/$(DEPDIR)/multiwriteread-logger.Po
+	-rm -f backend/logger/$(DEPDIR)/singleread-logger.Po
+	-rm -f backend/logger/$(DEPDIR)/singlereadwrite-logger.Po
+	-rm -f backend/logger/$(DEPDIR)/singlewrite-logger.Po
+	-rm -f backend/ofile/$(DEPDIR)/multiread-ofile.Po
+	-rm -f backend/ofile/$(DEPDIR)/multiwriteread-ofile.Po
+	-rm -f backend/ofile/$(DEPDIR)/singleread-ofile.Po
+	-rm -f backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Po
+	-rm -f backend/ofile/$(DEPDIR)/singlewrite-ofile.Po
+	-rm -f backend/oram/$(DEPDIR)/multiread-pathoram.Po
+	-rm -f backend/oram/$(DEPDIR)/multiwriteread-pathoram.Po
+	-rm -f backend/oram/$(DEPDIR)/singleread-pathoram.Po
+	-rm -f backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Po
+	-rm -f backend/oram/$(DEPDIR)/singlewrite-pathoram.Po
+	-rm -f backend/pmap/$(DEPDIR)/multiread-pmap.Po
+	-rm -f backend/pmap/$(DEPDIR)/multiwriteread-pmap.Po
+	-rm -f backend/pmap/$(DEPDIR)/singleread-pmap.Po
+	-rm -f backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Po
+	-rm -f backend/pmap/$(DEPDIR)/singlewrite-pmap.Po
+	-rm -f backend/stash/$(DEPDIR)/multiread-stash.Po
+	-rm -f backend/stash/$(DEPDIR)/multiwriteread-stash.Po
+	-rm -f backend/stash/$(DEPDIR)/singleread-stash.Po
+	-rm -f backend/stash/$(DEPDIR)/singlereadwrite-stash.Po
+	-rm -f backend/stash/$(DEPDIR)/singlewrite-stash.Po
+	-rm -f tests/$(DEPDIR)/multiread-multiread.Po
+	-rm -f tests/$(DEPDIR)/multiwriteread-multiwriteread.Po
+	-rm -f tests/$(DEPDIR)/singleread-singleread.Po
+	-rm -f tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Po
+	-rm -f tests/$(DEPDIR)/singlewrite-singlewrite.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1088,7 +1631,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-binPROGRAMS
+install-exec-am:
 
 install-html: install-html-am
 
@@ -1111,12 +1654,36 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f backend/logger/$(DEPDIR)/memory-logger.Po
-	-rm -f backend/ofile/$(DEPDIR)/memory-ofile.Po
-	-rm -f backend/oram/$(DEPDIR)/memory-pathoram.Po
-	-rm -f backend/pmap/$(DEPDIR)/memory-pmap.Po
-	-rm -f backend/stash/$(DEPDIR)/memory-stash.Po
-	-rm -f tests/$(DEPDIR)/memory-memory.Po
+		-rm -f backend/logger/$(DEPDIR)/multiread-logger.Po
+	-rm -f backend/logger/$(DEPDIR)/multiwriteread-logger.Po
+	-rm -f backend/logger/$(DEPDIR)/singleread-logger.Po
+	-rm -f backend/logger/$(DEPDIR)/singlereadwrite-logger.Po
+	-rm -f backend/logger/$(DEPDIR)/singlewrite-logger.Po
+	-rm -f backend/ofile/$(DEPDIR)/multiread-ofile.Po
+	-rm -f backend/ofile/$(DEPDIR)/multiwriteread-ofile.Po
+	-rm -f backend/ofile/$(DEPDIR)/singleread-ofile.Po
+	-rm -f backend/ofile/$(DEPDIR)/singlereadwrite-ofile.Po
+	-rm -f backend/ofile/$(DEPDIR)/singlewrite-ofile.Po
+	-rm -f backend/oram/$(DEPDIR)/multiread-pathoram.Po
+	-rm -f backend/oram/$(DEPDIR)/multiwriteread-pathoram.Po
+	-rm -f backend/oram/$(DEPDIR)/singleread-pathoram.Po
+	-rm -f backend/oram/$(DEPDIR)/singlereadwrite-pathoram.Po
+	-rm -f backend/oram/$(DEPDIR)/singlewrite-pathoram.Po
+	-rm -f backend/pmap/$(DEPDIR)/multiread-pmap.Po
+	-rm -f backend/pmap/$(DEPDIR)/multiwriteread-pmap.Po
+	-rm -f backend/pmap/$(DEPDIR)/singleread-pmap.Po
+	-rm -f backend/pmap/$(DEPDIR)/singlereadwrite-pmap.Po
+	-rm -f backend/pmap/$(DEPDIR)/singlewrite-pmap.Po
+	-rm -f backend/stash/$(DEPDIR)/multiread-stash.Po
+	-rm -f backend/stash/$(DEPDIR)/multiwriteread-stash.Po
+	-rm -f backend/stash/$(DEPDIR)/singleread-stash.Po
+	-rm -f backend/stash/$(DEPDIR)/singlereadwrite-stash.Po
+	-rm -f backend/stash/$(DEPDIR)/singlewrite-stash.Po
+	-rm -f tests/$(DEPDIR)/multiread-multiread.Po
+	-rm -f tests/$(DEPDIR)/multiwriteread-multiwriteread.Po
+	-rm -f tests/$(DEPDIR)/singleread-singleread.Po
+	-rm -f tests/$(DEPDIR)/singlereadwrite-singlereadwrite.Po
+	-rm -f tests/$(DEPDIR)/singlewrite-singlewrite.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -1132,24 +1699,23 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-includeHEADERS
+uninstall-am: uninstall-includeHEADERS
 
 .MAKE: check-am install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--depfiles check check-TESTS \
-	check-am clean clean-binPROGRAMS clean-generic cscopelist-am \
+	check-am clean clean-checkPROGRAMS clean-generic cscopelist-am \
 	ctags ctags-am distclean distclean-compile distclean-generic \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-binPROGRAMS install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am \
-	install-includeHEADERS install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
-	ps ps-am recheck tags tags-am uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-includeHEADERS
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-includeHEADERS install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic pdf pdf-am ps ps-am recheck tags tags-am \
+	uninstall uninstall-am uninstall-includeHEADERS
 
 .PRECIOUS: Makefile
 

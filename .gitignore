@@ -47,6 +47,8 @@ m4/lt~obsolete.m4
 
 .in
 .deps
-.log
-.trs
-.BAK
+*.log
+*.trs
+*.BAK
+cmake-build-debug
+*.tar.gz

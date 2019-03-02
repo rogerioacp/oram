@@ -15,17 +15,18 @@
 
 #include "block.h"
 
-typedef void (*ofileinit_function) (const char *fileName, size_t totalNodes, size_t blockSize);
-typedef void (*ofileread_function) (PLBlock block, const char *fileName, const BlockNumber ob_blkno);
-typedef void (*ofilewrite_function) (const PLBlock block, const char *fileName, const BlockNumber ob_blkno);
+typedef void (*ofileinit_function)(const char *fileName, size_t totalNodes, size_t blockSize);
 
-typedef struct AMOFile
-{
-	ofileinit_function	ofileinit;
-	ofileread_function	ofileread;
-	ofilewrite_function	ofilewrite;
-}		AMOFile;
+typedef void (*ofileread_function)(PLBlock block, const char *fileName, const BlockNumber ob_blkno);
 
-AMOFile* ofileCreate();
+typedef void (*ofilewrite_function)(const PLBlock block, const char *fileName, const BlockNumber ob_blkno);
+
+typedef struct AMOFile {
+    ofileinit_function ofileinit;
+    ofileread_function ofileread;
+    ofilewrite_function ofilewrite;
+} AMOFile;
+
+AMOFile *ofileCreate();
 
 #endif  /*OFILE_H*/

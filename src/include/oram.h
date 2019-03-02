@@ -20,14 +20,12 @@
 #include "ofile.h"
 
 
-
 /***
  * Opaque structure definition of ORAM Internal State.
  * This state is hidden from any client application and depends
  * on the underlying implementation.
  */
 typedef struct ORAMState *ORAMState;
-
 
 
 /**
@@ -45,12 +43,11 @@ typedef struct ORAMState *ORAMState;
  * the position map to update its internal state.
  *
  */
-typedef struct Amgr
-{
-	AMStash    *am_stash;
-	AMPMap	   *am_pmap;
-	AMOFile    *am_ofile;
-}			Amgr;
+typedef struct Amgr {
+    AMStash *am_stash;
+    AMPMap *am_pmap;
+    AMOFile *am_ofile;
+} Amgr;
 
 
 /**
@@ -63,7 +60,7 @@ typedef struct Amgr
  *
  */
 
-ORAMState	init(char *filename, size_t fileSize, size_t blockSize, size_t bucketCapacity, Amgr * amgr);
+ORAMState init(char *filename, size_t fileSize, size_t blockSize, size_t bucketCapacity, Amgr *amgr);
 
 /**
  * ORAM read operation that triggers a sequence of oblivious file reads and
@@ -71,13 +68,13 @@ ORAMState	init(char *filename, size_t fileSize, size_t blockSize, size_t bucketC
  * requested block.
  *
  */
-size_t		read(void **ptr, BlockNumber blkno, ORAMState state);
+size_t read(void **ptr, BlockNumber blkno, ORAMState state);
 
 /**
  * ORAM write request that triggers a sequence of oblivious file reads and
  * writes that hides the input block.
  *
  */
-size_t		write(void *data, size_t blksize, BlockNumber blkno, ORAMState state);
+size_t write(void *data, size_t blksize, BlockNumber blkno, ORAMState state);
 
-#endif							/* ORAM_H */
+#endif                            /* ORAM_H */
