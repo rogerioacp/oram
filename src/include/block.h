@@ -27,4 +27,13 @@ typedef struct PLBlock {
 
 typedef PLBlock *PLBList;
 
+PLBlock createBlock(int blkno, int size, void *block);
+
+PLBlock createEmptyBlock();
+
+PLBlock createRandomBlock(size_t size);
+
+void freeBlock(PLBlock block);
+
+
 #endif   /* BLOCK_H */

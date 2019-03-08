@@ -77,4 +77,13 @@ size_t read(void **ptr, BlockNumber blkno, ORAMState state);
  */
 size_t write(void *data, size_t blksize, BlockNumber blkno, ORAMState state);
 
+
+/**
+ * Close request that correctly closes all of the ORAM resourceS:
+ * - Oblivious File (e.g: File descriptors)
+ * - Position Map
+ * - Stash
+ */
+void close(ORAMState state);
+
 #endif                            /* ORAM_H */

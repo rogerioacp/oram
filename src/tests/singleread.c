@@ -26,7 +26,9 @@ int main(int argc, char *argv[]) {
     size_t bucketCapcity = 1; // 1 bucket per tree node;
     size_t result = 0;
     void *data = NULL;
+    printf("Init oram\n");
     state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
+    printf("Going to read\n");
     result = read(&data, 0, state);
     
     if (data == NULL && result == 0){

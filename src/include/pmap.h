@@ -22,11 +22,15 @@ typedef size_t (*pmget_function)(const char *fileName, const BlockNumber blkno);
 
 typedef void (*pmupdate_function)(const BlockNumber newBlkno, const BlockNumber realBlkno, const char *fileName);
 
+typedef void (*pmclose_function)(const char *fileName);
+
+
 /*Access manager to position map*/
 typedef struct AMPMap {
     pminit_function pminit;
     pmget_function pmget;
     pmupdate_function pmupdate;
+    pmclose_function pmclose;
 } AMPMap;
 
 AMPMap *pmapCreate();

@@ -30,8 +30,10 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "oram.h"
+#include "block.h"
 #include "logger.h"
 
 
@@ -277,10 +279,7 @@ PLBList getTreeNodes(ORAMState state, TreePath path) {
     for (level = 0; level < state->treeHeight + 1; level++) {
         for (offset = 0; offset < state->bucketCapacity; offset++) {
             ob_blkno = path[level] * state->bucketCapacity + offset;
-            plblock = (PLBlock) malloc(sizeof(struct PLBlock));
-            plblock->blkno = DUMMY_BLOCK;
-            plblock->size = -1;
-            plblock->block = NULL;
+            plblock = createEmptyBlock();
             index = level * state->bucketCapacity + offset;
             state->amgr->am_ofile->ofileread(plblock, state->file, (BlockNumber) ob_blkno);
             list[index] = plblock;
@@ -327,15 +326,17 @@ void getBlocksToWrite(PLBList *blocksToWrite, size_t a_leaf, ORAMState state) {
     PLBList selectedBlocks;
     PLBlock r_block = NULL;
     PLBlock rem_block;
-    void *randomBlock;
-    int save_errno = 0;
     size_t remove_offset;
     size_t check_v;
     size_t index;
     size_t remove_index = 0;
     size_t add_index = 0;
     size_t check_height = 0;
+
+
     initBlockList(state, &selectedBlocks);
+
+    
 
     for (; level > 0; level--) {
 
@@ -366,37 +367,16 @@ void getBlocksToWrite(PLBList *blocksToWrite, size_t a_leaf, ORAMState state) {
 
         padding = total;
 
-        save_errno = errno;
-        errno = 0;
-
         for (; padding < state->bucketCapacity; padding++) {
-            r_block = (PLBlock) malloc(sizeof(struct PLBlock));
-
-            if (r_block == NULL && errno == ENOMEM) {
-                logger(OUT_OF_MEMORY);
-                errno = save_errno;
-                abort();
-            }
-
-            if (randomBlock == NULL && errno == ENOMEM) {
-                logger(OUT_OF_MEMORY);
-                errno = save_errno;
-                abort();
-            }
-
+            r_block = createRandomBlock(state->blockSize);
             index = (level - 1) * state->bucketCapacity + padding;
             selectedBlocks[index] = r_block;
-            r_block->blkno = DUMMY_BLOCK;
-            r_block->size = state->blockSize;
-            r_block->block = (void *) malloc(state->blockSize);
-            memset(r_block->block, 0, state->blockSize);
         }
+
         total = 0;
     }
-    errno = save_errno;
 
     *blocksToWrite = selectedBlocks;
-
 }
 
 
@@ -437,12 +417,8 @@ void updateBlockLeaf(BlockNumber blkno, ORAMState state) {
 }
 
 void updateStashWithNewBlock(void *data, size_t blkSize, BlockNumber blkno, ORAMState state) {
-    PLBlock block = (PLBlock) malloc(sizeof(struct PLBlock));
-    block->blkno = (int) blkno;
-    block->size = blkSize;
-    block->block = (void *) malloc(blkSize);
-    memcpy(block->block, data, blkSize);
-    state->amgr->am_stash->stashadd(state->file, block);
+    PLBlock plblock = createBlock((int) blkno, blkSize, data);
+    state->amgr->am_stash->stashupdate(state->file, plblock);
 }
 
 
@@ -451,23 +427,27 @@ size_t read(void **ptr, BlockNumber blkno, ORAMState state) {
     TreePath path = NULL;
     PLBList list = NULL;
     PLBList blocks_to_write = NULL;
-    PLBlock plblock = (PLBlock) malloc(sizeof(struct PLBlock));
-    plblock->blkno = DUMMY_BLOCK;
-    plblock->size = -1;
-    plblock->block = NULL;
+    //printf("Creating empty block\n");
+    PLBlock plblock = createEmptyBlock();
 
+    //printf("getting possition map\n");
     // line 1 and 2 of original paper
     leaf = state->amgr->am_pmap->pmget(state->file, blkno);
+    //printf("getting updateBlockLeaf\n");
     updateBlockLeaf(blkno, state);
 
     // line 3 to 5 of original paper
     path = getTreePath(state, leaf);
     list = getTreeNodes(state, path);
+    //printf("Add blocks to stash\n");
     addBlocksToStash(state, list);
+    //printf("Getting block to stash\n");
     //Line 6 of original paper
     state->amgr->am_stash->stashget(plblock, blkno, state->file);
+    //printf("get blocks to write\n");
     //line 10 to 15 of original paper
     getBlocksToWrite(&blocks_to_write, leaf, state);
+    //printf("Write blocks to storage\n");
     writeBlocksToStorage(blocks_to_write, leaf, state);
 
     //Free Resources
@@ -515,4 +495,11 @@ size_t write(void *data, size_t blkSize, BlockNumber blkno, ORAMState state) {
     free(list);
 
     return blkSize;
+}
+
+void close(ORAMState state){
+    state->amgr->am_stash->stashclose(state->file);
+    state->amgr->am_pmap->pmclose(state->file);
+    state->amgr->am_ofile->ofileclose(state->file);
+    free(state);
 }

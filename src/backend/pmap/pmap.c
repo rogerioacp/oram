@@ -14,10 +14,11 @@ static size_t pmapGet(const char *fileName, const BlockNumber blkno);
 
 static void pmapUpdate(const BlockNumber newBlkno, const BlockNumber realBlkno, const char *fileName);
 
+static void pmapClose(const char *filename);
 
 void pmapInit(const char *filename, size_t nblocks, size_t treeHeight) {
-    map = (BlockNumber *) malloc(sizeof(BlockNumber) * nblocks);
     int i;
+    map = (BlockNumber *) malloc(sizeof(BlockNumber) * nblocks);
     BlockNumber r;
     for (i = 0; i < nblocks; i++) {
         r = (BlockNumber) ((BlockNumber) arc4random()) % ((BlockNumber) (pow(2, treeHeight)));
@@ -33,11 +34,15 @@ void pmapUpdate(const BlockNumber newBlkno, const BlockNumber realBlkno, const c
     map[realBlkno] = newBlkno;
 }
 
+void pmapClose(const char *filename){
+    free(map);
+}
 
 AMPMap *pmapCreate() {
     AMPMap *pmap = (AMPMap *) malloc(sizeof(AMPMap));
     pmap->pminit = &pmapInit;
     pmap->pmget = &pmapGet;
     pmap->pmupdate = &pmapUpdate;
+    pmap->pmclose = &pmapClose;
     return pmap;
 }

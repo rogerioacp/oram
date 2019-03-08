@@ -48,8 +48,11 @@ int main(int argc, char *argv[]) {
     char **strings = (char**) malloc(sizeof(char*)*nblocks);
     state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
     printf("Going to write strings\n");
+
     for(index = 0; index < nblocks; index++){
-        string_size = (arc4random()% 10)+1;
+        string_size = blockSize/sizeof(char)-1;
+        string_size = string_size == 0 ? 1 : string_size;
+
         strings[index] = gen_random(string_size+1);
         result = write(strings[index], sizeof(char) * strlen(strings[index])+1, index, state);
     }
