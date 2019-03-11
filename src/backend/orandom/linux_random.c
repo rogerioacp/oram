@@ -3,6 +3,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-unsigned int getRandomInt(){
-	return random();
+unsigned int getRandomInt() {
+    return random();
 }

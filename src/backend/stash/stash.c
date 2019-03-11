@@ -68,7 +68,7 @@ void stashAdd(const char *filename, const PLBlock block) {
 }
 
 
-void stashUpdate(const char *filename, const PLBlock block){
+void stashUpdate(const char *filename, const PLBlock block) {
     GSList *head = list;
     PLBlock aux = NULL;
     int found = 0;
@@ -88,7 +88,7 @@ void stashUpdate(const char *filename, const PLBlock block){
     }
 
 
-    if(!found){
+    if (!found) {
         list = g_slist_append(list, block);
     }
 }
@@ -110,10 +110,11 @@ void stashRemove(const char *filename, const PLBlock block) {
 }
 
 
-void destroyNotifyPLBlock(gpointer data){
+void destroyNotifyPLBlock(gpointer data) {
     freeBlock((PLBlock) data);
 }
-void stashClose(const char *filename){
+
+void stashClose(const char *filename) {
     g_slist_free_full(list, &destroyNotifyPLBlock);
     list = NULL;
 }

@@ -3,6 +3,6 @@
 #include <stdlib.h>
 
 
-unsigned int getRandomInt(){
-	return arc4random();
+unsigned int getRandomInt() {
+    return arc4random();
 }

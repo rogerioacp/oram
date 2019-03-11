@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     size_t s_size = sizeof(char) * strlen(teste);
     result = write(teste, sizeof(char) * strlen(teste), 0, state);
     close(state);
-    if(result == strlen(teste)){
+    if (result == strlen(teste)) {
         return 0;
     }
     return 1;

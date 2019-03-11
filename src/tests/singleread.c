@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     printf("Going to read\n");
     result = read(&data, 0, state);
     close(state);
-    if (data == NULL && result == 0){
+    if (data == NULL && result == 0) {
         return 0;
     }
     return 1;

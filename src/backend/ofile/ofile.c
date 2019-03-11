@@ -45,10 +45,10 @@ void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_b
 }
 
 
-void fileClose(const char * filename){
+void fileClose(const char *filename) {
     int i;
 
-    for(i=0; i < gnblocks; i++){
+    for (i = 0; i < gnblocks; i++) {
         free(file[i]->block);
         free(file[i]);
     }

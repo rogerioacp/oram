@@ -29,11 +29,8 @@
 #include <errno.h>
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 
 #include "oram.h"
-#include "block.h"
 #include "logger.h"
 #include "orandom.h"
 
@@ -337,7 +334,6 @@ void getBlocksToWrite(PLBList *blocksToWrite, size_t a_leaf, ORAMState state) {
 
     initBlockList(state, &selectedBlocks);
 
-    
 
     for (; level > 0; level--) {
 
@@ -476,7 +472,7 @@ size_t write(void *data, size_t blkSize, BlockNumber blkno, ORAMState state) {
     TreePath path = NULL;
     PLBList list = NULL;
     PLBList blocks_to_write = NULL;
-    
+
     // line 1 and 2 of original paper
     leaf = state->amgr->am_pmap->pmget(state->file, blkno);
     updateBlockLeaf(blkno, state);
@@ -502,7 +498,7 @@ size_t write(void *data, size_t blkSize, BlockNumber blkno, ORAMState state) {
     return blkSize;
 }
 
-void close(ORAMState state){
+void close(ORAMState state) {
     state->amgr->am_stash->stashclose(state->file);
     state->amgr->am_pmap->pmclose(state->file);
     state->amgr->am_ofile->ofileclose(state->file);

@@ -5,22 +5,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-char* gen_random(const int len) {
+char *gen_random(const int len) {
 
-    char* s = (char*) malloc(sizeof(char)*len);
+    char *s = (char *) malloc(sizeof(char) * len);
 
     static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
+            "0123456789"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz";
 
-    for (int i = 0; i < len-1; ++i) {
+    for (int i = 0; i < len - 1; ++i) {
         s[i] = alphanum[getRandomInt() % (sizeof(alphanum) - 1)];
     }
 
-    s[len-1] = '\0';
+    s[len - 1] = '\0';
     return s;
 }
+
 int main(int argc, char *argv[]) {
 
     AMStash *stash;
@@ -41,34 +42,34 @@ int main(int argc, char *argv[]) {
     size_t blockSize = 20;// block size of 20 bytes;
     size_t bucketCapcity = 1; // 1 bucket per tree node;
     size_t result = 0;
-    size_t nblocks = fileSize/blockSize;
+    size_t nblocks = fileSize / blockSize;
     int string_size = 0;
     int index = 0;
     void *data = NULL;
     //printf("Going to init\n");
-    char **strings = (char**) malloc(sizeof(char*)*nblocks);
+    char **strings = (char **) malloc(sizeof(char *) * nblocks);
     state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
     //printf("Going to write strings\n");
 
-    for(index = 0; index < nblocks; index++){
-        string_size = blockSize/sizeof(char)-1;
+    for (index = 0; index < nblocks; index++) {
+        string_size = blockSize / sizeof(char) - 1;
         string_size = string_size == 0 ? 1 : string_size;
         string_size += 1;
         strings[index] = gen_random(string_size);
         //printf("Going to write on offset %d the string %s\n",index, strings[index]);
-        result = write(strings[index], sizeof(char) * strlen(strings[index])+1, index, state);
+        result = write(strings[index], sizeof(char) * strlen(strings[index]) + 1, index, state);
     }
 
-    for(index = 0; index < nblocks; index++){
+    for (index = 0; index < nblocks; index++) {
         //printf("Going to read %d\n",index);
         result = read(&data, index, state);
         //printf("read string %s with result %zu\n", (char*) data, result);
 
-         if(result != strlen(data)+1|| strcmp(data, strings[index]) != 0){
+        if (result != strlen(data) + 1 || strcmp(data, strings[index]) != 0) {
             close(state);
             free(data);
             return 1;
-        } 
+        }
         free(strings[index]);
         free(data);
     }

@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 
     state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
     char *teste = "HELLO!";
-    size_t s_size = sizeof(char) * strlen(teste) +1;
+    size_t s_size = sizeof(char) * strlen(teste) + 1;
     result = write(teste, s_size, 0, state);
     result = read(&data, 0, state);
     result = strcmp(teste, data);

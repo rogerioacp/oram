@@ -35,7 +35,7 @@ void pmapUpdate(const BlockNumber newBlkno, const BlockNumber realBlkno, const c
     map[realBlkno] = newBlkno;
 }
 
-void pmapClose(const char *filename){
+void pmapClose(const char *filename) {
     free(map);
 }
 
