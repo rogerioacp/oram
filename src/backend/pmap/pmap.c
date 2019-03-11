@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "pmap.h"
+#include "orandom.h"
 
 
 size_t *map;
@@ -21,7 +22,7 @@ void pmapInit(const char *filename, size_t nblocks, size_t treeHeight) {
     map = (BlockNumber *) malloc(sizeof(BlockNumber) * nblocks);
     BlockNumber r;
     for (i = 0; i < nblocks; i++) {
-        r = (BlockNumber) ((BlockNumber) arc4random()) % ((BlockNumber) (pow(2, treeHeight)));
+        r = (BlockNumber) ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, treeHeight)));
         map[i] = r;
     }
 }

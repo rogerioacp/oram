@@ -1,4 +1,5 @@
 #include "oram.h"
+#include "orandom.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,11 +14,11 @@ char* gen_random(const int len) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
 
-    for (int i = 0; i < len; ++i) {
-        s[i] = alphanum[arc4random() % (sizeof(alphanum) - 1)];
+    for (int i = 0; i < len-1; ++i) {
+        s[i] = alphanum[getRandomInt() % (sizeof(alphanum) - 1)];
     }
 
-    s[len] = '\0';
+    s[len-1] = '\0';
     return s;
 }
 
@@ -65,7 +66,7 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
           */
         //assert(string_size>1);
 
-        wOffset = (arc4random()%nblocks);
+        wOffset = (getRandomInt()%nblocks);
         /* array already stores a malloced string which is being overwritten
          * and if not freed the reference is lost and memory leaked.
          */
@@ -85,11 +86,15 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
         //printf("read from oram offset %d the value %s and compares to %s \n", index, data, strings[index]);
 
          if( (result != 0 && result != strlen(data)+1) || (result != 0 &&strcmp(data, strings[index]) != 0)){
+            close(state);
             return 1;
         } 
+        free(strings[index]);
+        free(data);
     }
 
     close(state);
+    free(strings);
     return 0;
 }
 

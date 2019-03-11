@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
     printf("Going to read\n");
     result = read(&data, 0, state);
-    
+    close(state);
     if (data == NULL && result == 0){
         return 0;
     }

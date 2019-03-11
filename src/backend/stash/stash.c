@@ -1,5 +1,6 @@
 #include <glib.h>
 #include <stdio.h>
+#include <string.h>
 #include "stash.h"
 
 GSList *list;
@@ -71,6 +72,7 @@ void stashUpdate(const char *filename, const PLBlock block){
     GSList *head = list;
     PLBlock aux = NULL;
     int found = 0;
+
     while (head != NULL) {
         aux = (PLBlock) head->data;
 
@@ -104,6 +106,7 @@ void stashRemove(const char *filename, const PLBlock block) {
         head = g_slist_next(head);
     }
     list = g_slist_remove_link(list, head);
+    g_slist_free_1(head);
 }
 
 

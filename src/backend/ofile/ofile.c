@@ -49,6 +49,7 @@ void fileClose(const char * filename){
     int i;
 
     for(i=0; i < gnblocks; i++){
+        free(file[i]->block);
         free(file[i]);
     }
     free(file);

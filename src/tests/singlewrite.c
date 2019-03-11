@@ -29,6 +29,7 @@ int main(int argc, char *argv[]) {
     char *teste = "HELLO!";
     size_t s_size = sizeof(char) * strlen(teste);
     result = write(teste, sizeof(char) * strlen(teste), 0, state);
+    close(state);
     if(result == strlen(teste)){
         return 0;
     }

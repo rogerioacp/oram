@@ -1,4 +1,5 @@
 #include "oram.h"
+#include "orandom.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,11 +14,11 @@ char* gen_random(const int len) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
 
-    for (int i = 0; i < len; ++i) {
-        s[i] = alphanum[arc4random() % (sizeof(alphanum) - 1)];
+    for (int i = 0; i < len-1; ++i) {
+        s[i] = alphanum[getRandomInt() % (sizeof(alphanum) - 1)];
     }
 
-    s[len] = '\0';
+    s[len-1] = '\0';
     return s;
 }
 int main(int argc, char *argv[]) {
@@ -44,25 +45,34 @@ int main(int argc, char *argv[]) {
     int string_size = 0;
     int index = 0;
     void *data = NULL;
-    printf("Going to init\n");
+    //printf("Going to init\n");
     char **strings = (char**) malloc(sizeof(char*)*nblocks);
     state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
-    printf("Going to write strings\n");
+    //printf("Going to write strings\n");
 
     for(index = 0; index < nblocks; index++){
         string_size = blockSize/sizeof(char)-1;
         string_size = string_size == 0 ? 1 : string_size;
-
-        strings[index] = gen_random(string_size+1);
+        string_size += 1;
+        strings[index] = gen_random(string_size);
+        //printf("Going to write on offset %d the string %s\n",index, strings[index]);
         result = write(strings[index], sizeof(char) * strlen(strings[index])+1, index, state);
     }
 
     for(index = 0; index < nblocks; index++){
+        //printf("Going to read %d\n",index);
         result = read(&data, index, state);
+        //printf("read string %s with result %zu\n", (char*) data, result);
+
          if(result != strlen(data)+1|| strcmp(data, strings[index]) != 0){
+            close(state);
+            free(data);
             return 1;
         } 
+        free(strings[index]);
+        free(data);
     }
-
+    close(state);
+    free(strings);
     return 0;
 }

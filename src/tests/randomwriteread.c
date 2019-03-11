@@ -1,4 +1,5 @@
 #include "oram.h"
+#include "orandom.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,11 +14,11 @@ char* gen_random(const int len) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
 
-    for (int i = 0; i < len; ++i) {
-        s[i] = alphanum[arc4random() % (sizeof(alphanum) - 1)];
+    for (int i = 0; i < len-1; ++i) {
+        s[i] = alphanum[getRandomInt() % (sizeof(alphanum) - 1)];
     }
 
-    s[len] = '\0';
+    s[len-1] = '\0';
     return s;
 }
 
@@ -66,7 +67,7 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
           */
         //assert(string_size>1);
 
-        wOffset = (arc4random()%nblocks);
+        wOffset = (getRandomInt()%nblocks);
         /* array already stores a malloced string which is being overwritten
          * and if not freed the reference is lost and memory leaked.
          */
@@ -76,22 +77,27 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
         strings[wOffset] = gen_random(string_size+1);
         blockWriteOffset = sizeof(char) * strlen(strings[wOffset])+1;
 
-        printf("going to write to oram offset %zu the string %s\n", wOffset, strings[wOffset]);
+        //printf("going to write to oram offset %zu the string %s\n", wOffset, strings[wOffset]);
         write(strings[wOffset], blockWriteOffset, wOffset, state);
         
         for(readi = 0; readi < nblocks; readi++){
 
            result = read(&data, readi, state);
-            printf("read from oram offset %d the value %s and compares to %s \n", readi, data, strings[readi]);
+            //printf("read from oram offset %d the value %s and compares to %s \n", readi, (char*) data, strings[readi]);
 
             if((result != 0 && result != strlen(data)+1) ||  (result != 0 && strcmp(data, strings[readi]) != 0)){
+                close(state);
                 return 1;
             }
+            free(data);
         } 
-    }
-
-   
+    }   
     close(state);
+    for(index =0 ; index < nblocks; index++){
+        free(strings[index]);
+    }
+    free(strings);
+
     return 0;
 }
 

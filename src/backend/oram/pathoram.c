@@ -35,6 +35,7 @@
 #include "oram.h"
 #include "block.h"
 #include "logger.h"
+#include "orandom.h"
 
 
 struct ORAMState {
@@ -412,7 +413,7 @@ int check(size_t a_leaf, size_t s_leaf, size_t level) {
 
 void updateBlockLeaf(BlockNumber blkno, ORAMState state) {
     BlockNumber old = state->amgr->am_pmap->pmget(state->file, blkno);
-    BlockNumber r = ((BlockNumber) arc4random()) % ((BlockNumber) (pow(2, state->treeHeight)));
+    BlockNumber r = ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, state->treeHeight)));
     state->amgr->am_pmap->pmupdate(r, blkno, state->file);
 }
 
@@ -424,6 +425,7 @@ void updateStashWithNewBlock(void *data, size_t blkSize, BlockNumber blkno, ORAM
 
 size_t read(void **ptr, BlockNumber blkno, ORAMState state) {
     size_t leaf = 0;
+    size_t result = 0;
     TreePath path = NULL;
     PLBList list = NULL;
     PLBList blocks_to_write = NULL;
@@ -454,6 +456,7 @@ size_t read(void **ptr, BlockNumber blkno, ORAMState state) {
     free(path);
     /*The plblocks of the list cannot be freed as they may be in the stash*/
     free(list);
+    free(blocks_to_write);
     //No block has been inserted yet
     if (plblock->blkno == DUMMY_BLOCK) {
         *ptr = NULL;
@@ -461,8 +464,9 @@ size_t read(void **ptr, BlockNumber blkno, ORAMState state) {
         return 0;
     } else {
         *ptr = plblock->block;
+        result = plblock->size;
         free(plblock);
-        return plblock->size;
+        return result;
     }
 
 }
@@ -493,6 +497,7 @@ size_t write(void *data, size_t blkSize, BlockNumber blkno, ORAMState state) {
     free(path);
     /*The plblocks of the list cannot be freed as they may be in the stash*/
     free(list);
+    free(blocks_to_write);
 
     return blkSize;
 }
@@ -501,5 +506,8 @@ void close(ORAMState state){
     state->amgr->am_stash->stashclose(state->file);
     state->amgr->am_pmap->pmclose(state->file);
     state->amgr->am_ofile->ofileclose(state->file);
+    free(state->amgr->am_stash);
+    free(state->amgr->am_pmap);
+    free(state->amgr->am_ofile);
     free(state);
 }

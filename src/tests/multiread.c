@@ -34,9 +34,10 @@ int main(int argc, char *argv[]) {
         printf("Going to read block offset %d\n", index);
         result = read(&data, index, state);
        if (data != NULL || result != 0){
+            close(state);
             return 1;
         }
     }
- 
+    close(state);
     return 0;
 }
