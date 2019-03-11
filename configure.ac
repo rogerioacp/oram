@@ -1,4 +1,4 @@
-AC_INIT([oram], [1.0], [rogeriocap@google.com])
+AC_INIT([oram], [0.0.1], [rogeriocap@google.com])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign]) 
 AC_PROG_CC
