@@ -6,7 +6,7 @@
 #include <string.h>
 
 char *gen_random(const int len) {
-
+    int i = 0;
     char *s = (char *) malloc(sizeof(char) * len);
 
     static const char alphanum[] =
@@ -14,7 +14,7 @@ char *gen_random(const int len) {
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             "abcdefghijklmnopqrstuvwxyz";
 
-    for (int i = 0; i < len - 1; ++i) {
+    for (i = 0; i < len - 1; ++i) {
         s[i] = alphanum[getRandomInt() % (sizeof(alphanum) - 1)];
     }
 

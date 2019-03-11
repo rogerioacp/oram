@@ -1,0 +1,11 @@
+language: c
+
+
+matrix:
+  include:
+    # works on Precise and Trusty
+    - dist: trusty
+      before_install:
+        - sudo sudo apt-get install libglib2.0-dev
+        - autoreconf -i
+      script: ./configure && make && make check && make distcheck
