@@ -18,19 +18,21 @@ PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.4)
 # Includes in a global variable common to all targets.
 AC_SEARCH_LIBS([pow], [m])
 
+AC_CANONICAL_HOST
+
 build_linux=no
 build_windows=no
 build_mac=no
 
 # Detect the target system
 case "${host}" in
-    linux*)
+    *linux*)
         build_linux=yes
         ;;
     cygwin*|mingw*)
         build_windows=yes
         ;;
-    darwin*)
+    *darwin*)
         build_mac=yes
         ;;
     *)
