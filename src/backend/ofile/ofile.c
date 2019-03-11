@@ -1,3 +1,21 @@
+/*-------------------------------------------------------------------------
+ *
+ * ofile.c
+ *        Simulation of a file in memory.
+ *
+ *
+ * This code should only be used for tests. The idea of this file is to
+ * provide an example and have an in-memory implementation of the methods
+ * the ORAM requires to write blocks to a file. This code is used for testing
+ * the implementation without having to actually write to a file.
+ * 
+ * Copyright (c) 2018-2019, HASLab
+ *
+ * IDENTIFICATION
+ *        backend/ofile/ofile.c
+ *
+ *-------------------------------------------------------------------------
+ */
 
 #include "ofile.h"
 #include <stdio.h>
@@ -45,10 +63,10 @@ void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_b
 }
 
 
-void fileClose(const char *filename) {
+void fileClose(const char * filename){
     int i;
 
-    for (i = 0; i < gnblocks; i++) {
+    for(i=0; i < gnblocks; i++){
         free(file[i]->block);
         free(file[i]);
     }

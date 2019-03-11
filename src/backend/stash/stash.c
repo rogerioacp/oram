@@ -1,3 +1,21 @@
+/*-------------------------------------------------------------------------
+ *
+ * stash.c
+ *      In-memory implementation of a stash.
+ *
+ * Implementation of a in-memory stash that keeps tracks of the blocks read
+ * from an oblivious file and the blocks that have to be updated. This
+ * implementation depends on the GSList of the glib and assumes that
+ * only a single file is being accessed obliviously and ignores the filename. 
+ *
+ * Copyright (c) 2018-2019, HASLab
+ *
+ * IDENTIFICATION
+ *        backend/stash/stash.c
+ *
+ *-------------------------------------------------------------------------
+ */
+
 #include <glib.h>
 #include <stdio.h>
 #include <string.h>

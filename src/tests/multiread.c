@@ -1,5 +1,3 @@
-
-
 #include "oram.h"
 
 #include <stdio.h>

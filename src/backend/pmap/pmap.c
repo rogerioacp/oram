@@ -1,3 +1,19 @@
+/*-------------------------------------------------------------------------
+ *
+ * pmap.c
+ *      In-memory implementation of a position map.
+ *
+ * Implementation of a in-memory position map that maps block offsets to 
+ * oram leaf nodes in an array. This implementation assumes that only a
+ * single file is being accessed obliviously and ignores the filename. 
+ *
+ * Copyright (c) 2018-2019, HASLab
+ *
+ * IDENTIFICATION
+ *        backend/pmap/pmap.c
+ *
+ *-------------------------------------------------------------------------
+ */
 
 #include <math.h>
 #include <stdio.h>

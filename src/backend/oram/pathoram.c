@@ -21,7 +21,7 @@
  * Copyright (c) 2018-2019, HASLab
  *
  * IDENTIFICATION
- *		  backend/pathoram.c
+ *		  backend/oram/pathoram.c
  *
  *-------------------------------------------------------------------------
  */

@@ -1,3 +1,16 @@
+/*-------------------------------------------------------------------------
+ *
+ * block.c
+ *      Methods to allocate and free oram blocks.
+ *
+ * 
+ * Copyright (c) 2018-2019, HASLab
+ *
+ * IDENTIFICATION
+ *        backend/block/block.c
+ *
+ *-------------------------------------------------------------------------
+ */
 
 #include "block.h"
 #include "logger.h"
