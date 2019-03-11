@@ -1,7 +1,5 @@
 AC_INIT([oram], [1.0], [rogeriocap@google.com])
 
-
-
 AM_INIT_AUTOMAKE([-Wall -Werror foreign]) 
 AC_PROG_CC
 AC_CONFIG_HEADERS([config.h])
@@ -9,6 +7,11 @@ AC_CONFIG_FILES([
 	Makefile
     src/Makefile
     ])
+
+AM_PROG_AR
+LT_INIT
+
+AC_CONFIG_MACRO_DIRS([m4])
 
 # used to find packages installed on the system external to the standard library
 # generates specific variables that can be used to include in specific targets.

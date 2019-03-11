@@ -50,3 +50,8 @@ largerandomwriteread_CFLAGS = $(GLIB_CFLAGS) -I $(srcdir)/include
 largerandomwriteread_LDADD = $(GLIB_LIBS)
 
 TESTS = $(check_PROGRAMS)
+
+lib_LTLIBRARIES = liboram.la
+liboram_la_SOURCES = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/stash.c backend/block/block.c $(random_file) backend/oram/pathoram.c
+liboram_la_CFLAGS = $(GLIB_CFLAGS) -I $(srcdir)/include
+liboram_la_LIBADD = $(GLIB_LIBS)

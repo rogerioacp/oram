@@ -52,3 +52,11 @@ m4/lt~obsolete.m4
 *.BAK
 cmake-build-debug
 *.tar.gz
+*.o
+*.lo
+*.la
+*.libs
+*.dirstamp
+*Makefile
+config.h*
+libtool
