@@ -13,6 +13,6 @@
 #ifndef ORANDOM_H
 #define ORANDOM_H
 
-unsigned int getRandomInt();
+unsigned int getRandomInt(void);
 
 #endif   /* BLOCK_H */

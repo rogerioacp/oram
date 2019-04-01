@@ -14,10 +14,10 @@
 #define ORAM_H
 
 
-#include "block.h"
-#include "stash.h"
-#include "pmap.h"
-#include "ofile.h"
+#include "oram/plblock.h"
+#include "oram/stash.h"
+#include "oram/pmap.h"
+#include "oram/ofile.h"
 
 
 /***
@@ -60,7 +60,7 @@ typedef struct Amgr {
  *
  */
 
-ORAMState init(char *filename, size_t fileSize, size_t blockSize, size_t bucketCapacity, Amgr *amgr);
+ORAMState init(char *filename, unsigned int fileSize, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr);
 
 /**
  * ORAM read operation that triggers a sequence of oblivious file reads and
@@ -68,14 +68,14 @@ ORAMState init(char *filename, size_t fileSize, size_t blockSize, size_t bucketC
  * requested block.
  *
  */
-size_t read(void **ptr, BlockNumber blkno, ORAMState state);
+unsigned int read(char **ptr, BlockNumber blkno, ORAMState state);
 
 /**
  * ORAM write request that triggers a sequence of oblivious file reads and
  * writes that hides the input block.
  *
  */
-size_t write(void *data, size_t blksize, BlockNumber blkno, ORAMState state);
+unsigned int write(char *data, unsigned int blksize, BlockNumber blkno, ORAMState state);
 
 
 /**

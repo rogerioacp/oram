@@ -1,4 +1,4 @@
-#include "oram.h"
+#include "oram/oram.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     size_t blockSize = 20;// block size of 20 bytes;
     size_t bucketCapcity = 1; // 1 bucket per tree node;
     size_t result = 0;
-    void *data = NULL;
+    char *data = NULL;
 
     state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
     char *teste = "HELLO!";

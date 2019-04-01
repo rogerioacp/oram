@@ -17,14 +17,15 @@
  *-------------------------------------------------------------------------
  */
 
-#include "ofile.h"
+#include "oram/ofile.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 PLBList file;
-size_t gnblocks;
+unsigned int gnblocks;
 
-static void fileInit(const char *filename, size_t nblocks, size_t blocksize);
+static void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize);
 
 static void fileRead(PLBlock block, const char *fileName, const BlockNumber ob_blkno);
 
@@ -33,7 +34,7 @@ static void fileWrite(const PLBlock block, const char *fileName, const BlockNumb
 static void fileClose(const char *filename);
 
 
-void fileInit(const char *filename, size_t nblocks, size_t blocksize) {
+void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize) {
     int offset;
     file = (PLBList) malloc(sizeof(PLBlock) * nblocks);
     gnblocks = nblocks;
@@ -73,7 +74,7 @@ void fileClose(const char * filename){
     free(file);
 }
 
-AMOFile *ofileCreate() {
+AMOFile *ofileCreate(void) {
     AMOFile *file = (AMOFile *) malloc(sizeof(AMOFile));
     file->ofileinit = &fileInit;
     file->ofileread = &fileRead;

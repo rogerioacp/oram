@@ -17,23 +17,24 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "pmap.h"
-#include "orandom.h"
-
-
-size_t *map;
+#include "oram/pmap.h"
+#include "oram/orandom.h"
 
 
-static void pmapInit(const char *filename, const size_t nblocks, const size_t treeHeight);
+unsigned int *map;
 
-static size_t pmapGet(const char *fileName, const BlockNumber blkno);
+
+static void pmapInit(const char *filename, const unsigned int nblocks, const unsigned int treeHeight);
+
+static unsigned int pmapGet(const char *fileName, const BlockNumber blkno);
 
 static void pmapUpdate(const BlockNumber newBlkno, const BlockNumber realBlkno, const char *fileName);
 
 static void pmapClose(const char *filename);
 
-void pmapInit(const char *filename, size_t nblocks, size_t treeHeight) {
+void pmapInit(const char *filename, unsigned int nblocks, unsigned int treeHeight) {
     int i;
     map = (BlockNumber *) malloc(sizeof(BlockNumber) * nblocks);
     BlockNumber r;
@@ -43,7 +44,7 @@ void pmapInit(const char *filename, size_t nblocks, size_t treeHeight) {
     }
 }
 
-size_t pmapGet(const char *fileName, const BlockNumber blkno) {
+unsigned int pmapGet(const char *fileName, const BlockNumber blkno) {
     return map[blkno];
 }
 
@@ -55,7 +56,7 @@ void pmapClose(const char *filename) {
     free(map);
 }
 
-AMPMap *pmapCreate() {
+AMPMap *pmapCreate(void) {
     AMPMap *pmap = (AMPMap *) malloc(sizeof(AMPMap));
     pmap->pminit = &pmapInit;
     pmap->pmget = &pmapGet;

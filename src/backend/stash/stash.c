@@ -19,14 +19,14 @@
 #include <glib.h>
 #include <stdio.h>
 #include <string.h>
-#include "stash.h"
+#include "oram/stash.h"
 
 GSList *list;
 
 GSList *iterator;
 
 /* non-export function prototypes */
-static void stashInit(const char *filename, const size_t blockSize);
+static void stashInit(const char *filename, const unsigned int blockSize);
 
 static void stashAdd(const char *filename, const PLBlock block);
 
@@ -40,11 +40,11 @@ static void stashClose(const char *filename);
 
 static void stashStartIt(const char *filename);
 
-static size_t stashNext(const char *filename, PLBlock *block);
+static unsigned int stashNext(const char *filename, PLBlock *block);
 
 static void stashCloseIt(const char *filename);
 
-AMStash *stashCreate() {
+AMStash *stashCreate(void) {
     AMStash *stash = (AMStash *) malloc(sizeof(AMStash));
     stash->stashinit = &stashInit;
     stash->stashget = &stashGet;
@@ -60,7 +60,7 @@ AMStash *stashCreate() {
     return stash;
 }
 
-void stashInit(const char *filename, const size_t blockSize) {
+void stashInit(const char *filename, const unsigned int blockSize) {
     list = NULL;
 }
 
@@ -70,7 +70,7 @@ void stashGet(PLBlock block, BlockNumber pl_blkno, const char *filename) {
     while (head != NULL) {
         aux = (PLBlock) head->data;
 
-        if ((size_t) aux->blkno == pl_blkno) {
+        if ((unsigned int) aux->blkno == pl_blkno) {
             block->blkno = aux->blkno;
             block->size = aux->size;
             block->block = malloc(aux->size);
@@ -94,7 +94,7 @@ void stashUpdate(const char *filename, const PLBlock block) {
     while (head != NULL) {
         aux = (PLBlock) head->data;
 
-        if ((size_t) aux->blkno == block->blkno) {
+        if ((unsigned int) aux->blkno == block->blkno) {
             found = 1;
             free(aux->block);
             aux->block = block->block;
@@ -118,7 +118,7 @@ void stashRemove(const char *filename, const PLBlock block) {
     while (head != NULL) {
         aux = (PLBlock) head->data;
 
-        if ((size_t) aux->blkno == block->blkno) {
+        if ((unsigned int) aux->blkno == block->blkno) {
             break;
         }
         head = g_slist_next(head);
@@ -142,7 +142,7 @@ void stashStartIt(const char *filename) {
     iterator = list;
 }
 
-size_t stashNext(const char *filename, PLBlock *block) {
+unsigned int stashNext(const char *filename, PLBlock *block) {
     if (iterator == NULL) {
         return 0;
     }

@@ -1,5 +1,5 @@
-#include "oram.h"
-#include "orandom.h"
+#include "oram/oram.h"
+#include "oram/orandom.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,11 +40,11 @@ int main(int argc, char *argv[]) {
     size_t fileSize = 100;// file with 100 bytes;
     size_t blockSize = 20;// block size of 20 bytes;
     size_t bucketCapcity = 1; // 1 bucket per tree node;
-    size_t result = 0;
+    int result = 0;
     size_t nblocks = fileSize / blockSize;
     int string_size = 0;
     int index = 0;
-    void *data = NULL;
+    char *data = NULL;
     //printf("Going to init\n");
     char **strings = (char **) malloc(sizeof(char *) * nblocks);
     state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
@@ -60,9 +60,9 @@ int main(int argc, char *argv[]) {
     }
 
     for (index = 0; index < nblocks; index++) {
-        //printf("Going to read %d\n",index);
+        printf("Going to read %d\n",index);
         result = read(&data, index, state);
-        //printf("read string %s with result %zu\n", (char*) data, result);
+        printf("read string %s with result %d\n", (char*) data, result);
 
         if (result != strlen(data) + 1 || strcmp(data, strings[index]) != 0) {
             close(state);

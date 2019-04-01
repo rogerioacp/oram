@@ -12,10 +12,10 @@
 #ifndef STASH_H
 #define STASH_H
 
-#include "block.h"
+#include "oram/plblock.h"
 
 
-typedef void (*stashinit_function)(const char *filename, const size_t blockSize);
+typedef void (*stashinit_function)(const char *filename, const unsigned int  blockSize);
 
 typedef void (*stashget_function)(PLBlock block, const BlockNumber pl_blkno, const char *fileName);
 
@@ -30,7 +30,7 @@ typedef void (*stashclose_function)(const char *filename);
 
 typedef void (*stashstartIt_function)(const char *filename);
 
-typedef size_t(*stashnext_function)(const char *filename, PLBlock *block);
+typedef unsigned int (*stashnext_function)(const char *filename, PLBlock *block);
 
 typedef void (*stashcloseIt_function)(const char *filename);
 
@@ -52,6 +52,6 @@ typedef struct AMStash {
 } AMStash;
 
 
-AMStash *stashCreate();
+AMStash *stashCreate(void);
 
 #endif                            /* STASH_H */

@@ -1,4 +1,5 @@
-#include "oram.h"
+#include "oram/oram.h"
+#include "oram/plblock.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -22,16 +23,16 @@ int main(int argc, char *argv[]) {
     size_t fileSize = 100;// file with 100 bytes;
     size_t blockSize = 20;// block size of 20 bytes;
     size_t bucketCapcity = 1; // 1 bucket per tree node;
-    size_t result = 0;
+    int result = 0;
     size_t nblocks = fileSize / blockSize;
     int index = 0;
-    void *data = NULL;
+    char *data = NULL;
     state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
 
     for (index = 0; index < nblocks; index++) {
         printf("Going to read block offset %d\n", index);
         result = read(&data, index, state);
-        if (data != NULL || result != 0) {
+        if (result != DUMMY_BLOCK) {
             close(state);
             return 1;
         }

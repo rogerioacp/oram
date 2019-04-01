@@ -11,10 +11,10 @@
  *-------------------------------------------------------------------------
  */
 
-#include "orandom.h"
+#include "oram/orandom.h"
 #include <stdlib.h>
 
 
-unsigned int getRandomInt() {
+unsigned int getRandomInt(void) {
     return arc4random();
 }

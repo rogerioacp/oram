@@ -12,9 +12,10 @@
  *-------------------------------------------------------------------------
  */
 
-#include "block.h"
-#include "logger.h"
+#include "oram/plblock.h"
+#include "oram/logger.h"
 
+#include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 
@@ -43,7 +44,7 @@ PLBlock createBlock(int blkno, int size, void *data) {
 }
 
 
-PLBlock createEmptyBlock() {
+PLBlock createEmptyBlock(void) {
     int save_errno = 0;
 
     save_errno = errno;
@@ -64,7 +65,7 @@ PLBlock createEmptyBlock() {
     return block;
 }
 
-PLBlock createRandomBlock(size_t size) {
+PLBlock createRandomBlock(unsigned int size) {
     int save_errno = 0;
     PLBlock block = createEmptyBlock();
 

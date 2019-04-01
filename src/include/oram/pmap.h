@@ -13,12 +13,12 @@
 #ifndef PMAP_H
 #define PMAP_H
 
-#include "block.h"
+#include "oram/plblock.h"
 
 // nBlocks -> number of original blocks.
-typedef void (*pminit_function)(const char *fileName, const size_t nBlocks, const size_t treeHeight);
+typedef void (*pminit_function)(const char *fileName, const unsigned int nBlocks, const unsigned int treeHeight);
 
-typedef size_t (*pmget_function)(const char *fileName, const BlockNumber blkno);
+typedef unsigned int (*pmget_function)(const char *fileName, const BlockNumber blkno);
 
 typedef void (*pmupdate_function)(const BlockNumber newBlkno, const BlockNumber realBlkno, const char *fileName);
 
@@ -33,6 +33,6 @@ typedef struct AMPMap {
     pmclose_function pmclose;
 } AMPMap;
 
-AMPMap *pmapCreate();
+AMPMap *pmapCreate(void);
 
 #endif        /*PMAP_H*/

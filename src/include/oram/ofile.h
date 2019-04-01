@@ -13,9 +13,9 @@
 #ifndef OFILE_H
 #define OFILE_H
 
-#include "block.h"
+#include "oram/plblock.h"
 
-typedef void (*ofileinit_function)(const char *fileName, size_t totalNodes, size_t blockSize);
+typedef void (*ofileinit_function)(const char *fileName, unsigned int totalNodes, unsigned int blockSize);
 
 typedef void (*ofileread_function)(PLBlock block, const char *fileName, const BlockNumber ob_blkno);
 
@@ -30,6 +30,6 @@ typedef struct AMOFile {
     ofileclose_function ofileclose;
 } AMOFile;
 
-AMOFile *ofileCreate();
+AMOFile *ofileCreate(void);
 
 #endif  /*OFILE_H*/

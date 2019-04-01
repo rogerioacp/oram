@@ -1,5 +1,6 @@
-#include "oram.h"
-#include "orandom.h"
+#include "oram/oram.h"
+#include "oram/orandom.h"
+#include "oram/plblock.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +26,7 @@ char *gen_random(const int len) {
 
 int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites) {
 
-    size_t result = 0;
+    int result = 0;
     size_t nblocks = fileSize / blockSize;
     size_t wOffset = 0;
     size_t blockWriteOffset = 0;
@@ -46,7 +47,7 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
 
     int string_size = 0;
     int index = 0;
-    void *data = NULL;
+    char *data = NULL;
     //printf("Going to init\n");
     //malloc input is size in bytes. sizeof gives size in bytes.
     char **strings = (char **) malloc(sizeof(char *) * nblocks);
@@ -85,7 +86,7 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
         result = read(&data, index, state);
         //printf("read from oram offset %d the value %s and compares to %s \n", index, data, strings[index]);
 
-        if ((result != 0 && result != strlen(data) + 1) || (result != 0 && strcmp(data, strings[index]) != 0)) {
+        if ((result != DUMMY_BLOCK && result != strlen(data) + 1) || (result != DUMMY_BLOCK && strcmp(data, strings[index]) != 0)) {
             close(state);
             return 1;
         }

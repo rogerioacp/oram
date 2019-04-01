@@ -10,14 +10,12 @@
  *-------------------------------------------------------------------------
  */
 
-#ifndef BLOCK_H
-#define BLOCK_H
+#ifndef PLBLOCK_H
+#define PLBLOCK_H
 
 #define DUMMY_BLOCK -1
 
-#include <stdlib.h>
-
-typedef size_t BlockNumber;
+typedef unsigned int BlockNumber;
 
 typedef struct PLBlock {
     int blkno; // blkno is -1 if its dummy block.
@@ -29,11 +27,11 @@ typedef PLBlock *PLBList;
 
 PLBlock createBlock(int blkno, int size, void *block);
 
-PLBlock createEmptyBlock();
+PLBlock createEmptyBlock(void);
 
-PLBlock createRandomBlock(size_t size);
+PLBlock createRandomBlock(unsigned int size);
 
 void freeBlock(PLBlock block);
 
 
-#endif   /* BLOCK_H */
+#endif   /* PLBLOCK_H */
