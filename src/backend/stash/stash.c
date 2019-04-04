@@ -16,14 +16,14 @@
  *-------------------------------------------------------------------------
  */
 
-#include <glib.h>
+#include <collectc/list.h>
 #include <stdio.h>
 #include <string.h>
 #include "oram/stash.h"
 
-GSList *list;
+static List *list;
 
-GSList *iterator;
+static ListIter iterator;
 
 /* non-export function prototypes */
 static void stashInit(const char *filename, const unsigned int blockSize);
@@ -61,15 +61,17 @@ AMStash *stashCreate(void) {
 }
 
 void stashInit(const char *filename, const unsigned int blockSize) {
-    list = NULL;
+    list_new(&list);
 }
 
 void stashGet(PLBlock block, BlockNumber pl_blkno, const char *filename) {
-    GSList *head = list;
+    ListIter iter;
     PLBlock aux = NULL;
-    while (head != NULL) {
-        aux = (PLBlock) head->data;
+    void *element;
 
+    list_iter_init(&iter, list);
+    while(list_iter_next(&iter, &element) != CC_ITER_END){
+        aux = (PLBlock) element;
         if ((unsigned int) aux->blkno == pl_blkno) {
             block->blkno = aux->blkno;
             block->size = aux->size;
@@ -77,22 +79,25 @@ void stashGet(PLBlock block, BlockNumber pl_blkno, const char *filename) {
             memcpy(block->block, aux->block, aux->size);
             break;
         }
-        head = g_slist_next(head);
     }
 }
 
 void stashAdd(const char *filename, const PLBlock block) {
-    list = g_slist_append(list, block);
+    list_add(list,block);
 }
 
 
 void stashUpdate(const char *filename, const PLBlock block) {
-    GSList *head = list;
+
+    ListIter iter;
     PLBlock aux = NULL;
+    void *element;
     int found = 0;
 
-    while (head != NULL) {
-        aux = (PLBlock) head->data;
+    list_iter_init(&iter, list);
+
+    while (list_iter_next(&iter, &element) != CC_ITER_END) {
+        aux = (PLBlock) element;
 
         if ((unsigned int) aux->blkno == block->blkno) {
             found = 1;
@@ -102,55 +107,59 @@ void stashUpdate(const char *filename, const PLBlock block) {
             free(block);
             break;
         }
-        head = g_slist_next(head);
     }
 
-
     if (!found) {
-        list = g_slist_append(list, block);
+        list_add(list, block);
     }
 }
 
 void stashRemove(const char *filename, const PLBlock block) {
-    GSList *head = list;
+    ListIter iter;
     PLBlock aux = NULL;
+    void *element;
+    void *toRemove;
 
-    while (head != NULL) {
-        aux = (PLBlock) head->data;
+    list_iter_init(&iter, list);
+
+    while (list_iter_next(&iter, &element) != CC_ITER_END) {
+        aux = (PLBlock) element;
 
         if ((unsigned int) aux->blkno == block->blkno) {
             break;
         }
-        head = g_slist_next(head);
     }
-    list = g_slist_remove_link(list, head);
-    g_slist_free_1(head);
+
+    list_remove(list, aux, &toRemove);
 }
 
 
-void destroyNotifyPLBlock(gpointer data) {
+void destroyNotifyPLBlock(void* data) {
     freeBlock((PLBlock) data);
 }
 
 void stashClose(const char *filename) {
-    g_slist_free_full(list, &destroyNotifyPLBlock);
+    list_remove_all_cb(list, &destroyNotifyPLBlock);
+    list_destroy(list);
     list = NULL;
 }
 
 
 void stashStartIt(const char *filename) {
-    iterator = list;
+    list_iter_init(&iterator, list);
 }
 
 unsigned int stashNext(const char *filename, PLBlock *block) {
-    if (iterator == NULL) {
+
+    void* element;
+    if (list_iter_next(&iterator, &element) == CC_ITER_END) {
         return 0;
     }
-    *block = (PLBlock) iterator->data;
-    iterator = iterator->next;
+
+    *block = (PLBlock) element;
     return 1;
 }
 
 void stashCloseIt(const char *filename) {
-    iterator = NULL;
+    //iterator = NULL;
 }
