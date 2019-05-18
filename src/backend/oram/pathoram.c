@@ -29,6 +29,8 @@
 #include <errno.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
+
 
 #include "oram/oram.h"
 #include "oram/logger.h"
@@ -43,6 +45,8 @@ struct ORAMState {
     char *file; // File name of the protected file.
 
     Amgr *amgr; // Set of external functions to handle ORAM states.
+    Stash stash;
+    PMap pmap;
 };
 
 typedef unsigned int  TreeNode;
@@ -55,7 +59,7 @@ typedef TreeNode *TreePath;
 static unsigned int  calculateTreeHeight(unsigned int  minimumNumberOfNodes);
 
 static ORAMState
-buildORAMState(char *filename, unsigned int  nblocks, unsigned int  fileSize, unsigned int  blockSize, unsigned int  minimumNumberOfNodes,
+buildORAMState(const char *filename, unsigned int  nblocks, unsigned int  fileSize, unsigned int  blockSize, unsigned int  minimumNumberOfNodes,
                unsigned int  treeHeight, unsigned int  bucketCapacity, Amgr *amgr);
 
 static TreePath getTreePath(ORAMState state, unsigned int  leaf);
@@ -77,7 +81,7 @@ static void updateBlockLeaf(BlockNumber blkno, ORAMState state);
 static void updateStashWithNewBlock(void *data, unsigned int  blockSize, BlockNumber blkno, ORAMState state);
 
 
-ORAMState init(char *file, unsigned int  fileSize, unsigned int  blockSize, unsigned int  bucketCapacity, Amgr *amgr) {
+ORAMState init_oram(const char *file, unsigned int  fileSize, unsigned int  blockSize, unsigned int  bucketCapacity, Amgr *amgr) {
 
     unsigned int  nblocks = 0;
     unsigned int  minimumNumberOfNodes = 0;
@@ -114,26 +118,27 @@ ORAMState init(char *file, unsigned int  fileSize, unsigned int  blockSize, unsi
     state = buildORAMState(file, nblocks, fileSize, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, amgr);
 
     /*Initialize external files (oblivious file, stash, possitionMap)*/
-    amgr->am_stash->stashinit(state->file, state->blockSize);
-    amgr->am_pmap->pminit(state->file, nblocks, treeHeight);
+    state->stash = amgr->am_stash->stashinit(state->file, state->blockSize);
+    state->pmap = amgr->am_pmap->pminit(state->file, nblocks, treeHeight);
     amgr->am_ofile->ofileinit(state->file, totalNodes, blockSize);
 
     return state;
 
 }
 
-ORAMState buildORAMState(char *filename, unsigned int  nblocks, unsigned int  fileSize, unsigned int  blockSize, unsigned int  minimumNumberOfNodes,
+ORAMState buildORAMState(const char *filename, unsigned int  nblocks, unsigned int  fileSize, unsigned int  blockSize, unsigned int  minimumNumberOfNodes,
                          unsigned int  treeHeight, unsigned int  bucketCapacity, Amgr *amgr) {
 
     ORAMState state = NULL;
     unsigned int  save_errno = 0;
+    int namelen = 0;
 
     /*Construct ORAM state*/
     save_errno = errno;
     errno = 0;
     state = (ORAMState) malloc(sizeof(struct ORAMState));
     if (state == NULL && errno == ENOMEM) {
-        logger(OUT_OF_MEMORY);
+        logger(OUT_OF_MEMORY, "Out Of Memory building ORAM STATE\n");
         errno = save_errno;
         abort();
     }
@@ -142,7 +147,10 @@ ORAMState buildORAMState(char *filename, unsigned int  nblocks, unsigned int  fi
     state->blockSize = blockSize;
     state->treeHeight = treeHeight;
     state->bucketCapacity = bucketCapacity;
-    state->file = filename;
+    namelen = strlen(filename)+1;
+    state->file = (char*) malloc(namelen);
+    memcpy(state->file, filename, namelen);
+    //state->file = filename;
     state->amgr = amgr;
 
     return state;
@@ -233,7 +241,7 @@ TreePath getTreePath(ORAMState state, unsigned int  leaf) {
     path = (TreePath) malloc(sizeof(TreeNode) * (currentHeight + 1));
 
     if (path == NULL && errno == ENOMEM) {
-        logger(OUT_OF_MEMORY);
+        logger(OUT_OF_MEMORY, "Out Of Memory getTreePath");
         errno = save_errno;
         abort();
     }
@@ -256,7 +264,7 @@ void initBlockList(ORAMState state, PLBList *list) {
     *list = (PLBList) malloc(size);
 
     if (*list == NULL && errno == ENOMEM) {
-        logger(OUT_OF_MEMORY);
+        logger(OUT_OF_MEMORY, " Out of memory initBlockList");
         errno = save_errno;
         abort();
     }
@@ -293,7 +301,7 @@ void addBlocksToStash(ORAMState state, PLBList list) {
 
     for (index = 0; index < (state->treeHeight + 1) * state->bucketCapacity; index++) {
         if (list[index]->blkno != DUMMY_BLOCK) {
-            state->amgr->am_stash->stashadd(state->file, list[index]);
+            state->amgr->am_stash->stashadd(state->stash, state->file, list[index]);
         } else {
             /*If it's a dummy block, a PLBlock had to be allocated and a block. 
             This memory needs to be freed or is leaked as its is not added to 
@@ -337,12 +345,12 @@ void getBlocksToWrite(PLBList *blocksToWrite, unsigned int  a_leaf, ORAMState st
 
     for (; level > 0; level--) {
 
-        state->amgr->am_stash->stashstartIt(state->file);
+        state->amgr->am_stash->stashstartIt(state->stash, state->file);
 
-        while (state->amgr->am_stash->stashnext(state->file, &pl_block)
+        while (state->amgr->am_stash->stashnext(state->stash, state->file, &pl_block)
                && total < state->bucketCapacity) {
 
-            s_leaf = state->amgr->am_pmap->pmget(state->file, (BlockNumber) pl_block->blkno);
+            s_leaf = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno);
             aux_leaf_node = s_leaf + s_leaf_node;
             check_v = (state->treeHeight + 1) - level;
             check_v = check(a_leaf_node, aux_leaf_node, check_v);
@@ -354,12 +362,12 @@ void getBlocksToWrite(PLBList *blocksToWrite, unsigned int  a_leaf, ORAMState st
             }
         }
 
-        state->amgr->am_stash->stashcloseIt(state->file);
+        state->amgr->am_stash->stashcloseIt(state->stash, state->file);
 
         for (remove_offset = 0; remove_offset < total; remove_offset++) {
             remove_index = (level - 1) * state->bucketCapacity + remove_offset;
             rem_block = selectedBlocks[remove_index];
-            state->amgr->am_stash->stashremove(state->file, rem_block);
+            state->amgr->am_stash->stashremove(state->stash, state->file, rem_block);
         }
 
         padding = total;
@@ -408,18 +416,18 @@ int check(unsigned int  a_leaf, unsigned int  s_leaf, unsigned int  level) {
 }
 
 void updateBlockLeaf(BlockNumber blkno, ORAMState state) {
-    BlockNumber old = state->amgr->am_pmap->pmget(state->file, blkno);
+    BlockNumber old = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
     BlockNumber r = ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, state->treeHeight)));
-    state->amgr->am_pmap->pmupdate(r, blkno, state->file);
+    state->amgr->am_pmap->pmupdate(state->pmap, r, blkno, state->file);
 }
 
 void updateStashWithNewBlock(void *data, unsigned int  blkSize, BlockNumber blkno, ORAMState state) {
     PLBlock plblock = createBlock((int) blkno, blkSize, data);
-    state->amgr->am_stash->stashupdate(state->file, plblock);
+    state->amgr->am_stash->stashupdate(state->stash, state->file, plblock);
 }
 
 
-unsigned int read(char **ptr, BlockNumber blkno, ORAMState state) {
+int read_oram(char **ptr, BlockNumber blkno, ORAMState state) {
     unsigned int  leaf = 0;
     unsigned int  result = 0;
     TreePath path = NULL;
@@ -430,7 +438,7 @@ unsigned int read(char **ptr, BlockNumber blkno, ORAMState state) {
 
     //printf("getting possition map\n");
     // line 1 and 2 of original paper
-    leaf = state->amgr->am_pmap->pmget(state->file, blkno);
+    leaf = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
     //printf("getting updateBlockLeaf\n");
     updateBlockLeaf(blkno, state);
 
@@ -441,7 +449,7 @@ unsigned int read(char **ptr, BlockNumber blkno, ORAMState state) {
     addBlocksToStash(state, list);
     //printf("Getting block to stash\n");
     //Line 6 of original paper
-    state->amgr->am_stash->stashget(plblock, blkno, state->file);
+    state->amgr->am_stash->stashget(state->stash, plblock, blkno, state->file);
     //printf("get blocks to write\n");
     //line 10 to 15 of original paper
     getBlocksToWrite(&blocks_to_write, leaf, state);
@@ -468,14 +476,14 @@ unsigned int read(char **ptr, BlockNumber blkno, ORAMState state) {
 
 }
 
-unsigned int  write(char *data, unsigned int  blkSize, BlockNumber blkno, ORAMState state) {
+int write_oram(char *data, unsigned int  blkSize, BlockNumber blkno, ORAMState state) {
     unsigned int  leaf = 0;
     TreePath path = NULL;
     PLBList list = NULL;
     PLBList blocks_to_write = NULL;
 
     // line 1 and 2 of original paper
-    leaf = state->amgr->am_pmap->pmget(state->file, blkno);
+    leaf = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
     updateBlockLeaf(blkno, state);
 
     // line 3 to 5 of original paper
@@ -499,10 +507,11 @@ unsigned int  write(char *data, unsigned int  blkSize, BlockNumber blkno, ORAMSt
     return blkSize;
 }
 
-void close(ORAMState state) {
-    state->amgr->am_stash->stashclose(state->file);
-    state->amgr->am_pmap->pmclose(state->file);
+void close_oram(ORAMState state) {
+    state->amgr->am_stash->stashclose(state->stash, state->file);
+    state->amgr->am_pmap->pmclose(state->pmap, state->file);
     state->amgr->am_ofile->ofileclose(state->file);
+    free(state->file);
     free(state->amgr->am_stash);
     free(state->amgr->am_pmap);
     free(state->amgr->am_ofile);

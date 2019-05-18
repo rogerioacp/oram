@@ -61,3 +61,4 @@ cmake-build-debug
 config.h*
 libtool
 README
+configure.lineno

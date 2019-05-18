@@ -16,9 +16,28 @@
  */
 
 #include "oram/logger.h"
-
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
-void logger(int error_code) {
-    printf("Error in ORAM with code %d", error_code);
+#define BUFSIZE 300
+
+void logger(int level, const char* message, ...){
+
+
+    char buf[BUFSIZE];
+    memset(buf, 0, BUFSIZE);
+    //int written = 0;
+    //int result;
+    va_list ap;
+    va_start(ap, message);
+    /*written = vsnprintf(buf, BUFSIZE, message, ap);
+    if(written < BUFSIZE){
+        buf = realloc(buf, sizeof(char)*written);
+        memset(buf, 0, written);
+    }*/
+
+    vsnprintf(buf, BUFSIZE, message, ap);
+    va_end(ap);
+    printf("%d - %s", level, buf);
 }

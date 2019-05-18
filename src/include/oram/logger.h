@@ -12,9 +12,13 @@
 
 #ifndef LOGGER_H
 #define LOGGER_H
+#include <stdarg.h>
 
 #define OUT_OF_MEMORY 1
+#define DEBUG 2
 
-extern void logger(int error_code);
+#define LBUFSIZE 200
+
+void logger(int level, const char* message, ...);
 
 #endif /* LOG_H */

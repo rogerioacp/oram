@@ -33,7 +33,7 @@ PLBlock createBlock(int blkno, int size, void *data) {
     block->block = (void *) malloc(size);
 
     if (block->block == NULL && errno == ENOMEM) {
-        logger(OUT_OF_MEMORY);
+        logger(OUT_OF_MEMORY, "Out of memory createBlock");
         errno = save_errno;
         abort();
     }
@@ -53,7 +53,7 @@ PLBlock createEmptyBlock(void) {
     PLBlock block = (PLBlock) malloc(sizeof(struct PLBlock));
 
     if (block == NULL && errno == ENOMEM) {
-        logger(OUT_OF_MEMORY);
+        logger(OUT_OF_MEMORY, "Out of memory createEmptyBlock");
         errno = save_errno;
         abort();
     }
@@ -75,7 +75,7 @@ PLBlock createRandomBlock(unsigned int size) {
     block->block = (void *) malloc(size);
 
     if (block->block == NULL && errno == ENOMEM) {
-        logger(OUT_OF_MEMORY);
+        logger(OUT_OF_MEMORY, "Out of memory createRandomBlock");
         errno = save_errno;
         abort();
     }

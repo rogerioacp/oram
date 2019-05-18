@@ -1,4 +1,4 @@
-AC_INIT([oram], [0.0.1], [rogerio.pontes@protonmail.com])
+AC_INIT([oram], [0.0.1], [rogerio.pontes@pm.me])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign]) 
 AC_PROG_CC

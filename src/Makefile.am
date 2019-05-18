@@ -55,6 +55,6 @@ largerandomwriteread_LDADD = $(COLLECTC_LIBS)
 TESTS = $(check_PROGRAMS)
 
 lib_LTLIBRARIES = liboram.la
-liboram_la_SOURCES = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/stash.c backend/block/plblock.c $(random_file) backend/oram/pathoram.c
+liboram_la_SOURCES =  backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/stash.c backend/block/plblock.c backend/oram/pathoram.c
 liboram_la_CFLAGS = $(COLLECTC_CFLAGS) -I $(srcdir)/include
 liboram_la_LIBADD = $(COLLECTC_LIBS)
