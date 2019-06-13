@@ -14,4 +14,4 @@ matrix:
         - sudo make install && sudo ldconfig && export LD_LIBRARY_PATH="/usr/local/bin"
         - cd ../..
         - autoreconf -i
-      script: ./configure && make && make check
+      script: ./configure && make && make check && make distcheck
