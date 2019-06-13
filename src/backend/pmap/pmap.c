@@ -22,38 +22,48 @@
 #include "oram/pmap.h"
 #include "oram/orandom.h"
 
+struct PMap {
+    unsigned int *map;
+};
 
-unsigned int *map;
+//unsigned int *map;
 
 
-static void pmapInit(const char *filename, const unsigned int nblocks, const unsigned int treeHeight);
+static PMap pmapInit(const char *filename, const unsigned int nblocks, const unsigned int treeHeight);
 
-static unsigned int pmapGet(const char *fileName, const BlockNumber blkno);
+static unsigned int pmapGet(PMap pmap, const char *fileName, const BlockNumber blkno);
 
-static void pmapUpdate(const BlockNumber newBlkno, const BlockNumber realBlkno, const char *fileName);
+static void pmapUpdate(PMap pmap, const BlockNumber newBlkno, const BlockNumber realBlkno, const char *fileName);
 
-static void pmapClose(const char *filename);
+static void pmapClose(PMap pmap, const char *filename);
 
-void pmapInit(const char *filename, unsigned int nblocks, unsigned int treeHeight) {
+PMap pmapInit(const char *filename, unsigned int nblocks, unsigned int treeHeight) {
     int i;
-    map = (BlockNumber *) malloc(sizeof(BlockNumber) * nblocks);
     BlockNumber r;
+    PMap pmap;
+
+    pmap = (PMap) malloc(sizeof(struct PMap));
+    pmap->map = (BlockNumber *) malloc(sizeof(BlockNumber) * nblocks);
+
     for (i = 0; i < nblocks; i++) {
         r = (BlockNumber) ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, treeHeight)));
-        map[i] = r;
+        pmap->map[i] = r;
     }
+
+    return pmap;
 }
 
-unsigned int pmapGet(const char *fileName, const BlockNumber blkno) {
-    return map[blkno];
+unsigned int pmapGet(PMap pmap, const char *fileName, const BlockNumber blkno) {
+    return pmap->map[blkno];
 }
 
-void pmapUpdate(const BlockNumber newBlkno, const BlockNumber realBlkno, const char *fileName) {
-    map[realBlkno] = newBlkno;
+void pmapUpdate(PMap pmap, const BlockNumber newBlkno, const BlockNumber realBlkno, const char *fileName) {
+    pmap->map[realBlkno] = newBlkno;
 }
 
-void pmapClose(const char *filename) {
-    free(map);
+void pmapClose(PMap pmap, const char *filename) {
+    free(pmap->map);
+    free(pmap);
 }
 
 AMPMap *pmapCreate(void) {

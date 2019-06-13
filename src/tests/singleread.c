@@ -26,10 +26,10 @@ int main(int argc, char *argv[]) {
     int result = 0;
     char *data = NULL;
     printf("Init oram\n");
-    state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
+    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr);
     printf("Going to read\n");
-    result = read(&data, 0, state);
-    close(state);
+    result = read_oram(&data, 0, state);
+    close_oram(state);
     if (result == DUMMY_BLOCK){
         return 0;
     }

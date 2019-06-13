@@ -1,4 +1,4 @@
-AC_INIT([oram], [0.0.1], [rogeriocap@google.com])
+AC_INIT([oram], [0.0.1], [rogerio.pontes@pm.me])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign]) 
 AC_PROG_CC
@@ -15,7 +15,7 @@ AC_CONFIG_MACRO_DIRS([m4])
 
 # used to find packages installed on the system external to the standard library
 # generates specific variables that can be used to include in specific targets.
-PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.4)
+PKG_CHECK_MODULES(COLLECTC, collectionc >= 3.0)
 
 # used to include system libraries such as math.
 # Includes in a global variable common to all targets.

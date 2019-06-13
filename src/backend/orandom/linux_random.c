@@ -16,5 +16,6 @@
 #include <time.h>
 
 unsigned int getRandomInt(void) {
-    return random();
+	//return 2;
+   return random();
 }

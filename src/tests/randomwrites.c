@@ -54,12 +54,13 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
         strings[index] = NULL;
     }
 
-    state = init("teste", fileSize, blockSize, bucketCapcity, &amgr);
+    //printf("Going to initalize");
+    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr);
     //printf("Going to write strings\n");
+    string_size = blockSize / sizeof(char) - 1;
+    //printf("String size is %d\n",string_size);
 
     for (index = 0; index < nwrites; index++) {
-        //printf("Writing loop index %d\n", index);
-        string_size = blockSize / sizeof(char) - 1;
 
         wOffset = (getRandomInt() % nblocks);
         /* array already stores a malloced string which is being overwritten
@@ -70,25 +71,29 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
         }
         strings[wOffset] = gen_random(string_size + 1);
         blockWriteOffset = sizeof(char) * strlen(strings[wOffset]) + 1;
-
+        //printf("Generated new string for offset %zu\n", wOffset);
+        //printf("Generated string is %s\n",strings[wOffset]);
         //printf("going to write to oram offset %zu the string %s\n", wOffset, strings[wOffset]);
-        write(strings[wOffset], blockWriteOffset, wOffset, state);
+        write_oram(strings[wOffset], blockWriteOffset, wOffset, state);
+        //printf("writeN\n");
+
     }
 
     for (index = 0; index < nblocks; index++) {
 
-        result = read(&data, index, state);
+        result = read_oram(&data, index, state);
+        //printf("read result for index %d is %d",index, result);
         //printf("read from oram offset %d the value %s and compares to %s \n", index, data, strings[index]);
 
-        if (result != strlen(data) + 1 || strcmp(data, strings[index]) != 0) {
-            close(state);
-            return 1;
-        }
+        if ((result != DUMMY_BLOCK && result != strlen(data) + 1) || (result != DUMMY_BLOCK && strcmp(data, strings[index]) != 0)) {
+                close_oram(state);
+                return 1;
+            }
         free(strings[index]);
         free(data);
     }
 
-    close(state);
+    close_oram(state);
     free(strings);
     return 0;
 }
