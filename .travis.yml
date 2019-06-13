@@ -9,9 +9,10 @@ matrix:
         - sudo git clone https://github.com/srdja/Collections-C.git
         - cd Collections-C
         - sudo mkdir build
+        - cd build
         - cmake ..
         - make
         - sudo make install
-        - cd ..
+        - cd ../..
         - autoreconf -i
       script: ./configure && make && make check && make distcheck
