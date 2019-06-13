@@ -6,9 +6,9 @@ matrix:
     # works on Precise and Trusty
     - dist: trusty
       before_install:
-        - sudo git clone https://github.com/srdja/Collections-C.git
+        - git clone https://github.com/srdja/Collections-C.git
         - cd Collections-C
-        - sudo mkdir build
+        - mkdir build
         - cd build
         - cmake ..
         - make
