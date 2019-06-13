@@ -6,7 +6,14 @@ matrix:
     # works on Precise and Trusty
     - dist: trusty
       before_install:
-        - sudo apt-get install -y cpputest
+        - wget https://github.com/cpputest/cpputest/releases/download/v3.8/cpputest-3.8.tar.gz
+        - tar -zxf cpputest-3.8.tar.gz
+        - cd cpputest-3.8.tar.gz
+        - mkdir build & cd build
+        - ../configure
+        - make
+        - sudo make install
+        - cd ..
         - git clone https://github.com/srdja/Collections-C.git
         - cd Collections-C
         - mkdir build
