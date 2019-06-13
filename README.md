@@ -25,10 +25,10 @@ Furthermore, it provides in-memory implementation of a file, stash and position 
 
 ### Prerequisites
 
-The library has been successfully tested and installed on Linux (Ubuntu) and Mac OS. The library uses the GNU building system got generate makefiles and compilation objects specific to the underlying building system and as such requires the Autotools to be available. Furthermore, it uses the glib library which is used to create stash based on a linked list.
+The library has been successfully tested and installed on Linux (Ubuntu) and Mac OS. The library uses the GNU building system to generate makefiles and compilation objects specific to the underlying building system and as such requires the Autotools to be available. Furthermore, it uses the Collection-C library to creae data structures.
 
 * [Autotools](https://www.gnu.org/software/automake/manual/html_node/Autotools-Introduction.html#Autotools-Introduction)
-* [glib](https://developer.gnome.org/glib/stable/)
+* [Collections-C](https://github.com/srdja/Collections-C)
 
 ### Installing
 
