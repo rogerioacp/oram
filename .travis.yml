@@ -5,7 +5,7 @@ matrix:
   include:
     - dist: bionic
       before_install:
-        - sudo apt-get install -y cpputest
+        - sudo apt-get install -y cpputest=3.8
         - git clone https://github.com/srdja/Collections-C.git
         - cd Collections-C
         - mkdir build
