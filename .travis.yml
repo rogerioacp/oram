@@ -11,7 +11,7 @@ matrix:
         - cd build
         - cmake ..
         - make
-        - sudo make install
+        - sudo make install && ldconfig && export LD_LIBRARY_PATH="/usr/local/bin"
         - cd ../..
         - autoreconf -i
       script: ./configure && make && make check && make distcheck
