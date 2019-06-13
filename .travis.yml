@@ -8,7 +8,7 @@ matrix:
       before_install:
         - wget https://github.com/cpputest/cpputest/releases/download/v3.8/cpputest-3.8.tar.gz
         - tar -zxf cpputest-3.8.tar.gz
-        - cd cpputest-3.8.tar.gz
+        - cd cpputest-3.8
         - mkdir build & cd build
         - ../configure
         - make
