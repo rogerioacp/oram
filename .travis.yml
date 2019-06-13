@@ -5,7 +5,7 @@ matrix:
   include:
     - dist: bionic
       before_install:
-        - git clone git@github.com:rogerioacp/Collections-C.git
+        - git clone https://github.com/rogerioacp/Collections-C.git
         - cd Collections-C
         - mkdir build
         - cd build
