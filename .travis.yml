@@ -8,7 +8,7 @@ matrix:
       before_install:
         - sudo git clone https://github.com/srdja/Collections-C.git
         - cd Collections-C
-        - mkdir build
+        - sudo mkdir build
         - cmake ..
         - make
         - sudo make install
