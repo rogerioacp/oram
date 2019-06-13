@@ -6,6 +6,7 @@ matrix:
     # works on Precise and Trusty
     - dist: trusty
       before_install:
+        - sudo apt-get install -y cpputest
         - git clone https://github.com/srdja/Collections-C.git
         - cd Collections-C
         - mkdir build
