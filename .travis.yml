@@ -3,9 +3,15 @@ language: c
 
 matrix:
   include:
-    # works on Precise and Trusty
-    - dist: trusty
+    - dist: bionic
       before_install:
-        - sudo sudo apt-get install libglib2.0-dev
+        - git clone https://github.com/rogerioacp/Collections-C.git
+        - cd Collections-C
+        - mkdir build
+        - cd build
+        - cmake ..
+        - make
+        - sudo make install && sudo ldconfig && export LD_LIBRARY_PATH="/usr/local/bin"
+        - cd ../..
         - autoreconf -i
       script: ./configure && make && make check && make distcheck
