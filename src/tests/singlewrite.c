@@ -25,11 +25,11 @@ int main(int argc, char *argv[]) {
     size_t result = 0;
     char *data = NULL;
 
-    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr);
+    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr, NULL);
     char *teste = "HELLO!";
     size_t s_size = sizeof(char) * strlen(teste);
-    result = write_oram(teste, sizeof(char) * strlen(teste), 0, state);
-    close_oram(state);
+    result = write_oram(teste, sizeof(char) * strlen(teste), 0, state, NULL);
+    close_oram(state, NULL);
     if(result == strlen(teste)){
         return 0;
     }

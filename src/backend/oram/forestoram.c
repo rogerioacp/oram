@@ -1,11 +1,11 @@
 /*-------------------------------------------------------------------------
  *
- * pathoram.c
- *		  Implementation of non-recursive path-oram algorithm.
+ * foresoram.c
+ *		  Implementation of non-recursive forst-oram algorithm.
  *
  *		Original paper URL: https://eprint.iacr.org/2013/280.pdf
  *
- * This implementation shifts the responsabilit of dealing with errors that
+ * This implementation shifts the respectability of dealing with errors that
  * may happen when writing to storage to the application using the library.
  * The only errors this libraries takes into account are out of memory errors.
  * In this case, the library simply aborts the execution.
@@ -30,22 +30,27 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
-#include "oram/oram.h"
+#include "oram/foram.h"
 #include "oram/logger.h"
 #include "oram/orandom.h"
-#include "oram/pmapdefs/poram.h"
+#include "oram/pmapdefs/foram.h"
 
 
 struct ORAMState {
-    unsigned int  blockSize; //Size of a single block in Bytes (B)
-    unsigned int  treeHeight; // Tree Height of the oblivious file (L)
-    unsigned int  bucketCapacity; // Number of buckets in a Tree node (Z)
+    unsigned int blockSize; //Size of a single block in Bytes (B)
+    unsigned int treeHeight; // Tree Height of the oblivious file (L)
+    unsigned int bucketCapacity; // Number of buckets in a Tree partition node (Z)
 
-    char *file; // File name of the protected file.
+    unsigned int nPartitions; // Number of Partitions in Forest ORAM
+    unsigned int partitionsHeight; // Tree height of each partition ORAM
+    unsigned int partitionCapacity; // total number of nodes in a tree partition.
 
-    Amgr *amgr; // Set of external functions to handle ORAM states.
+    char *file; // File name of the protected file
+
+    Amgr *amgr; // Set of external functions to handle ORAM states
     Stash stash;
     PMap pmap;
 };
@@ -57,43 +62,60 @@ typedef TreeNode *TreePath;
 
 /* non-export function prototypes */
 
-static unsigned int  calculateTreeHeight(unsigned int  minimumNumberOfNodes);
+static unsigned int 
+calculateTreeHeight(unsigned int  minimumNumberOfNodes);
+
+static unsigned int 
+calculatePartitionTreeHeight(unsigned int treeHeight);
+
+static unsigned int 
+calculateNumberOfPartitions(unsigned int treeHeight, 
+							unsigned int partitionTreeHeight);
 
 static ORAMState
-buildORAMState(const char *filename, unsigned int  nblocks, unsigned int  fileSize, unsigned int  blockSize, unsigned int  minimumNumberOfNodes,
-               unsigned int  treeHeight, unsigned int  bucketCapacity, Amgr *amgr);
+buildORAMState(const char *filename, unsigned int nblocks, 
+			   unsigned int fileSize, unsigned int blockSize, 
+			   unsigned int minimumNumberOfNodes, unsigned int treeHeight,
+			   unsigned int bucketCapacity, unsigned int nPartitions, 
+			   unsigned int partitionsHeight, unsigned int partitionNodes,
+			   Amgr *amgr);
 
-static TreePath getTreePath(ORAMState state, unsigned int  leaf);
+static TreePath getTreePath(ORAMState state, Location leaf);
 
 static void initBlockList(ORAMState state, PLBList *list);
 
-static PLBList getTreeNodes(ORAMState state, TreePath path, void* appData);
+static PLBList getTreeNodes(ORAMState state, TreePath path, Location location, void* appData);
 
-static void addBlocksToStash(ORAMState state, PLBList list, void* appData);
+static void addBlocksToStash(ORAMState state, PLBList list, void*  appData);
 
-static void getBlocksToWrite(PLBList *blocksToWrite, unsigned int  a_leaf, ORAMState state, void* appData);
+static void getBlocksToWrite(PLBList *blocksToWrite, Location location, ORAMState state, void* appData);
 
-static void writeBlocksToStorage(PLBList list, unsigned int  leaf, ORAMState state, void* appData);
+static void writeBlocksToStorage(PLBList list, Location location, ORAMState state, void* appData);
 
 static int check(unsigned int  a_leaf, unsigned int  s_leaf, unsigned int  level);
 
-static void updateBlockLeaf(BlockNumber blkno, ORAMState state);
+static void updateBlockLocation(BlockNumber blkno, ORAMState state);
 
-static void updateStashWithNewBlock(void *data, unsigned int  blockSize, BlockNumber blkno, ORAMState state, void* appData);
+static void updateStashWithNewBlock(void *data, unsigned int  blockSize, BlockNumber blkno, ORAMState state, void* appDAta);
 
 
-ORAMState init_oram(const char *file, unsigned int  fileSize, unsigned int  blockSize, unsigned int  bucketCapacity, Amgr *amgr, void* appData) {
+ORAMState init_oram(const char *file, unsigned int fileSize, unsigned int  blockSize, unsigned int  bucketCapacity, Amgr *amgr, void* appData) {
 
-    unsigned int  nblocks = 0;
-    unsigned int  minimumNumberOfNodes = 0;
-    unsigned int  treeHeight;
-    unsigned int  totalNodes;
-
+    unsigned int nblocks = 0;
+    unsigned int minimumNumberOfNodes = 0;
+    unsigned int treeHeight;
+    unsigned int totalNodes;
+    unsigned int partitionTreeHeight;
+    unsigned int nPartitions;
+    unsigned int partitionNodes;
+    unsigned int partitionBlocks;
     int result;
+
     ORAMState state = NULL;
 
     /*The division floors the result down to 0*/
     nblocks = fileSize / blockSize;
+
     /**
      * Calculates the number of leaf nodes necessary to store the number
      * of blocks in a file.
@@ -114,22 +136,48 @@ ORAMState init_oram(const char *file, unsigned int  fileSize, unsigned int  bloc
     }
 
     treeHeight = calculateTreeHeight(minimumNumberOfNodes);
-    totalNodes = ((unsigned int ) pow(2, treeHeight + 1)) - 1;
 
-    state = buildORAMState(file, nblocks, fileSize, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, amgr);
-    struct TreeConfig config;
-    config.treeHeight = treeHeight;
+    totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
+
+    partitionTreeHeight = calculatePartitionTreeHeight(treeHeight);
+
+    nPartitions = calculateNumberOfPartitions(treeHeight, partitionTreeHeight);
+
+    partitionNodes = ((unsigned int) pow(2, partitionTreeHeight+1))-1;
+
+    partitionBlocks = partitionNodes * nPartitions;
+    //printf("nPartitions %d partitionTreeHeight %d partitionNodes %d\n", nPartitions, partitionTreeHeight, partitionNodes);
+
+    if(totalNodes > partitionBlocks){
+    	logger(DEBUG, "The total number of nodes does not fit in the ORAM\n");
+    	abort();
+    }
+
+
+    state = buildORAMState(file, nblocks, fileSize, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, nPartitions, partitionTreeHeight, partitionNodes, amgr);
+
     /*Initialize external files (oblivious file, stash, possitionMap)*/
     state->stash = amgr->am_stash->stashinit(state->file, state->blockSize, appData);
+
+    struct TreeConfig config;
+    config.treeHeight = partitionTreeHeight;
+    config.nPartitions = nPartitions;
+
     state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
-    amgr->am_ofile->ofileinit(state->file, totalNodes, blockSize, appData);
+    amgr->am_ofile->ofileinit(state->file, partitionBlocks, blockSize, appData);
 
     return state;
-
 }
 
-ORAMState buildORAMState(const char *filename, unsigned int  nblocks, unsigned int  fileSize, unsigned int  blockSize, unsigned int  minimumNumberOfNodes,
-                         unsigned int  treeHeight, unsigned int  bucketCapacity, Amgr *amgr) {
+
+ORAMState buildORAMState(const char *filename, unsigned int nblocks, 
+						unsigned int fileSize, unsigned int blockSize,
+						unsigned int minimumNumberOfNodes,
+						unsigned int treeHeight, unsigned int bucketCapacity,
+						unsigned int nPartitions, 
+						unsigned int partitionTreeHeight, 
+						unsigned int partitionNodes,
+						Amgr *amgr) {
 
     ORAMState state = NULL;
     unsigned int  save_errno = 0;
@@ -140,7 +188,7 @@ ORAMState buildORAMState(const char *filename, unsigned int  nblocks, unsigned i
     errno = 0;
     state = (ORAMState) malloc(sizeof(struct ORAMState));
     if (state == NULL && errno == ENOMEM) {
-        logger(OUT_OF_MEMORY, "Out Of Memory building ORAM STATE\n");
+        logger(OUT_OF_MEMORY, "Out Of memory building ORAM state\n");
         errno = save_errno;
         abort();
     }
@@ -149,6 +197,11 @@ ORAMState buildORAMState(const char *filename, unsigned int  nblocks, unsigned i
     state->blockSize = blockSize;
     state->treeHeight = treeHeight;
     state->bucketCapacity = bucketCapacity;
+
+    state->nPartitions = nPartitions;
+    state->partitionsHeight = partitionTreeHeight;
+    state->partitionCapacity = partitionNodes;
+
     namelen = strlen(filename)+1;
     state->file = (char*) malloc(namelen);
     memcpy(state->file, filename, namelen);
@@ -181,18 +234,46 @@ ORAMState buildORAMState(const char *filename, unsigned int  nblocks, unsigned i
  * e.g. 16 = 2^4. Since a tree, only has k-1 nodes, it will only hold 15 
  * nodes, thus in this case the function increments the tree height.
  * */
-unsigned int  calculateTreeHeight(unsigned int  minimumNumberOfNodes) {
-    unsigned int  height, nNodes;
+unsigned int calculateTreeHeight(unsigned int minimumNumberOfNodes) {
+    unsigned int height, nNodes;
 
-    height = (unsigned int ) ceil(log2(minimumNumberOfNodes));
-    nNodes = (unsigned int ) pow(2, height);
+    height = (unsigned int) ceil(log2(minimumNumberOfNodes));
+    nNodes = (unsigned int) pow(2, height);
 
     if (nNodes - 1 >= minimumNumberOfNodes) {
         return height - 1;
     } else {
         return height;
     }
+}
 
+
+/**
+	Calculates the height of the tree of each partition on Forest ORAM.
+	Assuming that a classical Path ORAM required a tree with height at least treeHeight, then each partition on Forest ORAM will have only the logarithm of the required height.
+
+	For instance, a Path ORAM with tree height 7 that can store up to 255 nodes and can be divided in 17 partitions each one storing 15 nodes, giving a total of 255 nodes.
+*/
+unsigned int calculatePartitionTreeHeight(unsigned int treeHeight){
+	return (unsigned int) ceil(log2(treeHeight));
+}
+
+
+unsigned int calculateNumberOfPartitions(unsigned int treeHeight, unsigned int partitionTreeHeight){
+	unsigned int nTreeNodes;
+	unsigned int nSubTreeNodes;
+	unsigned int nPartitions;
+
+	nTreeNodes = (unsigned int) pow(2, treeHeight+1)-1;
+	nSubTreeNodes = (unsigned int) pow(2, partitionTreeHeight+1)-1;
+
+	nPartitions = nTreeNodes/nSubTreeNodes;
+
+	if(nPartitions*nSubTreeNodes < nTreeNodes){
+		nPartitions +=1;
+	}
+
+	return nPartitions;
 }
 
 
@@ -210,7 +291,7 @@ unsigned int  calculateTreeHeight(unsigned int  minimumNumberOfNodes) {
  *               3  4 5  6
  * leafs index:  0  1 2  3
  * If the request wants to retrieve the node on leaf 0 (node 3), it also has 
- * to get the the tree nodes 0 and. Since the TreeNode structure also keeps 
+ * to get the the tree nodes 0 and 1. Since the TreeNode structure also keeps 
  * the tree height, the resulting TreePath (height, treeNode) will contain the 
  * following values:
  * [(2,3), (1,1), (0,0)].
@@ -230,14 +311,15 @@ unsigned int  calculateTreeHeight(unsigned int  minimumNumberOfNodes) {
  * leaf.
  *
  */
-TreePath getTreePath(ORAMState state, unsigned int leaf) {
-    unsigned int  currentPos = 0;
-    unsigned int  currentHeight = state->treeHeight;
+TreePath getTreePath(ORAMState state, Location location) {
+	unsigned int leaf = location->leaf;
+    unsigned int currentPos = 0;
+    unsigned int currentHeight = state->partitionsHeight;
     TreePath path = NULL;
     TreeNode node = 0;
     int save_errno = 0;
 
-    currentPos = leaf + (1 << (state->treeHeight));
+    currentPos = leaf + (1 << (state->partitionsHeight));
     save_errno = errno;
     errno = 0;
     path = (TreePath) malloc(sizeof(TreeNode) * (currentHeight + 1));
@@ -262,7 +344,7 @@ TreePath getTreePath(ORAMState state, unsigned int leaf) {
 void initBlockList(ORAMState state, PLBList *list) {
     int save_errno = errno;
     errno = 0;
-    unsigned int  size = sizeof(PLBlock) * (state->treeHeight + 1) * state->bucketCapacity;
+    unsigned int size = sizeof(PLBlock) * (state->partitionsHeight + 1) * state->bucketCapacity;
     *list = (PLBList) malloc(size);
 
     if (*list == NULL && errno == ENOMEM) {
@@ -273,7 +355,7 @@ void initBlockList(ORAMState state, PLBList *list) {
     errno = save_errno;
 }
 
-PLBList getTreeNodes(ORAMState state, TreePath path, void* appData) {
+PLBList getTreeNodes(ORAMState state, TreePath path, Location location, void* appData) {
     int level;
     int offset;
     BlockNumber ob_blkno = 0; // Oblivious file Block Number
@@ -281,12 +363,14 @@ PLBList getTreeNodes(ORAMState state, TreePath path, void* appData) {
     PLBlock plblock = NULL;
     int index = 0;
     int prev = 0;
+    unsigned int pOffset = 0; // partition offset;
 
+    pOffset = location->partition*state->partitionCapacity;
     initBlockList(state, &list);
 
-    for (level = 0; level < state->treeHeight + 1; level++) {
+    for (level = 0; level < state->partitionsHeight + 1; level++) {
         for (offset = 0; offset < state->bucketCapacity; offset++) {
-            ob_blkno = path[level] * state->bucketCapacity + offset;
+            ob_blkno = path[level] * state->bucketCapacity + offset + pOffset;
             plblock = createEmptyBlock();
             index = level * state->bucketCapacity + offset;
             state->amgr->am_ofile->ofileread(plblock, state->file, (BlockNumber) ob_blkno, appData);
@@ -301,7 +385,7 @@ void addBlocksToStash(ORAMState state, PLBList list, void* appData) {
 
     int index = 0;
 
-    for (index = 0; index < (state->treeHeight + 1) * state->bucketCapacity; index++) {
+    for (index = 0; index < (state->partitionsHeight + 1) * state->bucketCapacity; index++) {
         if (list[index]->blkno != DUMMY_BLOCK) {
             state->amgr->am_stash->stashadd(state->stash, state->file, list[index], appData);
         } else {
@@ -314,22 +398,19 @@ void addBlocksToStash(ORAMState state, PLBList list, void* appData) {
     }
 }
 
-/***
- *
- * a_leaf -> leaf of accessed offset
- *
- */
-void getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, void* appData) {
+
+void getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState state, void* appData) {
 
     unsigned int  total = 0;
     // Index to keep track of current tree level
-    unsigned int  level = state->treeHeight + 1;
-    //Leaf number of a stash node
-    Location s_location;
-    unsigned int  s_leaf = 0;
+    unsigned int  level = state->partitionsHeight + 1;
+    // Leaf number of accessed node
+    unsigned int  a_leaf = a_location->leaf;
+    // Location of  a stashed node
+    Location  s_location = 0;
     unsigned int  padding = 0;
-    unsigned int  a_leaf_node = a_leaf + (1 << (state->treeHeight));
-    unsigned int  s_leaf_node = 1 << state->treeHeight;
+    unsigned int  a_leaf_node = a_leaf + (1 << (state->partitionsHeight));
+    unsigned int  s_leaf_node = 1 << state->partitionsHeight;
     unsigned int  aux_leaf_node = 0;
     PLBlock pl_block;
     PLBList selectedBlocks;
@@ -342,9 +423,7 @@ void getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState sta
     unsigned int  add_index = 0;
     unsigned int  check_height = 0;
 
-
     initBlockList(state, &selectedBlocks);
-
 
     for (; level > 0; level--) {
 
@@ -354,12 +433,11 @@ void getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState sta
                && total < state->bucketCapacity) {
 
             s_location = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno);
-            s_leaf = s_location->leaf;
-            aux_leaf_node = s_leaf + s_leaf_node;
-            check_v = (state->treeHeight + 1) - level;
+            aux_leaf_node = s_location->leaf + s_leaf_node;
+            check_v = (state->partitionsHeight + 1) - level;
             check_v = check(a_leaf_node, aux_leaf_node, check_v);
 
-            if (check_v) {
+            if (check_v && a_location->partition == s_location->partition) {
                 add_index = (level - 1) * state->bucketCapacity + total;
                 selectedBlocks[add_index] = pl_block;
                 total++;
@@ -389,20 +467,22 @@ void getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState sta
 }
 
 
-void writeBlocksToStorage(PLBList list, unsigned int  leaf, ORAMState state, void* appData) {
-    unsigned int  list_offset = (state->treeHeight + 1) * state->bucketCapacity - 1;
-    unsigned int  currentPos = 0;
-    unsigned int  index;
+void writeBlocksToStorage(PLBList list, Location location, ORAMState state, void* appData) {
+    unsigned int list_offset = (state->partitionsHeight + 1) * state->bucketCapacity - 1;
+    unsigned int currentPos = 0;
+    unsigned int index;
     BlockNumber ob_blkno = 0;
     PLBlock block = NULL;
-    unsigned int  list_idx = 0;
+    unsigned int list_idx = 0;
+    unsigned int pOffset = 0; // partition offset;
 
-    currentPos = leaf + (1 << state->treeHeight);
+    pOffset = location->partition * state->partitionCapacity;
+    currentPos = location->leaf + (1 << state->partitionsHeight);
 
     while (currentPos > 0) {
 
         for (index = 0; index < state->bucketCapacity; index++) {
-            ob_blkno = (currentPos - 1) * state->bucketCapacity + index;
+            ob_blkno = (currentPos - 1) * state->bucketCapacity + index + pOffset;
             list_idx = list_offset - index;
             block = list[list_idx];
             state->amgr->am_ofile->ofilewrite(block, state->file, ob_blkno, appData);
@@ -419,12 +499,11 @@ int check(unsigned int  a_leaf, unsigned int  s_leaf, unsigned int  level) {
     return (a_leaf >> level) == (s_leaf >> level);
 }
 
-void updateBlockLeaf(BlockNumber blkno, ORAMState state) {
+void updateBlockLocation(BlockNumber blkno, ORAMState state) {
     struct Location newLocation;
 
-    BlockNumber r = ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, state->treeHeight)));
-    
-    newLocation.leaf = r;
+    newLocation.partition = ((BlockNumber) getRandomInt() % ((BlockNumber) state->nPartitions));
+    newLocation.leaf = ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, state->partitionsHeight)));
 
     state->amgr->am_pmap->pmupdate(state->pmap, &newLocation, blkno, state->file);
 }
@@ -435,26 +514,25 @@ void updateStashWithNewBlock(void *data, unsigned int  blkSize, BlockNumber blkn
 }
 
 
-int read_oram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
+int read_foram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
     Location location;
-    unsigned int  leaf = 0;
     unsigned int  result = 0;
     TreePath path = NULL;
     PLBList list = NULL;
-    PLBList blocks_to_write = NULL;
+    //PLBList blocks_to_write = NULL;
     //printf("Creating empty block\n");
     PLBlock plblock = createEmptyBlock();
 
     //printf("getting possition map\n");
     // line 1 and 2 of original paper
     location = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
-    leaf = location->leaf;
+    //printf("read_foram location leaf %d and partition %d\n", location->leaf, location->partition);
     //printf("getting updateBlockLeaf\n");
-    updateBlockLeaf(blkno, state);
+    //updateBlockLeaf(blkno, state);
 
     // line 3 to 5 of original paper
-    path = getTreePath(state, leaf);
-    list = getTreeNodes(state, path, appData);
+    path = getTreePath(state, location);
+    list = getTreeNodes(state, path, location, appData);
     //printf("Add blocks to stash\n");
     addBlocksToStash(state, list, appData);
     //printf("Getting block to stash\n");
@@ -462,15 +540,15 @@ int read_oram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
     state->amgr->am_stash->stashget(state->stash, plblock, blkno, state->file, appData);
     //printf("get blocks to write\n");
     //line 10 to 15 of original paper
-    getBlocksToWrite(&blocks_to_write, leaf, state, appData);
+    //getBlocksToWrite(&blocks_to_write, leaf, state);
     //printf("Write blocks to storage\n");
-    writeBlocksToStorage(blocks_to_write, leaf, state, appData);
+    //writeBlocksToStorage(blocks_to_write, leaf, state);
 
     //Free Resources
     free(path);
     /*The plblocks of the list cannot be freed as they may be in the stash*/
     free(list);
-    free(blocks_to_write);
+    //free(blocks_to_write);
 
     *ptr = plblock->block;
     
@@ -486,34 +564,30 @@ int read_oram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
 
 }
 
-int write_oram(char *data, unsigned int  blkSize, BlockNumber blkno, ORAMState state, void* appData) {
-    Location location;
-    unsigned int  leaf = 0;
-    TreePath path = NULL;
-    PLBList list = NULL;
+int evict_foram(char *data, unsigned int  blkSize, BlockNumber blkno, ORAMState state, void* appData) {
+
+    struct Location location;
     PLBList blocks_to_write = NULL;
 
     // line 1 and 2 of original paper
-    location = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
-    leaf = location->leaf;
-    updateBlockLeaf(blkno, state);
+    memcpy(&location, state->amgr->am_pmap->pmget(state->pmap, state->file, blkno), sizeof(struct Location));
 
-    // line 3 to 5 of original paper
-    path = getTreePath(state, leaf);
-    list = getTreeNodes(state, path, appData);
-    addBlocksToStash(state, list, appData);
 
-    // line 7 to 9 of original paper
-    updateStashWithNewBlock(data, blkSize, blkno, state, appData);
+    //printf("1 - evict location leaf %d and partition %d\n", location.leaf, location.partition);
+
+    updateBlockLocation(blkno, state);
+
+    //printf("2 - evict location leaf %d and partition %d\n", location.leaf, location.partition);
+
+    if (blkSize != DUMMY_BLOCK){
+    	// line 7 to 9 of original paper
+    	updateStashWithNewBlock(data, blkSize, blkno, state, appData);
+	}
 
     //line 10 to 15 of original paper
-    getBlocksToWrite(&blocks_to_write, leaf, state, appData);
-    writeBlocksToStorage(blocks_to_write, leaf, state, appData);
+    getBlocksToWrite(&blocks_to_write, &location, state, appData);
+    writeBlocksToStorage(blocks_to_write, &location, state, appData);
 
-    //Free Resources
-    free(path);
-    /*The plblocks of the list cannot be freed as they may be in the stash*/
-    free(list);
     free(blocks_to_write);
 
     return blkSize;
@@ -528,4 +602,23 @@ void close_oram(ORAMState state, void* appData) {
     free(state->amgr->am_pmap);
     free(state->amgr->am_ofile);
     free(state);
+}
+
+int read_oram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
+	int blockSize = 0;
+	blockSize = read_foram(ptr, blkno, state, appData);
+	evict_foram(*ptr, (unsigned int) blockSize, blkno, state, appData);
+	return blockSize;
+}
+
+
+
+int write_oram(char *data, unsigned int  blkSize, BlockNumber blkno, ORAMState state, void* appData) {
+	char* tmp_data = NULL;
+	int result = 0;
+
+	result = read_foram(&tmp_data, blkno, state, appData);
+	evict_foram(data, blkSize, blkno, state, appData);
+	free(tmp_data);
+	return blkSize;
 }

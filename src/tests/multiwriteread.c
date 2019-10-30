@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     char *data = NULL;
     //printf("Going to init\n");
     char **strings = (char **) malloc(sizeof(char *) * nblocks);
-    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr);
+    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr, NULL);
     //printf("Going to write strings\n");
 
     for (index = 0; index < nblocks; index++) {
@@ -56,23 +56,23 @@ int main(int argc, char *argv[]) {
         string_size += 1;
         strings[index] = gen_random(string_size);
         //printf("Going to write on offset %d the string %s\n",index, strings[index]);
-        result = write_oram(strings[index], sizeof(char) * strlen(strings[index]) + 1, index, state);
+        result = write_oram(strings[index], sizeof(char) * strlen(strings[index]) + 1, index, state, NULL);
     }
 
     for (index = 0; index < nblocks; index++) {
         printf("Going to read %d\n",index);
-        result = read_oram(&data, index, state);
+        result = read_oram(&data, index, state, NULL);
         printf("read string %s with result %d\n", (char*) data, result);
 
         if (result != strlen(data) + 1 || strcmp(data, strings[index]) != 0) {
-            close_oram(state);
+            close_oram(state, NULL);
             free(data);
             return 1;
         }
         free(strings[index]);
         free(data);
     }
-    close_oram(state);
+    close_oram(state, NULL);
     free(strings);
     return 0;
 }

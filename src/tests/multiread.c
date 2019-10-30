@@ -27,16 +27,16 @@ int main(int argc, char *argv[]) {
     size_t nblocks = fileSize / blockSize;
     int index = 0;
     char *data = NULL;
-    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr);
+    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr, NULL);
 
     for (index = 0; index < nblocks; index++) {
         printf("Going to read block offset %d\n", index);
-        result = read_oram(&data, index, state);
+        result = read_oram(&data, index, state, NULL);
         if (result != DUMMY_BLOCK) {
-            close_oram(state);
+            close_oram(state, NULL);
             return 1;
         }
     }
-    close_oram(state);
+    close_oram(state, NULL);
     return 0;
 }

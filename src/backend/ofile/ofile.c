@@ -22,19 +22,20 @@
 #include <string.h>
 #include <stdlib.h>
 
+
 PLBList file;
 unsigned int gnblocks;
 
-static void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize);
+static void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize, void* appData);
 
-static void fileRead(PLBlock block, const char *fileName, const BlockNumber ob_blkno);
+static void fileRead(PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
 
-static void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_blkno);
+static void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
 
-static void fileClose(const char *filename);
+static void fileClose(const char *filename, void* appData);
 
 
-void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize) {
+void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize, void* appData) {
     int offset;
     file = (PLBList) malloc(sizeof(PLBlock) * nblocks);
     gnblocks = nblocks;
@@ -50,21 +51,23 @@ void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize
 
 }
 
-void fileRead(PLBlock block, const char *fileName, const BlockNumber ob_blkno) {
+void fileRead(PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
     block->blkno = file[ob_blkno]->blkno;
     block->size = file[ob_blkno]->size;
     block->block = malloc(file[ob_blkno]->size);
+    //printf("Going to read block number %d\n", ob_blkno);
     memcpy(block->block, file[ob_blkno]->block, file[ob_blkno]->size);
 }
 
-void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_blkno) {
+void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
     file[ob_blkno]->blkno = block->blkno;
     file[ob_blkno]->size = block->size;
+    //printf("Going to write block number %d\n", ob_blkno);
     memcpy(file[ob_blkno]->block, block->block, block->size);
 }
 
 
-void fileClose(const char * filename){
+void fileClose(const char * filename, void* appData){
     int i;
 
     for(i=0; i < gnblocks; i++){

@@ -17,24 +17,24 @@
 typedef struct Stash *Stash;
 
 
-typedef Stash (*stashinit_function)(const char *filename, const unsigned int  blockSize);
+typedef Stash (*stashinit_function)(const char *filename, const unsigned int  blockSize, void* appData);
 
-typedef void (*stashget_function)(Stash stash, PLBlock block, const BlockNumber pl_blkno, const char *fileName);
+typedef void (*stashget_function)(Stash stash, PLBlock block, const BlockNumber pl_blkno, const char *fileName, void* appData);
 
-typedef void (*stashadd_function)(Stash stash, const char *fileName, const PLBlock block);
+typedef void (*stashadd_function)(Stash stash, const char *fileName, const PLBlock block, void* appData);
 
-typedef void (*stashupdate_function)(Stash stash, const char *fileName, const PLBlock block);
+typedef void (*stashupdate_function)(Stash stash, const char *fileName, const PLBlock block, void* appData);
 
 
-typedef void (*stashremove_function)(Stash stash, const char *filename, const PLBlock block);
+typedef void (*stashremove_function)(Stash stash, const char *filename, const PLBlock block, void* appData);
 
-typedef void (*stashclose_function)(Stash stash, const char *filename);
+typedef void (*stashclose_function)(Stash stash, const char *filename, void* appData);
 
-typedef void (*stashstartIt_function)(Stash stash, const char *filename);
+typedef void (*stashstartIt_function)(Stash stash, const char *filename, void* appData);
 
-typedef unsigned int (*stashnext_function)(Stash stash, const char *filename, PLBlock *block);
+typedef unsigned int (*stashnext_function)(Stash stash, const char *filename, PLBlock *block, void* appData);
 
-typedef void (*stashcloseIt_function)(Stash stash,const char *filename);
+typedef void (*stashcloseIt_function)(Stash stash,const char *filename, void* appData);
 
 
 /* Access manager to stash */

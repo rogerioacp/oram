@@ -60,7 +60,7 @@ typedef struct Amgr {
  *
  */
 
-ORAMState init_oram(const char *filename, unsigned int fileSize, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr);
+ORAMState init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void* appData);
 
 /**
  * ORAM read operation that triggers a sequence of oblivious file reads and
@@ -68,14 +68,14 @@ ORAMState init_oram(const char *filename, unsigned int fileSize, unsigned int bl
  * requested block.
  *
  */
-int read_oram(char **ptr, BlockNumber blkno, ORAMState state);
+int read_oram(char **ptr, BlockNumber blkno, ORAMState state, void* appdata);
 
 /**
  * ORAM write request that triggers a sequence of oblivious file reads and
  * writes that hides the input block.
  *
  */
-int write_oram(char *data, unsigned int blksize, BlockNumber blkno, ORAMState state);
+int write_oram(char *data, unsigned int blksize, BlockNumber blkno, ORAMState state, void* appData);
 
 
 /**
@@ -84,6 +84,6 @@ int write_oram(char *data, unsigned int blksize, BlockNumber blkno, ORAMState st
  * - Position Map
  * - Stash
  */
-void close_oram(ORAMState state);
+void close_oram(ORAMState state, void* appData);
 
 #endif                            /* ORAM_H */

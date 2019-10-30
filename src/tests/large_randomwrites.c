@@ -55,7 +55,7 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
         strings[index] = NULL;
     }
 
-    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr);
+    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr, NULL);
     //printf("Going to write strings\n");
 
     for (index = 0; index < nwrites; index++) {
@@ -78,23 +78,23 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
         blockWriteOffset = sizeof(char) * strlen(strings[wOffset]) + 1;
         //printf("Generated string %s\n", strings[wOffset]);
         //printf("going to write to oram offset %zu the string %s\n", wOffset, strings[wOffset]);
-        write_oram(strings[wOffset], blockWriteOffset, wOffset, state);
+        write_oram(strings[wOffset], blockWriteOffset, wOffset, state, NULL);
     }
 
     for (index = 0; index < nblocks; index++) {
         //printf("Going to read from oram offset %d\n",index);
-        result = read_oram(&data, index, state);
+        result = read_oram(&data, index, state, NULL);
         //printf("read from oram offset %d the value %s and compares to %s \n", index, data, strings[index]);
 
         if ((result != DUMMY_BLOCK && result != strlen(data) + 1) || (result != DUMMY_BLOCK && strcmp(data, strings[index]) != 0)) {
-            close_oram(state);
+            close_oram(state, NULL);
             return 1;
         }
         free(strings[index]);
         free(data);
     }
 
-    close_oram(state);
+    close_oram(state, NULL);
     free(strings);
     return 0;
 }

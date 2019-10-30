@@ -32,23 +32,23 @@ struct Stash {
 //static ListIter iterator;
 
 /* non-export function prototypes */
-static Stash stashInit(const char *filename, const unsigned int blockSize);
+static Stash stashInit(const char *filename, const unsigned int blockSize, void* appData);
 
-static void stashAdd(Stash stash, const char *filename, const PLBlock block);
+static void stashAdd(Stash stash, const char *filename, const PLBlock block, void* appData);
 
-static void stashUpdate(Stash stash, const char *filename, const PLBlock block);
+static void stashUpdate(Stash stash, const char *filename, const PLBlock block, void* appData);
 
-static void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename);
+static void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename, void* appData);
 
-static void stashRemove(Stash stash, const char *filename, const PLBlock block);
+static void stashRemove(Stash stash, const char *filename, const PLBlock block, void* appData);
 
-static void stashClose(Stash stash, const char *filename);
+static void stashClose(Stash stash, const char *filename, void* appData);
 
-static void stashStartIt(Stash stash, const char *filename);
+static void stashStartIt(Stash stash, const char *filename, void* appData);
 
-static unsigned int stashNext(Stash stash, const char *filename, PLBlock *block);
+static unsigned int stashNext(Stash stash, const char *filename, PLBlock *block, void* appData);
 
-static void stashCloseIt(Stash stash, const char *filename);
+static void stashCloseIt(Stash stash, const char *filename, void* appData);
 
 AMStash *stashCreate(void) {
     AMStash *stash = (AMStash *) malloc(sizeof(AMStash));
@@ -66,13 +66,13 @@ AMStash *stashCreate(void) {
     return stash;
 }
 
-Stash stashInit(const char *filename, const unsigned int blockSize) {
+Stash stashInit(const char *filename, const unsigned int blockSize, void* appData) {
     Stash stash = (Stash) malloc(sizeof(struct Stash));
     list_new(&(stash->list));
     return stash;
 }
 
-void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename) {
+void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename, void* appData) {
     ListIter iter;
     PLBlock aux = NULL;
     void *element;
@@ -90,13 +90,13 @@ void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *file
     }
 }
 
-void stashAdd(Stash stash, const char *filename, const PLBlock block) {
+void stashAdd(Stash stash, const char *filename, const PLBlock block, void* appData) {
     //logger(DEBUG, "Going to add to stash block number %d", block->blkno);
     list_add(stash->list, block);
 }
 
 
-void stashUpdate(Stash stash, const char *filename, const PLBlock block) {
+void stashUpdate(Stash stash, const char *filename, const PLBlock block, void* appData) {
 
     //logger(DEBUG, "Going to update stash with block number %d", block->blkno);
 
@@ -125,7 +125,7 @@ void stashUpdate(Stash stash, const char *filename, const PLBlock block) {
     }
 }
 
-void stashRemove(Stash stash, const char *filename, const PLBlock block) {
+void stashRemove(Stash stash, const char *filename, const PLBlock block, void* appData) {
     ListIter iter;
     PLBlock aux = NULL;
     void *element;
@@ -149,7 +149,7 @@ void destroyNotifyPLBlock(void* data) {
     freeBlock((PLBlock) data);
 }
 
-void stashClose(Stash stash, const char *filename) {
+void stashClose(Stash stash, const char *filename, void* appData) {
     list_remove_all_cb(stash->list, &destroyNotifyPLBlock);
     list_destroy(stash->list);
     //list = NULL;
@@ -157,11 +157,11 @@ void stashClose(Stash stash, const char *filename) {
 }
 
 
-void stashStartIt(Stash stash, const char *filename) {
+void stashStartIt(Stash stash, const char *filename, void* appData) {
     list_iter_init(&(stash->iterator), stash->list);
 }
 
-unsigned int stashNext(Stash stash, const char *filename, PLBlock *block) {
+unsigned int stashNext(Stash stash, const char *filename, PLBlock *block, void* appData) {
 
     void* element;
     if (list_iter_next(&stash->iterator, &element) == CC_ITER_END) {
@@ -172,6 +172,6 @@ unsigned int stashNext(Stash stash, const char *filename, PLBlock *block) {
     return 1;
 }
 
-void stashCloseIt(Stash stash, const char *filename) {
+void stashCloseIt(Stash stash, const char *filename, void* appData) {
     //iterator = NULL;
 }
