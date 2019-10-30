@@ -17,6 +17,7 @@ The main feature of this library is to have a common library for different imple
 
 Currently, the library support the following algorithms:
 * [PathORAM](https://eprint.iacr.org/2013/280.pdf)
+* ForestORAM
 
 Furthermore, it provides in-memory implementation of a file, stash and position map used for testing the logic of the algorithm implementations.
 
