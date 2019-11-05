@@ -23,21 +23,21 @@
 #include <stdlib.h>
 
 
-PLBList file;
+PLBArray file;
 unsigned int gnblocks;
 
 static void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize, void* appData);
 
-static void fileRead(PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
+static void fileRead(PLBArray  blocks, const char *fileName, BNArray ob_blkno, unsigned int nblocks ,void* appData);
 
-static void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
+static void fileWrite(PLBArray blocks, const char *fileName, BNArray ob_blkno, unsigned int nblocks, void* appData);
 
 static void fileClose(const char *filename, void* appData);
 
 
 void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize, void* appData) {
     int offset;
-    file = (PLBList) malloc(sizeof(PLBlock) * nblocks);
+    file = (PLBArray) malloc(sizeof(PLBlock) * nblocks);
     gnblocks = nblocks;
 
     for (offset = 0; offset < nblocks; offset++) {
@@ -51,19 +51,34 @@ void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize
 
 }
 
-void fileRead(PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
-    block->blkno = file[ob_blkno]->blkno;
-    block->size = file[ob_blkno]->size;
-    block->block = malloc(file[ob_blkno]->size);
-    //printf("Going to read block number %d\n", ob_blkno);
-    memcpy(block->block, file[ob_blkno]->block, file[ob_blkno]->size);
+void fileRead(PLBArray blocks, const char *fileName, BNArray ob_blknos, unsigned int nblocks,  void* appData) {
+
+    int offset;
+
+    for(offset = 0; offset < nblocks; offset++){
+        PLBlock block = blocks[offset];
+        BlockNumber ob_blkno = ob_blknos[offset];
+
+        block->blkno = file[ob_blkno]->blkno;
+        block->size = file[ob_blkno]->size;
+        block->block = malloc(file[ob_blkno]->size);
+        memcpy(block->block, file[ob_blkno]->block, file[ob_blkno]->size);
+
+    }
 }
 
-void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
-    file[ob_blkno]->blkno = block->blkno;
-    file[ob_blkno]->size = block->size;
-    //printf("Going to write block number %d\n", ob_blkno);
-    memcpy(file[ob_blkno]->block, block->block, block->size);
+void fileWrite(PLBArray blocks, const char *fileName, BNArray ob_blknos, unsigned int nblocks, void* appData) {
+    int offset; 
+
+    for(offset = nblocks-1; offset >= 0; offset--){
+        PLBlock block = blocks[offset];
+        BlockNumber ob_blkno = ob_blknos[offset];
+
+        file[ob_blkno]->blkno = block->blkno;
+        file[ob_blkno]->size = block->size;
+        memcpy(file[ob_blkno]->block, block->block, block->size);
+    }
+
 }
 
 

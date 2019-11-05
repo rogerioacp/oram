@@ -17,9 +17,9 @@
 
 typedef void (*ofileinit_function)(const char *fileName, unsigned int totalNodes, unsigned int blockSize, void* appData);
 
-typedef void (*ofileread_function)(PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
+typedef void (*ofileread_function)(PLBArray blocks, const char *fileName, BNArray ob_blknos, unsigned int nblocks,  void* appData);
 
-typedef void (*ofilewrite_function)(const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
+typedef void (*ofilewrite_function)(PLBArray blocks, const char *fileName, BNArray ob_blknos, unsigned int nblocks, void* appData);
 
 typedef void (*ofileclose_function)(const char *fileName, void *appData);
 

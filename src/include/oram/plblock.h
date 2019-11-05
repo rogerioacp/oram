@@ -23,7 +23,9 @@ typedef struct PLBlock {
     void *block;
 } *PLBlock;
 
-typedef PLBlock *PLBList;
+typedef PLBlock* PLBArray;
+typedef int* BNArray;
+
 
 PLBlock createBlock(int blkno, int size, void *block);
 
