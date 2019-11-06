@@ -19,6 +19,8 @@
 #include <errno.h>
 #include <string.h>
 
+PLBlock dummyBlock = NULL;
+
 //Assumes that the block already comes allocated from the client.
 PLBlock createBlock(int blkno, int size, void *data) {
     int save_errno = 0;
@@ -84,6 +86,15 @@ PLBlock createRandomBlock(unsigned int size) {
     block->size = size;
     errno = save_errno;
     return block;
+}
+
+PLBlock createDummyBlock(unsigned int size){
+
+    if(dummyBlock == NULL){
+        dummyBlock = createRandomBlock(size);
+    }
+
+    return dummyBlock;
 }
 
 void freeBlock(PLBlock block) {

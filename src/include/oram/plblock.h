@@ -31,6 +31,8 @@ PLBlock createEmptyBlock(void);
 
 PLBlock createRandomBlock(unsigned int size);
 
+PLBlock createDummyBlock(unsigned int size);
+
 void freeBlock(PLBlock block);
 
 

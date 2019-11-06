@@ -75,7 +75,7 @@ static void getBlocksToWrite(PLBList *blocksToWrite, unsigned int  a_leaf, ORAMS
 
 static void writeBlocksToStorage(PLBList list, unsigned int  leaf, ORAMState state, void* appData);
 
-static int check(unsigned int  a_leaf, unsigned int  s_leaf, unsigned int  level);
+// static int check(unsigned int  a_leaf, unsigned int  s_leaf, unsigned int  level);
 
 static void updateBlockLeaf(BlockNumber blkno, ORAMState state);
 
@@ -322,64 +322,55 @@ void addBlocksToStash(ORAMState state, PLBList list, void* appData) {
 void getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, void* appData) {
 
     unsigned int  total = 0;
+    
     // Index to keep track of current tree level
     unsigned int  level = state->treeHeight + 1;
-    //Leaf number of a stash node
-    Location s_location;
     unsigned int  s_leaf = 0;
-    unsigned int  padding = 0;
     unsigned int  a_leaf_node = a_leaf + (1 << (state->treeHeight));
     unsigned int  s_leaf_node = 1 << state->treeHeight;
-    unsigned int  aux_leaf_node = 0;
+    unsigned int index = 0;
+    unsigned int  level_offset = 0;
+    int  a_leaf_level = 0;
+    unsigned int loffset;
+
     PLBlock pl_block;
     PLBList selectedBlocks;
-    PLBlock r_block = NULL;
-    PLBlock rem_block;
-    unsigned int  remove_offset;
-    unsigned int  check_v;
-    unsigned int  index;
-    unsigned int  remove_index = 0;
-    unsigned int  add_index = 0;
-    unsigned int  check_height = 0;
-
-
+    
     initBlockList(state, &selectedBlocks);
 
 
     for (; level > 0; level--) {
 
         state->amgr->am_stash->stashstartIt(state->stash, state->file, appData);
+        level_offset = ((state->treeHeight + 1) - level);
+        a_leaf_level = a_leaf_node >> level_offset;
+       
+        //Get blocks that satisfy current level
+        while (state->amgr->am_stash->stashnext(state->stash, state->file, &pl_block, appData) && total < state->bucketCapacity) {
 
-        while (state->amgr->am_stash->stashnext(state->stash, state->file, &pl_block, appData)
-               && total < state->bucketCapacity) {
-
-            s_location = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno);
-            s_leaf = s_location->leaf;
-            aux_leaf_node = s_leaf + s_leaf_node;
-            check_v = (state->treeHeight + 1) - level;
-            check_v = check(a_leaf_node, aux_leaf_node, check_v);
-
-            if (check_v) {
-                add_index = (level - 1) * state->bucketCapacity + total;
-                selectedBlocks[add_index] = pl_block;
+            s_leaf = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno)->leaf;
+             
+            if (a_leaf_level  == ((s_leaf + s_leaf_node)>> level_offset)) {
+                index = (level - 1) * state->bucketCapacity + total;
+                selectedBlocks[index] = pl_block;
                 total++;
             }
         }
 
-        state->amgr->am_stash->stashcloseIt(state->stash, state->file, appData);
-
-        for (remove_offset = 0; remove_offset < total; remove_offset++) {
-            remove_index = (level - 1) * state->bucketCapacity + remove_offset;
-            rem_block = selectedBlocks[remove_index];
-            state->amgr->am_stash->stashremove(state->stash, state->file, rem_block, appData);
+        //state->amgr->am_stash->stashcloseIt(state->stash, state->file, appData);
+        
+        //remove from the stash selected blocks
+        for (loffset = 0; loffset < total; loffset++) {
+            index = (level - 1) * state->bucketCapacity + loffset;
+            state->amgr->am_stash->stashremove(state->stash, state->file, selectedBlocks[index], appData);
         }
 
-        padding = total;
+        //add padding to a tree node if there werent sufficient blocks in the stash
+        loffset = total;
 
-        for (; padding < state->bucketCapacity; padding++) {
-            r_block = createRandomBlock(state->blockSize);
-            index = (level - 1) * state->bucketCapacity + padding;
-            selectedBlocks[index] = r_block;
+        for (; loffset < state->bucketCapacity; loffset++) {
+            index = (level - 1) * state->bucketCapacity + loffset;
+            selectedBlocks[index] = createDummyBlock(state->blockSize);
         }
 
         total = 0;
@@ -406,17 +397,15 @@ void writeBlocksToStorage(PLBList list, unsigned int  leaf, ORAMState state, voi
             list_idx = list_offset - index;
             block = list[list_idx];
             state->amgr->am_ofile->ofilewrite(block, state->file, ob_blkno, appData);
-            free(block->block);
-            free(block);
+            if(block->blkno != DUMMY_BLOCK){
+                free(block->block);
+                free(block);
+            }
         }
         list_offset -= state->bucketCapacity;
         currentPos >>= 1;
 
     }
-}
-
-int check(unsigned int  a_leaf, unsigned int  s_leaf, unsigned int  level) {
-    return (a_leaf >> level) == (s_leaf >> level);
 }
 
 void updateBlockLeaf(BlockNumber blkno, ORAMState state) {
