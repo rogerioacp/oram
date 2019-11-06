@@ -440,7 +440,7 @@ void getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState sta
             s_location = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno);
             //aux_leaf_node = s_location->leaf + s_leaf_node;
 
-            if (a_leaf_level == (s_location->leaf + s_leaf_node) 
+            if (a_leaf_level == ((s_location->leaf + s_leaf_node)>>level_offset) 
                 && a_location->partition == s_location->partition) {
                 index = (level - 1) * state->bucketCapacity + total;
                 selectedBlocks[index] = pl_block;
