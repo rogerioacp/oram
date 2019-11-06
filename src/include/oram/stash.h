@@ -28,6 +28,8 @@ typedef void (*stashupdate_function)(Stash stash, const char *fileName, const PL
 
 typedef void (*stashremove_function)(Stash stash, const char *filename, const PLBlock block, void* appData);
 
+typedef int (*stashtake_function)(Stash stash, const char *filename,  unsigned int blkno, void* appData);
+
 typedef void (*stashclose_function)(Stash stash, const char *filename, void* appData);
 
 typedef void (*stashstartIt_function)(Stash stash, const char *filename, void* appData);
@@ -45,6 +47,7 @@ typedef struct AMStash {
     stashadd_function stashadd;
     stashupdate_function stashupdate;
     stashremove_function stashremove;
+    stashtake_function stashtake;
     stashclose_function stashclose;
 
     /* Stash iterator functions */

@@ -58,6 +58,9 @@ cmake-build-debug
 *.libs
 *.dirstamp
 *Makefile
+*.prof
+gmon.out
+tags
 config.h*
 libtool
 README

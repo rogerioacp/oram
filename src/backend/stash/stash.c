@@ -27,9 +27,7 @@ struct Stash {
     List *list;
     ListIter iterator;
 };
-//static List *list;
 
-//static ListIter iterator;
 
 /* non-export function prototypes */
 static Stash stashInit(const char *filename, const unsigned int blockSize, void* appData);
@@ -41,6 +39,9 @@ static void stashUpdate(Stash stash, const char *filename, const PLBlock block, 
 static void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename, void* appData);
 
 static void stashRemove(Stash stash, const char *filename, const PLBlock block, void* appData);
+
+int stashTake(Stash stash, const char *filename, unsigned int blkno, void* appData);
+
 
 static void stashClose(Stash stash, const char *filename, void* appData);
 
@@ -57,6 +58,7 @@ AMStash *stashCreate(void) {
     stash->stashadd = &stashAdd;
     stash->stashupdate = &stashUpdate;
     stash->stashremove = &stashRemove;
+    stash->stashtake = &stashTake;
     stash->stashclose = &stashClose;
 
     stash->stashstartIt = &stashStartIt;
@@ -142,6 +144,33 @@ void stashRemove(Stash stash, const char *filename, const PLBlock block, void* a
     }
 
     list_remove(stash->list, aux, NULL);
+}
+
+int stashTake(Stash stash, const char *filename, unsigned int blkno, void* appData){
+    void* element;
+    ListIter iter;
+    PLBlock aux = NULL;
+    list_iter_init(&iter, stash->list);
+    int found = 0;
+    while(list_iter_next(&iter, &element) != CC_ITER_END){
+        aux  = (PLBlock) element;
+
+        if((unsigned int) aux->blkno == blkno){
+            found = 1;
+            break;
+        }
+    }
+
+    if(found){
+     list_remove(stash->list, aux, NULL);
+     free(aux->block);
+     free(aux);
+     //free((*block)->block);
+     //free(*block);
+     //*block = aux;
+    }
+
+    return found;
 }
 
 

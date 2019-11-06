@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     for (index = 0; index < nblocks; index++) {
         //printf("Going to read %d\n",index);
         result = read_oram(&data, index, state, NULL);
-        //printf("read string %s with result %d\n", (char*) data, result);
+        printf("read string %s with result %d\n", (char*) data, result);
 
         if (result != strlen(data) + 1 || strcmp(data, strings[index]) != 0) {
             close_oram(state, NULL);
