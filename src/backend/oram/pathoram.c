@@ -304,16 +304,24 @@ PLBArray getTreeNodes(ORAMState state, TreePath path, void* appData) {
 
     int index = 0;
     int prev = 0;
+    int lcapacity;
+    int lob_blkno;
     unsigned int nblocks = NBlocksRW(state);
 
     initBlockList(state, &plbArray);
     initBNArray(state, &bnArray);
 
     for (level = 0; level < state->treeHeight + 1; level++) {
+        
+        lcapacity = level * state->bucketCapacity;
+        lob_blkno = path[level] * state->bucketCapacity;
+
         for (offset = 0; offset < state->bucketCapacity; offset++) {
-            ob_blkno = path[level] * state->bucketCapacity + offset;
+            
+            ob_blkno = lob_blkno + offset;
+            index = lcapacity+ offset;
+
             plblock = createEmptyBlock();
-            index = level * state->bucketCapacity + offset;
 
             plbArray[index] = plblock;
             bnArray[index] = ob_blkno; 
@@ -359,10 +367,11 @@ void getBlocksToWrite(PLBArray *blocksToWrite, unsigned int a_leaf, ORAMState st
     unsigned int index = 0;
     unsigned int  level_offset = 0;
     int  a_leaf_level = 0;
+    unsigned int bucket_offset = 0;
     unsigned int loffset;
 
     PLBlock pl_block;
-    PLBList selectedBlocks;
+    PLBArray selectedBlocks;
     
 
     initBlockList(state, &selectedBlocks);
@@ -373,14 +382,15 @@ void getBlocksToWrite(PLBArray *blocksToWrite, unsigned int a_leaf, ORAMState st
         state->amgr->am_stash->stashstartIt(state->stash, state->file, appData);
         level_offset = ((state->treeHeight + 1) - level);
         a_leaf_level = a_leaf_node >> level_offset;
-       
+        bucket_offset = (level - 1) *  state->bucketCapacity;
+
         //Get blocks that satisfy current level
         while (state->amgr->am_stash->stashnext(state->stash, state->file, &pl_block, appData) && total < state->bucketCapacity) {
 
             s_leaf = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno)->leaf;
              
             if (a_leaf_level  == ((s_leaf + s_leaf_node)>> level_offset)) {
-                index = (level - 1) * state->bucketCapacity + total;
+                index = bucket_offset + total;
                 selectedBlocks[index] = pl_block;
                 total++;
             }
@@ -390,7 +400,7 @@ void getBlocksToWrite(PLBArray *blocksToWrite, unsigned int a_leaf, ORAMState st
         
         //remove from the stash selected blocks
         for (loffset = 0; loffset < total; loffset++) {
-            index = (level - 1) * state->bucketCapacity + loffset;
+            index = bucket_offset + loffset;
             state->amgr->am_stash->stashremove(state->stash, state->file, selectedBlocks[index], appData);
         }
 
@@ -398,7 +408,7 @@ void getBlocksToWrite(PLBArray *blocksToWrite, unsigned int a_leaf, ORAMState st
         loffset = total;
 
         for (; loffset < state->bucketCapacity; loffset++) {
-            index = (level - 1) * state->bucketCapacity + loffset;
+            index = bucket_offset + loffset;
             selectedBlocks[index] = createDummyBlock(state->blockSize);
         }
 
@@ -417,6 +427,7 @@ void writeBlocksToStorage(PLBArray plbArray, unsigned int  leaf, ORAMState state
     unsigned int  currentPos = 0;
     int  index;
     BlockNumber ob_blkno = 0;
+    BlockNumber lob_blkno = 0;
     PLBlock block = NULL;
     BNArray bnArray = NULL;
     unsigned int a_idx = 0;
@@ -426,23 +437,28 @@ void writeBlocksToStorage(PLBArray plbArray, unsigned int  leaf, ORAMState state
     currentPos = leaf + (1 << state->treeHeight);
 
     while (currentPos > 0) {
+        
+        lob_blkno = (currentPos -1) * state->bucketCapacity;
 
         for (index = 0; index < state->bucketCapacity; index++) {
-            ob_blkno = (currentPos - 1) * state->bucketCapacity + index;
+            ob_blkno = lob_blkno + index;
             a_idx = a_offset - index;
             bnArray[a_idx] = ob_blkno; 
         }
+
         a_offset -= state->bucketCapacity;
         currentPos >>= 1;
 
     }
 
-    state->amgr->am_ofile->ofilewrite(plbArray, state->file, bnArray, nblocks,appData);
+    state->amgr->am_ofile->ofilewrite(plbArray, state->file, bnArray, nblocks, appData);
 
     for(index = nblocks-1; index >= 0; index--){
         block = plbArray[index];
-        free(block->block);
-        free(block);
+        if(block->blkno != DUMMY_BLOCK){
+            free(block->block);
+            free(block);
+        }
     }
 }
 
@@ -463,6 +479,7 @@ void updateStashWithNewBlock(void *data, unsigned int  blkSize, BlockNumber blkn
 
 
 int read_oram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
+    
     Location location;
     unsigned int  leaf = 0;
     unsigned int  result = 0;
@@ -514,6 +531,7 @@ int read_oram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
 }
 
 int write_oram(char *data, unsigned int  blkSize, BlockNumber blkno, ORAMState state, void* appData) {
+    
     Location location;
     unsigned int  leaf = 0;
     TreePath path = NULL;

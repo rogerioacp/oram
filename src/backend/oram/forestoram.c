@@ -90,7 +90,7 @@ static void initBlockList(ORAMState state, PLBArray *list);
 static PLBArray getTreeNodes(ORAMState state, TreePath path, Location location, void* appData);
 
 
-static void addBlocksToStash(ORAMState state, PLBArray list, void*  appData);
+static void addBlocksToStash(ORAMState state, PLBArray list, Location location, void* appData);
 
 
 static void getBlocksToWrite(PLBArray *blocksToWrite, Location location, ORAMState state, void* appData);
@@ -390,9 +390,10 @@ PLBArray getTreeNodes(ORAMState state, TreePath path, Location location, void* a
     PLBlock plblock = NULL;
 
     int index = 0;
-    int prev = 0;
+    int lcapacity; 
+    int lob_blkno;
     unsigned int pOffset = 0; // partition offset;
-
+    
     unsigned int nblocks = NBlocksRW(state);
 
     pOffset = location->partition*state->partitionCapacity;
@@ -401,11 +402,16 @@ PLBArray getTreeNodes(ORAMState state, TreePath path, Location location, void* a
     initBNArray(state, &bnArray);
 
     for (level = 0; level < state->partitionsHeight + 1; level++) {
-        for (offset = 0; offset < state->bucketCapacity; offset++) {
-            ob_blkno = path[level] * state->bucketCapacity + offset + pOffset;
-            plblock = createEmptyBlock();
-            index = level * state->bucketCapacity + offset;
+        
+        lcapacity = level * state->bucketCapacity;
+        lob_blkno = path[level] * state->bucketCapacity + pOffset;
 
+        for (offset = 0; offset < state->bucketCapacity; offset++) {
+            
+            ob_blkno = lob_blkno + offset;
+            index = lcapacity + offset;
+
+            plblock = createEmptyBlock();
             plbArray[index] = plblock;
             bnArray[index] = ob_blkno;
 
@@ -418,7 +424,7 @@ PLBArray getTreeNodes(ORAMState state, TreePath path, Location location, void* a
 }
 
 
-void addBlocksToStash(ORAMState state, PLBArray list, void* appData) {
+void addBlocksToStash(ORAMState state, PLBArray list, Location location, void* appData) {
 
     int index = 0;
 
@@ -452,16 +458,14 @@ void getBlocksToWrite(PLBArray *blocksToWrite, Location a_location, ORAMState st
     unsigned int  index;
     unsigned int  loffset;
     unsigned int level_offset = 0;
+    unsigned int bucket_offset = 0;
     unsigned int a_leaf_level = 0;
   
     // Location of  a stashed node
     Location  s_location = 0;
 
     PLBlock pl_block;
-    PLBList selectedBlocks;
-
-
-
+    PLBArray selectedBlocks;
 
     initBlockList(state, &selectedBlocks);
     
@@ -470,13 +474,16 @@ void getBlocksToWrite(PLBArray *blocksToWrite, Location a_location, ORAMState st
         state->amgr->am_stash->stashstartIt(state->stashes[a_location->partition], state->file, appData);
         level_offset =  (state->partitionsHeight + 1 ) - level;
         a_leaf_level =  a_leaf_node >> level_offset;
-        while (state->amgr->am_stash->stashnext(state->stashes[a_location->partition], state->file, &pl_block, appData)
+        bucket_offset = (level-1)*state->bucketCapacity;
+        
+        while (state->amgr->am_stash->stashnext(state->stashes[a_location->partition], 
+                                                state->file, &pl_block, appData)
                && total < state->bucketCapacity) {
 
             s_location = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno);
 
             if (a_leaf_level == ((s_location->leaf + s_leaf_node)>>level_offset)) {
-                index = (level - 1) * state->bucketCapacity + total;
+                index = bucket_offset + total;
                 selectedBlocks[index] = pl_block;
                 total++;
             }
@@ -485,16 +492,18 @@ void getBlocksToWrite(PLBArray *blocksToWrite, Location a_location, ORAMState st
         //state->amgr->am_stash->stashcloseIt(state->stash, state->file, appData);
 
         for (loffset = 0; loffset < total; loffset++) {
-            index = (level - 1) * state->bucketCapacity + loffset;
-            
+
+            index = bucket_offset + loffset; 
             state->amgr->am_stash->stashremove(state->stashes[a_location->partition], state->file,
                                                selectedBlocks[index], appData);
         }
 
         
         for (loffset = total; loffset < state->bucketCapacity; loffset++) {
-            index = (level - 1) * state->bucketCapacity + loffset;
+            
+            index = bucket_offset + loffset;
             selectedBlocks[index] = createDummyBlock(state->blockSize);
+        
         }
 
         total = 0;
@@ -512,11 +521,13 @@ void writeBlocksToStorage(PLBArray plbArray, Location location, ORAMState state,
     int index;
 
     BlockNumber ob_blkno = 0;
+    BlockNumber lob_blkno = 0;
     PLBlock block = NULL;
     BNArray bnArray = NULL;
 
     unsigned int a_idx = 0;
     unsigned int pOffset = 0; // partition offset;
+    
 
 
     initBNArray(state, &bnArray);
@@ -525,13 +536,17 @@ void writeBlocksToStorage(PLBArray plbArray, Location location, ORAMState state,
     currentPos = location->leaf + (1 << state->partitionsHeight);
 
     while (currentPos > 0) {
-
+        
+        lob_blkno = (currentPos - 1) * state->bucketCapacity + pOffset;
+       
         for (index = 0; index < state->bucketCapacity; index++) {
-            ob_blkno = (currentPos - 1) * state->bucketCapacity + index + pOffset;
-
+           
+            ob_blkno = lob_blkno + index;
             a_idx = a_offset - index;
+            
             bnArray[a_idx] = ob_blkno;
         }
+
         a_offset -= state->bucketCapacity;
         currentPos >>= 1;
     }
@@ -540,8 +555,10 @@ void writeBlocksToStorage(PLBArray plbArray, Location location, ORAMState state,
 
     for(index = nblocks-1; index >= 0; index--){
         block = plbArray[index];
-        free(block->block);
-        free(block);
+        if(block->blkno != DUMMY_BLOCK){
+            free(block->block);
+            free(block);
+        }
     }
 
 
@@ -568,13 +585,11 @@ void updateStashWithNewBlock(void *data, unsigned int  blkSize, BlockNumber blkn
 
 
 int read_foram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
+    
     Location location;
     unsigned int  result = 0;
     TreePath path = NULL;
-
     PLBArray array = NULL;
-    //PLBList blocks_to_write = NULL;
-    //printf("Creating empty block\n");
     PLBlock plblock = createEmptyBlock();
 
     // line 1 and 2 of original paper
@@ -584,9 +599,9 @@ int read_foram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
     path = getTreePath(state, location);
 
     array = getTreeNodes(state, path, location, appData);
-    //printf("Add blocks to stash\n");
-    addBlocksToStash(state, array, appData);
-    //printf("Getting block to stash\n");
+
+    addBlocksToStash(state, array, location, appData);
+
     //Line 6 of original paper
     state->amgr->am_stash->stashget(state->stashes[location->partition], plblock, blkno,  state->file, appData);
 
@@ -613,7 +628,8 @@ int read_foram(char **ptr, BlockNumber blkno, ORAMState state, void* appData) {
 int evict_foram(char *data, unsigned int  blkSize, BlockNumber blkno, ORAMState state, void* appData) {
 
 
-    struct Location location;
+    struct Location oldLocation;
+    Location newLocation;
     PLBArray blocks_to_write = NULL;
 
     // line 1 and 2 of original paper
