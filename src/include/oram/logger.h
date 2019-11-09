@@ -19,6 +19,7 @@
 
 #define LBUFSIZE 200
 
-void logger(int level, const char* message, ...);
+void		logger(int level, const char *message,...);
 
-#endif /* LOG_H */
+
+#endif							/* LOGGER_H */

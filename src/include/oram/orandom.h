@@ -15,4 +15,5 @@
 
 unsigned int getRandomInt(void);
 
-#endif   /* BLOCK_H */
+#endif							/* ORANDOM_H*/
+

@@ -43,10 +43,11 @@ typedef struct ORAMState *ORAMState;
  * the position map to update its internal state.
  *
  */
-typedef struct Amgr {
-    AMStash *am_stash;
-    AMPMap *am_pmap;
-    AMOFile *am_ofile;
+typedef struct Amgr
+{
+	AMStash    *am_stash;
+	AMPMap	   *am_pmap;
+	AMOFile    *am_ofile;
 } Amgr;
 
 
@@ -60,7 +61,7 @@ typedef struct Amgr {
  *
  */
 
-ORAMState init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void* appData);
+ORAMState	init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData);
 
 /**
  * ORAM read operation that triggers a sequence of oblivious file reads and
@@ -68,14 +69,14 @@ ORAMState init_oram(const char *file, unsigned int fileSize, unsigned int blockS
  * requested block.
  *
  */
-int read_oram(char **ptr, BlockNumber blkno, ORAMState state, void* appdata);
+int			read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appdata);
 
 /**
  * ORAM write request that triggers a sequence of oblivious file reads and
  * writes that hides the input block.
  *
  */
-int write_oram(char *data, unsigned int blksize, BlockNumber blkno, ORAMState state, void* appData);
+int			write_oram(char *data, unsigned int blksize, BlockNumber blkno, ORAMState state, void *appData);
 
 
 /**
@@ -84,6 +85,6 @@ int write_oram(char *data, unsigned int blksize, BlockNumber blkno, ORAMState st
  * - Position Map
  * - Stash
  */
-void close_oram(ORAMState state, void* appData);
+void		close_oram(ORAMState state, void *appData);
 
-#endif                            /* ORAM_H */
+#endif							/* ORAM_H */

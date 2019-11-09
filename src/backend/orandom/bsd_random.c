@@ -2,7 +2,7 @@
  *
  * bsd_random.c
  *	   Implementation of random library for bsd systems.
- * 
+ *
  * Copyright (c) 2018-2019, HASLab
  *
  * IDENTIFICATION
@@ -15,6 +15,8 @@
 #include <stdlib.h>
 
 
-unsigned int getRandomInt(void) {
-    return arc4random();
+unsigned int
+getRandomInt(void)
+{
+	return arc4random();
 }

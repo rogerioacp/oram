@@ -36,3 +36,4 @@ int main(int argc, char *argv[]) {
     close_oram(state, NULL);
     return result;
 }
+

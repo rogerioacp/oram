@@ -85,3 +85,4 @@ AMOFile *ofileCreate(void) {
     file->ofileclose = &fileClose;
     return file;
 }
+

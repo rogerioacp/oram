@@ -41,3 +41,4 @@ void logger(int level, const char* message, ...){
     va_end(ap);
     printf("%d - %s", level, buf);
 }
+

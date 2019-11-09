@@ -65,3 +65,4 @@ config.h*
 libtool
 README
 configure.lineno
+oram.typedefs

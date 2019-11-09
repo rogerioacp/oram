@@ -19,23 +19,24 @@ typedef struct TreeConfig *TreeConfig;
 
 #include "oram/plblock.h"
 
-// nBlocks -> number of original blocks.
-typedef PMap (*pminit_function)(const char *fileName, const unsigned int nBlocks, TreeConfig treeCofnig);
+/*  nBlocks -> number of original blocks. */
+typedef PMap (*pminit_function) (const char *fileName, const unsigned int nBlocks, TreeConfig treeCofnig);
 
-typedef Location (*pmget_function)(PMap pmap, const char *fileName, const BlockNumber blkno);
+typedef Location (*pmget_function) (PMap pmap, const char *fileName, const BlockNumber blkno);
 
-typedef void (*pmupdate_function)(PMap pmap, Location newLocation, const BlockNumber realBlkno, const char *fileName);
+typedef void (*pmupdate_function) (PMap pmap, Location newLocation, const BlockNumber realBlkno, const char *fileName);
 
-typedef void (*pmclose_function)(PMap pmap, const char *fileName);
+typedef void (*pmclose_function) (PMap pmap, const char *fileName);
 
 /*Access manager to position map*/
-typedef struct AMPMap {
-    pminit_function pminit;
-    pmget_function pmget;
-    pmupdate_function pmupdate;
-    pmclose_function pmclose;
+typedef struct AMPMap
+{
+	pminit_function pminit;
+	pmget_function pmget;
+	pmupdate_function pmupdate;
+	pmclose_function pmclose;
 } AMPMap;
 
-AMPMap *pmapCreate(void);
+AMPMap	   *pmapCreate(void);
 
-#endif        /*PMAP_H*/
+#endif							/* OFILE_H*/

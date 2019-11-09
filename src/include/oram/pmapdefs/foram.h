@@ -1,7 +1,7 @@
 /*-------------------------------------------------------------------------
  *
  * pmapdefs/poram.h
- *	  strut definitions for forest ORAM's position map location and tree 
+ *	  strut definitions for forest ORAM's position map location and tree
  * configuration.
  *
  *
@@ -14,14 +14,16 @@
 #ifndef PMAP_DEFS_FORAM_H
 #define PMAP_DEFS_FORAM_H
 
-struct Location {
+struct Location
+{
 	unsigned int partition;
 	unsigned int leaf;
 };
 
-struct TreeConfig{
+struct TreeConfig
+{
 	unsigned int treeHeight;
 	unsigned int nPartitions;
 };
 
-#endif        /*PMAP_DEFS_FORAM_H*/
+#endif							/* PMAP_DEFS_FORAM_H */

@@ -87,3 +87,4 @@ AMPMap *pmapCreate(void) {
     pmap->pmclose = &pmapClose;
     return pmap;
 }
+
