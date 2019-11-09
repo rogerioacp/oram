@@ -26,7 +26,7 @@ Furthermore, it provides in-memory implementation of a file, stash and position 
 
 ### Prerequisites
 
-The library has been successfully tested and installed on Linux (Ubuntu) and Mac OS. The library uses the GNU building system to generate makefiles and compilation objects specific to the underlying building system and as such requires the Autotools to be available. Furthermore, it uses the Collection-C library to creae data structures.
+The library has been successfully tested and installed on Linux (Ubuntu) and Mac OS. The library uses the GNU building system to generate makefiles and compilation objects specific to the underlying building system and as such requires the Autotools to be available. Furthermore, it uses the data structures implemented in Collection-C.
 
 * [Autotools](https://www.gnu.org/software/automake/manual/html_node/Autotools-Introduction.html#Autotools-Introduction)
 * [Collections-C](https://github.com/srdja/Collections-C)
@@ -39,6 +39,10 @@ The release must be decompressed and installed using the standard GNU build syst
 > ./configure && make && make install
 
 These commands ensure that the library is correctly compiled in your system and installed on the appropriate folders.
+
+To compile with debug flags or profiling flags, the CFLAGS enviornment variable can be set on the configure script:
+
+> ./configure CFLAGS="-g -O0 -pg"
 
 ### Running Tests
 
