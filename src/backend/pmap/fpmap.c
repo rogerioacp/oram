@@ -21,7 +21,7 @@
 
 #include "oram/pmap.h"
 #include "oram/orandom.h"
-#include "oram/pmapdefs/foram.h"
+#include "oram/pmapdefs/fdeforam.h"
 
 
 struct PMap {

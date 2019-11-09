@@ -35,7 +35,7 @@
 #include "oram/oram.h"
 #include "oram/logger.h"
 #include "oram/orandom.h"
-#include "oram/pmapdefs/poram.h"
+#include "oram/pmapdefs/pdeforam.h"
 
 
 struct ORAMState
