@@ -365,16 +365,23 @@ PLBList getTreeNodes(ORAMState state, TreePath path, Location location, void* ap
     PLBlock plblock = NULL;
     int index = 0;
     int prev = 0;
+    int lcapacity;
+    int lob_blkno;
     unsigned int pOffset = 0; // partition offset;
     
     pOffset = location->partition*state->partitionCapacity;
     initBlockList(state, &list);
 
     for (level = 0; level < state->partitionsHeight + 1; level++) {
+        
+        lcapacity = level * state->bucketCapacity;
+        lob_blkno = path[level] * state->bucketCapacity + pOffset;
+
         for (offset = 0; offset < state->bucketCapacity; offset++) {
-            ob_blkno = path[level] * state->bucketCapacity + offset + pOffset;
+            ob_blkno = lob_blkno + offset;
+            index = lcapacity + offset;
+
             plblock = createEmptyBlock();
-            index = level * state->bucketCapacity + offset;
             state->amgr->am_ofile->ofileread(plblock, state->file, (BlockNumber) ob_blkno, appData);
             list[index] = plblock;
         }
@@ -418,6 +425,7 @@ void getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState sta
     unsigned int  loffset;
     unsigned int level_offset = 0;
     unsigned int a_leaf_level = 0;
+    unsigned int bucket_offset = 0;
   
     // Location of  a stashed node
     Location  s_location = 0;
@@ -432,15 +440,18 @@ void getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState sta
     for (; level > 0; level--) {
 
         state->amgr->am_stash->stashstartIt(state->stashes[a_location->partition], state->file, appData);
+        
         level_offset =  (state->partitionsHeight + 1 ) - level;
         a_leaf_level =  a_leaf_node >> level_offset;
+        bucket_offset = (level-1)*state->bucketCapacity;
+
         while (state->amgr->am_stash->stashnext(state->stashes[a_location->partition], state->file, &pl_block, appData)
                && total < state->bucketCapacity) {
 
             s_location = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno);
 
             if (a_leaf_level == ((s_location->leaf + s_leaf_node)>>level_offset)) {
-                index = (level - 1) * state->bucketCapacity + total;
+                index = bucket_offset + total;
                 selectedBlocks[index] = pl_block;
                 total++;
             }
@@ -449,7 +460,7 @@ void getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState sta
         //state->amgr->am_stash->stashcloseIt(state->stash, state->file, appData);
 
         for (loffset = 0; loffset < total; loffset++) {
-            index = (level - 1) * state->bucketCapacity + loffset;
+            index = bucket_offset + loffset;
             
             state->amgr->am_stash->stashremove(state->stashes[a_location->partition], state->file,
                                                selectedBlocks[index], appData);
@@ -457,7 +468,7 @@ void getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState sta
 
         
         for (loffset = total; loffset < state->bucketCapacity; loffset++) {
-            index = (level - 1) * state->bucketCapacity + loffset;
+            index = bucket_offset + loffset;
             selectedBlocks[index] = createDummyBlock(state->blockSize);
         }
 
@@ -473,6 +484,7 @@ void writeBlocksToStorage(PLBList list, Location location, ORAMState state, void
     unsigned int currentPos = 0;
     unsigned int index;
     BlockNumber ob_blkno = 0;
+    BlockNumber lob_blkno = 0;
     PLBlock block = NULL;
     unsigned int list_idx = 0;
     unsigned int pOffset = 0; // partition offset;
@@ -481,9 +493,11 @@ void writeBlocksToStorage(PLBList list, Location location, ORAMState state, void
     currentPos = location->leaf + (1 << state->partitionsHeight);
 
     while (currentPos > 0) {
+        
+        lob_blkno = (currentPos - 1) * state->bucketCapacity + pOffset;
 
         for (index = 0; index < state->bucketCapacity; index++) {
-            ob_blkno = (currentPos - 1) * state->bucketCapacity + index + pOffset;
+            ob_blkno = lob_blkno + index;
             list_idx = list_offset - index;
             block = list[list_idx];
             state->amgr->am_ofile->ofilewrite(block, state->file, ob_blkno, appData);
