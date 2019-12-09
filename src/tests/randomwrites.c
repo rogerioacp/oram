@@ -55,7 +55,7 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
     }
 
     //printf("Going to initalize");
-    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr, NULL);
+    state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
     //printf("Going to write strings\n");
     string_size = blockSize / sizeof(char) - 1;
     //printf("String size is %d\n",string_size);

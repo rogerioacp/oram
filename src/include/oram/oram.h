@@ -61,7 +61,7 @@ typedef struct Amgr
  *
  */
 
-ORAMState	init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData);
+ORAMState	init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData);
 
 /**
  * ORAM read operation that triggers a sequence of oblivious file reads and

@@ -37,7 +37,7 @@ main(int argc, char *argv[])
 	int			index = 0;
 	char	   *data = NULL;
 
-	state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr, NULL);
+	state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
 
 	for (index = 0; index < nblocks; index++)
 	{

@@ -83,7 +83,7 @@ static unsigned int
 
 static ORAMState
 			buildORAMState(const char *filename, unsigned int nblocks,
-						   unsigned int fileSize, unsigned int blockSize,
+						   unsigned int blockSize,
 						   unsigned int minimumNumberOfNodes, unsigned int treeHeight,
 						   unsigned int bucketCapacity, unsigned int nPartitions,
 						   unsigned int partitionsHeight, unsigned int partitionNodes,
@@ -107,10 +107,9 @@ static void updateStashWithNewBlock(void *data, unsigned int blockSize, BlockNum
 
 
 ORAMState
-init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
+init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
 {
 
-	unsigned int nblocks = 0;
 	unsigned int minimumNumberOfNodes = 0;
 	unsigned int treeHeight;
 	unsigned int totalNodes;
@@ -122,9 +121,6 @@ init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsig
 	int			index;
 
 	ORAMState	state = NULL;
-
-	/* The division floors the result down to 0 */
-	nblocks = fileSize / blockSize;
 
 	/**
      * Calculates the number of leaf nodes necessary to store the number
@@ -157,7 +153,7 @@ init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsig
 	partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 
 	partitionBlocks = partitionNodes * nPartitions;
-
+    logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d", nblocks, nPartitions, partitionTreeHeight);
 	if (totalNodes > partitionBlocks)
 	{
 		/*
@@ -168,7 +164,7 @@ init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsig
 	}
 
 
-	state = buildORAMState(file, nblocks, fileSize, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, nPartitions, partitionTreeHeight, partitionNodes, amgr);
+	state = buildORAMState(file, nblocks, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, nPartitions, partitionTreeHeight, partitionNodes, amgr);
 
 	/* Initialize external files (oblivious file, stash, possitionMap) */
 	state->stashes = (Stash *) malloc(sizeof(Stash) * nPartitions);
@@ -192,7 +188,7 @@ init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsig
 
 ORAMState
 buildORAMState(const char *filename, unsigned int nblocks,
-			   unsigned int fileSize, unsigned int blockSize,
+               unsigned int blockSize,
 			   unsigned int minimumNumberOfNodes,
 			   unsigned int treeHeight, unsigned int bucketCapacity,
 			   unsigned int nPartitions,

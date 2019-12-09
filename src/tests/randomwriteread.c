@@ -56,7 +56,7 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
         strings[index] = NULL;
     }
 
-    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr, NULL);
+    state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
     //printf("Going to write strings\n");
 
     for (index = 0; index < nwrites; index++) {

@@ -61,7 +61,7 @@ main(int argc, char *argv[])
 	/* printf("Going to init\n"); */
 	char	  **strings = (char **) malloc(sizeof(char *) * nblocks);
 
-	state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr, NULL);
+	state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
 	/* printf("Going to write strings\n"); */
 
 	for (index = 0; index < nblocks; index++)

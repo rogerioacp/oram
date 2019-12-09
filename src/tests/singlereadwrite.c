@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     size_t result = 0;
     char *data = NULL;
 
-    state = init_oram("teste", fileSize, blockSize, bucketCapcity, &amgr, NULL);
+    state = init_oram("teste", 15, blockSize, bucketCapcity, &amgr, NULL);
     char *teste = "HELLO!";
     size_t s_size = sizeof(char) * strlen(teste) + 1;
     result = write_oram(teste, s_size, 0, state, NULL);

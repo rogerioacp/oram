@@ -66,7 +66,8 @@ typedef TreeNode *TreePath;
 static unsigned int calculateTreeHeight(unsigned int minimumNumberOfNodes);
 
 static ORAMState
-			buildORAMState(const char *filename, unsigned int nblocks, unsigned int fileSize, unsigned int blockSize, unsigned int minimumNumberOfNodes,
+			buildORAMState(const char *filename, unsigned int nblocks,
+                           unsigned int blockSize, unsigned int minimumNumberOfNodes,
 						   unsigned int treeHeight, unsigned int bucketCapacity, Amgr *amgr);
 
 static TreePath getTreePath(ORAMState state, unsigned int leaf);
@@ -89,10 +90,9 @@ static void updateStashWithNewBlock(void *data, unsigned int blockSize, BlockNum
 
 
 ORAMState
-init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
+init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
 {
 
-	unsigned int nblocks = 0;
 	unsigned int minimumNumberOfNodes = 0;
 	unsigned int treeHeight;
 	unsigned int totalNodes;
@@ -100,8 +100,6 @@ init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsig
 	int			result;
 	ORAMState	state = NULL;
 
-	/* The division floors the result down to 0 */
-	nblocks = fileSize / blockSize;
 	/**
      * Calculates the number of leaf nodes necessary to store the number
      * of blocks in a file.
@@ -125,7 +123,7 @@ init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsig
 	treeHeight = calculateTreeHeight(minimumNumberOfNodes);
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
 
-	state = buildORAMState(file, nblocks, fileSize, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, amgr);
+	state = buildORAMState(file, nblocks, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, amgr);
 	struct TreeConfig config;
 
 	config.treeHeight = treeHeight;
@@ -139,7 +137,8 @@ init_oram(const char *file, unsigned int fileSize, unsigned int blockSize, unsig
 }
 
 ORAMState
-buildORAMState(const char *filename, unsigned int nblocks, unsigned int fileSize, unsigned int blockSize, unsigned int minimumNumberOfNodes,
+buildORAMState(const char *filename, unsigned int nblocks,
+               unsigned int blockSize, unsigned int minimumNumberOfNodes,
 			   unsigned int treeHeight, unsigned int bucketCapacity, Amgr *amgr)
 {
 
