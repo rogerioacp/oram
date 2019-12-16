@@ -23,8 +23,7 @@ typedef void (*stashget_function) (Stash stash, PLBlock block, const BlockNumber
 
 typedef void (*stashadd_function) (Stash stash, const char *fileName, const PLBlock block, void *appData);
 
-typedef void (*stashupdate_function) (Stash stash, const char *fileName, const PLBlock block, void *appData);
-
+typedef int (*stashupdate_function) (Stash stash, const char *fileName, const PLBlock block, void *appData);
 
 typedef void (*stashremove_function) (Stash stash, const char *filename, const PLBlock block, void *appData);
 

@@ -54,6 +54,10 @@ struct ORAMState
 	/* Set of external functions to handle ORAM states. */
 	Stash		stash;
 	PMap		pmap;
+    
+    #ifdef STASH_COUNT
+    unsigned int nblocksStashs;
+    #endif
 };
 
 typedef unsigned int TreeNode;
@@ -130,6 +134,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	/* Initialize external files (oblivious file, stash, possitionMap) */
 	state->stash = amgr->am_stash->stashinit(state->file, state->blockSize, appData);
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
+    state->nblocksStashs = 0;
 	amgr->am_ofile->ofileinit(state->file, totalNodes, blockSize, appData);
 
 	return state;
@@ -348,6 +353,10 @@ addBlocksToStash(ORAMState state, PLBList list, void *appData)
 	{
 		if (list[index]->blkno != DUMMY_BLOCK)
 		{
+
+            #ifdef STASH_COUNT
+            state->nblocksStashs += 1;
+            #endif
 			state->amgr->am_stash->stashadd(state->stash, state->file, list[index], appData);
 		}
 		else
@@ -433,7 +442,10 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 
 		for (; loffset < state->bucketCapacity; loffset++)
 		{
-			index = bucket_offset + loffset;
+            #ifdef STASH_COUNT            
+            state->nblocksStashs -=1;
+            #endif
+            index = bucket_offset + loffset;
 			selectedBlocks[index] = createDummyBlock(state->blockSize);
 		}
 
@@ -497,8 +509,15 @@ void
 updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno, ORAMState state, void *appData)
 {
 	PLBlock		plblock = createBlock((int) blkno, blkSize, data);
+    int         found = 0;
 
-	state->amgr->am_stash->stashupdate(state->stash, state->file, plblock, appData);
+	found = state->amgr->am_stash->stashupdate(state->stash, state->file, plblock, appData);
+    
+    #ifdef STASH_COUNT
+    if(found){
+        state->nblocksStashs +=1;
+    }   
+    #endif
 }
 
 
@@ -597,6 +616,10 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 void
 close_oram(ORAMState state, void *appData)
 {
+
+    #ifdef STASH_COUNT
+    logger(DEBUG, "Stash has %d blocks\n", state->nblocksStashs);
+    #endif    
 	state->amgr->am_stash->stashclose(state->stash, state->file, appData);
 	state->amgr->am_pmap->pmclose(state->pmap, state->file);
 	state->amgr->am_ofile->ofileclose(state->file, appData);

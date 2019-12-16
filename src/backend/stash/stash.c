@@ -35,7 +35,7 @@ static Stash stashInit(const char *filename, const unsigned int blockSize, void 
 
 static void stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData);
 
-static void stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appData);
+static int stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appData);
 
 static void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename, void *appData);
 
@@ -111,8 +111,7 @@ stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData)
 	list_add(stash->list, block);
 }
 
-
-void
+int
 stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appData)
 {
 
@@ -147,6 +146,7 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
 	{
 		list_add(stash->list, block);
 	}
+    return found;
 }
 
 void
