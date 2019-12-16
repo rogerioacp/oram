@@ -62,6 +62,7 @@ struct ORAMState
 	/* Set of external functions to handle ORAM states */
 	Stash	   *stashes;
 	PMap		pmap;
+    unsigned int         *nblocksStashs;
 };
 
 typedef unsigned int TreeNode;
@@ -105,6 +106,24 @@ static void updateBlockLocation(BlockNumber blkno, ORAMState state);
 
 static void updateStashWithNewBlock(void *data, unsigned int blockSize, BlockNumber blkno, int oldPartition, int newPartition, ORAMState state, void *appDAta);
 
+static void logStashes(ORAMState state);
+
+void logStashes(ORAMState state)
+{
+    int i = 0;
+    unsigned int total = 0;
+    unsigned int value = 0;
+
+    logger(DEBUG, "---------- Number of blocks in partition stashes ------------\n");
+ 
+    for(i = 0; i < state->nPartitions; i++){
+        value = state->nblocksStashs[i];
+        total += value;
+        logger(DEBUG, "Stash %d has %d blocks\n", i, value);
+    }
+    logger(DEBUG, "Total number of blocks %d\n", total);
+
+}
 
 ORAMState
 init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
@@ -153,7 +172,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 
 	partitionBlocks = partitionNodes * nPartitions;
-    logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d", nblocks, nPartitions, partitionTreeHeight);
+    logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d\n", nblocks, nPartitions, partitionTreeHeight);
 	if (totalNodes > partitionBlocks)
 	{
 		/*
@@ -165,13 +184,16 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 
 	state = buildORAMState(file, nblocks, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, nPartitions, partitionTreeHeight, partitionNodes, amgr);
-
-	/* Initialize external files (oblivious file, stash, possitionMap) */
+   
+    state->nblocksStashs = (unsigned int*) malloc(sizeof(unsigned int)*nPartitions);
+    
+	/* Initialize external files (oblivious file, stash, positionMap) */
 	state->stashes = (Stash *) malloc(sizeof(Stash) * nPartitions);
 
 	for (index = 0; index < nPartitions; index++)
 	{
 		state->stashes[index] = amgr->am_stash->stashinit(state->file, state->blockSize, appData);
+        state->nblocksStashs[index] = 0;
 	}
 
 	struct TreeConfig config;
@@ -321,7 +343,7 @@ calculateNumberOfPartitions(unsigned int treeHeight, unsigned int partitionTreeH
  *               3  4 5  6
  * leafs index:  0  1 2  3
  * If the request wants to retrieve the node on leaf 0 (node 3), it also has
- * to get the the tree nodes 0 and 1. Since the TreeNode structure also keeps
+ * to get the tree nodes 0 and 1. Since the TreeNode structure also keeps
  * the tree height, the resulting TreePath (height, treeNode) will contain the
  * following values:
  * [(2,3), (1,1), (0,0)].
@@ -445,6 +467,7 @@ addBlocksToStash(ORAMState state, PLBList list, Location location, void *appData
 	{
 		if (list[index]->blkno != DUMMY_BLOCK)
 		{
+            state->nblocksStashs[location->partition] += 1;
 			state->amgr->am_stash->stashadd(state->stashes[location->partition],
 											state->file, list[index], appData);
 		}
@@ -520,11 +543,10 @@ getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState state, v
 		 * state->amgr->am_stash->stashcloseIt(state->stash, state->file,
 		 * appData);
 		 */
-
 		for (loffset = 0; loffset < total; loffset++)
 		{
 			index = bucket_offset + loffset;
-
+            state->nblocksStashs[a_location->partition] -= 1;
 			state->amgr->am_stash->stashremove(state->stashes[a_location->partition], state->file,
 											   selectedBlocks[index], appData);
 		}
@@ -601,9 +623,15 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno, int
 {
 
 	PLBlock		plblock = createBlock((int) blkno, blkSize, data);
+    int         found = 0;
 
-	state->amgr->am_stash->stashtake(state->stashes[oldPartition], state->file, blkno, appData);
+	found = state->amgr->am_stash->stashtake(state->stashes[oldPartition], state->file, blkno, appData);
 	state->amgr->am_stash->stashadd(state->stashes[newPartition], state->file, plblock, appData);
+    
+    if(found){
+        state->nblocksStashs[oldPartition]-=1;
+    }
+    state->nblocksStashs[newPartition]+=1;
 
 }
 
@@ -687,6 +715,7 @@ close_oram(ORAMState state, void *appData)
 {
 	int			index = 0;
 
+    logStashes(state);
 	for (index = 0; index < state->nPartitions; index++)
 	{
 		state->amgr->am_stash->stashclose(state->stashes[index], state->file, appData);
@@ -720,9 +749,10 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 {
 	char	   *tmp_data = NULL;
 	int			result = 0;
-
+    
 	result = read_foram(&tmp_data, blkno, state, appData);
 	evict_foram(data, blkSize, blkno, state, appData);
-	free(tmp_data);
+    free(tmp_data);
+    //(state);
 	return blkSize;
 }
