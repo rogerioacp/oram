@@ -62,7 +62,10 @@ struct ORAMState
 	/* Set of external functions to handle ORAM states */
 	Stash	   *stashes;
 	PMap		pmap;
-    unsigned int         *nblocksStashs;
+
+    #ifdef STASH_COUNT
+        unsigned int         *nblocksStashs;
+    #endif
 };
 
 typedef unsigned int TreeNode;
@@ -106,6 +109,8 @@ static void updateBlockLocation(BlockNumber blkno, ORAMState state);
 
 static void updateStashWithNewBlock(void *data, unsigned int blockSize, BlockNumber blkno, int oldPartition, int newPartition, ORAMState state, void *appDAta);
 
+
+#ifdef STASH_COUNT
 static void logStashes(ORAMState state);
 
 void logStashes(ORAMState state)
@@ -124,6 +129,7 @@ void logStashes(ORAMState state)
     logger(DEBUG, "Total number of blocks %d\n", total);
 
 }
+#endif
 
 ORAMState
 init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
@@ -184,16 +190,22 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 
 	state = buildORAMState(file, nblocks, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, nPartitions, partitionTreeHeight, partitionNodes, amgr);
-   
-    state->nblocksStashs = (unsigned int*) malloc(sizeof(unsigned int)*nPartitions);
-    
+  
+
+    #ifdef STASH_COUNT
+        state->nblocksStashs = (unsigned int*) malloc(sizeof(unsigned int)*nPartitions);
+    #endif
+
 	/* Initialize external files (oblivious file, stash, positionMap) */
 	state->stashes = (Stash *) malloc(sizeof(Stash) * nPartitions);
 
 	for (index = 0; index < nPartitions; index++)
 	{
 		state->stashes[index] = amgr->am_stash->stashinit(state->file, state->blockSize, appData);
-        state->nblocksStashs[index] = 0;
+
+        #ifdef STASH_COUNT
+            state->nblocksStashs[index] = 0;
+        #endif
 	}
 
 	struct TreeConfig config;
@@ -467,7 +479,11 @@ addBlocksToStash(ORAMState state, PLBList list, Location location, void *appData
 	{
 		if (list[index]->blkno != DUMMY_BLOCK)
 		{
-            state->nblocksStashs[location->partition] += 1;
+            
+            #ifdef STASH_COUNT
+                state->nblocksStashs[location->partition] += 1;
+            #endif
+
 			state->amgr->am_stash->stashadd(state->stashes[location->partition],
 											state->file, list[index], appData);
 		}
@@ -546,7 +562,11 @@ getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState state, v
 		for (loffset = 0; loffset < total; loffset++)
 		{
 			index = bucket_offset + loffset;
-            state->nblocksStashs[a_location->partition] -= 1;
+
+            #ifdef STASH_COUNT
+                state->nblocksStashs[a_location->partition] -= 1;
+            #endif
+
 			state->amgr->am_stash->stashremove(state->stashes[a_location->partition], state->file,
 											   selectedBlocks[index], appData);
 		}
@@ -627,12 +647,14 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno, int
 
 	found = state->amgr->am_stash->stashtake(state->stashes[oldPartition], state->file, blkno, appData);
 	state->amgr->am_stash->stashadd(state->stashes[newPartition], state->file, plblock, appData);
-    
-    if(found){
-        state->nblocksStashs[oldPartition]-=1;
-    }
-    state->nblocksStashs[newPartition]+=1;
+   
 
+    #ifdef STASH_COUNT
+        if(found){
+            state->nblocksStashs[oldPartition]-=1;
+        }
+        state->nblocksStashs[newPartition]+=1;
+    #endif
 }
 
 
@@ -714,8 +736,12 @@ void
 close_oram(ORAMState state, void *appData)
 {
 	int			index = 0;
+    
+    #ifdef STASH_COUNT
+        logStashes(state);
+        free(state->nblocksStashs);
+    #endif
 
-    logStashes(state);
 	for (index = 0; index < state->nPartitions; index++)
 	{
 		state->amgr->am_stash->stashclose(state->stashes[index], state->file, appData);

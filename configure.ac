@@ -21,11 +21,15 @@ PKG_CHECK_MODULES(COLLECTC, collectionc >= 3.0)
 # Includes in a global variable common to all targets.
 AC_SEARCH_LIBS([pow], [m])
 
+AM_SILENT_RULES([yes])
+
+
 AC_CANONICAL_HOST
 
 build_linux=no
 build_windows=no
 build_mac=no
+build_scount=no
 
 # Detect the target system
 case "${host}" in
@@ -43,8 +47,23 @@ case "${host}" in
         ;;
 esac
 
+
+AC_ARG_ENABLE([stash-count], 
+               AS_HELP_STRING([--enable-stash-count], [Enables a preprocessing
+                             directive that counts the number of blocks in each
+                             stash of Forest ORAM and Path ORAM. This is a
+                             debuging feature that should not be activated by
+                             default]), [build_scount=yes],[stash_scount=no])
+
+AM_CONDITIONAL([SCOUNT], [test "$build_scount" = "yes"])
+
+
 # Pass the conditionals to automake
 AM_CONDITIONAL([LINUX], [test "$build_linux" = "yes"])
 AM_CONDITIONAL([WINDOWS], [test "$build_windows" = "yes"])
 AM_CONDITIONAL([OSX], [test "$build_mac" = "yes"])
+
+
+#AM_CONDITIONAL([ENABLE_STASH_COUNT], [test "$stash_count" = "yes"])
+
 AC_OUTPUT
