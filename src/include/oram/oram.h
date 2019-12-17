@@ -87,4 +87,8 @@ int			write_oram(char *data, unsigned int blksize, BlockNumber blkno, ORAMState 
  */
 void		close_oram(ORAMState state, void *appData);
 
+#ifdef STASH_COUNT
+void        logStashes(ORAMState state);
+#endif
+
 #endif							/* ORAM_H */

@@ -618,7 +618,7 @@ close_oram(ORAMState state, void *appData)
 {
 
     #ifdef STASH_COUNT
-    logger(DEBUG, "Stash has %d blocks\n", state->nblocksStashs);
+    logStashes(state);
     #endif    
 	state->amgr->am_stash->stashclose(state->stash, state->file, appData);
 	state->amgr->am_pmap->pmclose(state->pmap, state->file);
@@ -628,4 +628,9 @@ close_oram(ORAMState state, void *appData)
 	free(state->amgr->am_pmap);
 	free(state->amgr->am_ofile);
 	free(state);
+}
+
+void
+logStashes(ORAMState state){
+    logger(DEBUG, "Stash has %d blocks\n", state->nblocksStashs);
 }

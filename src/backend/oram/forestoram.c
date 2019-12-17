@@ -110,27 +110,6 @@ static void updateBlockLocation(BlockNumber blkno, ORAMState state);
 static void updateStashWithNewBlock(void *data, unsigned int blockSize, BlockNumber blkno, int oldPartition, int newPartition, ORAMState state, void *appDAta);
 
 
-#ifdef STASH_COUNT
-static void logStashes(ORAMState state);
-
-void logStashes(ORAMState state)
-{
-    int i = 0;
-    unsigned int total = 0;
-    unsigned int value = 0;
-
-    logger(DEBUG, "---------- Number of blocks in partition stashes ------------\n");
- 
-    for(i = 0; i < state->nPartitions; i++){
-        value = state->nblocksStashs[i];
-        total += value;
-        logger(DEBUG, "Stash %d has %d blocks\n", i, value);
-    }
-    logger(DEBUG, "Total number of blocks %d\n", total);
-
-}
-#endif
-
 ORAMState
 init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
 {
@@ -779,6 +758,27 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 	result = read_foram(&tmp_data, blkno, state, appData);
 	evict_foram(data, blkSize, blkno, state, appData);
     free(tmp_data);
-    //(state);
 	return blkSize;
 }
+
+
+#ifdef STASH_COUNT
+void 
+logStashes(ORAMState state)
+{
+    int i = 0;
+    unsigned int total = 0;
+    unsigned int value = 0;
+
+    logger(DEBUG, "---- Number of blocks in partition stashes -----\n");
+ 
+    for(i = 0; i < state->nPartitions; i++){
+        value = state->nblocksStashs[i];
+        total += value;
+        logger(DEBUG, "Stash %d has %d blocks\n", i, value);
+    }
+    logger(DEBUG, "Total number of blocks %d\n", total);
+
+}
+#endif
+
