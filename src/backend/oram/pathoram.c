@@ -134,7 +134,9 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	/* Initialize external files (oblivious file, stash, possitionMap) */
 	state->stash = amgr->am_stash->stashinit(state->file, state->blockSize, appData);
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
+    #ifdef  STASH_COUNT
     state->nblocksStashs = 0;
+    #endif
 	amgr->am_ofile->ofileinit(state->file, totalNodes, blockSize, appData);
 
 	return state;
@@ -430,7 +432,10 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 		/* remove from the stash selected blocks */
 		for (loffset = 0; loffset < total; loffset++)
 		{
-			index = bucket_offset + loffset;
+			#ifdef STASH_COUNT            
+            state->nblocksStashs -=1;
+            #endif
+            index = bucket_offset + loffset;
 			state->amgr->am_stash->stashremove(state->stash, state->file, selectedBlocks[index], appData);
 		}
 
@@ -442,9 +447,6 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 
 		for (; loffset < state->bucketCapacity; loffset++)
 		{
-            #ifdef STASH_COUNT            
-            state->nblocksStashs -=1;
-            #endif
             index = bucket_offset + loffset;
 			selectedBlocks[index] = createDummyBlock(state->blockSize);
 		}
@@ -514,7 +516,7 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno, ORA
 	found = state->amgr->am_stash->stashupdate(state->stash, state->file, plblock, appData);
     
     #ifdef STASH_COUNT
-    if(found){
+    if(!found){
         state->nblocksStashs +=1;
     }   
     #endif
@@ -630,7 +632,9 @@ close_oram(ORAMState state, void *appData)
 	free(state);
 }
 
+#ifdef STASH_COUNT
 void
 logStashes(ORAMState state){
     logger(DEBUG, "Stash has %d blocks\n", state->nblocksStashs);
 }
+#endif    
