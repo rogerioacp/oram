@@ -124,6 +124,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	int			result;
 	int			index;
 
+
 	ORAMState	state = NULL;
 
 	/**
@@ -150,10 +151,12 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
 
-	partitionTreeHeight = calculatePartitionTreeHeight(treeHeight);
+    nPartitions = (unsigned int) *appData;
 
-	nPartitions = calculateNumberOfPartitions(treeHeight, partitionTreeHeight);
+	//partitionTreeHeight = calculatePartitionTreeHeight(treeHeight);
 
+	//nPartitions = calculateNumberOfPartitions(treeHeight, partitionTreeHeight);
+    
 	partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 
 	partitionBlocks = partitionNodes * nPartitions;
@@ -292,13 +295,13 @@ calculateTreeHeight(unsigned int minimumNumberOfNodes)
 
 	For instance, a Path ORAM with tree height 7 that can store up to 255 nodes and can be divided in 17 partitions each one storing 15 nodes, giving a total of 255 nodes.
 */
-unsigned int
+/*unsigned int
 calculatePartitionTreeHeight(unsigned int treeHeight)
 {
 	return (unsigned int) ceil(log2(treeHeight));
-}
+}*/
 
-
+/*
 unsigned int
 calculateNumberOfPartitions(unsigned int treeHeight, unsigned int partitionTreeHeight)
 {
@@ -318,7 +321,7 @@ calculateNumberOfPartitions(unsigned int treeHeight, unsigned int partitionTreeH
 
 	return nPartitions;
 }
-
+*/
 
 /**
  * This function returns an array of TreeNode structures that specify

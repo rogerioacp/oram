@@ -41,7 +41,7 @@ static void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const cha
 
 static void stashRemove(Stash stash, const char *filename, const PLBlock block, void *appData);
 
-int			stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData);
+static int stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData);
 
 
 static void stashClose(Stash stash, const char *filename, void *appData);

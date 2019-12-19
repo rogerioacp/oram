@@ -28,6 +28,55 @@
 typedef struct ORAMState *ORAMState;
 
 
+
+/**
+ * ORAM read operation that triggers a sequence of oblivious file reads and
+ * writes to find the input BlockNumber blkno. Returns a char* containing the
+ * requested block.
+ *
+ */
+typedef void (*oram_read) (char **ptr, 
+                           BlockNumber blkno, 
+                           ORAMState state, void *appdata);
+
+
+/**
+ * ORAM write request that triggers a sequence of oblivious file reads and
+ * writes that hides the input block.
+ *
+ */
+typedef void (*oram_write) (char *data, unsigned int blksize, 
+                            blocknumber blkno, ORAMState state, void *appdata);
+
+/**
+ * Close request that correctly closes all of the ORAM resourceS:
+ * - Oblivious File (e.g: File descriptors)
+ * - Position Map
+ * - Stash
+ */
+
+typedef void (*oram_close) (ORAMState state, void *appData);
+
+
+
+#ifdef STASH_COUNT
+typedef void (*oram_logstashes) (ORAMState state);
+#endif
+
+
+typedef struct ORAM
+{
+
+    //internal state
+    ORAMState state;
+
+    //input functions
+    oram_read   read;
+    oram_write  write;
+    oram_close  close;
+
+} ORAM;
+
 /**
  *  Structure used by the ORAM functions to read necessary
  *  blocks to complete a request.
@@ -50,45 +99,5 @@ typedef struct Amgr
 	AMOFile    *am_ofile;
 } Amgr;
 
-
-/**
- * Function that initializes and returns the state of an ORAM algorithm.
- * args:
- * size_t fileSize - Expected size of the protected file.
- * size_t blockSize - Size of each block in the protected file.
- * size_t bucketCapcity - Number of buckets in an ORAM Tree node.
- * Amgr amgr - Access manager functions to store data.
- *
- */
-
-ORAMState	init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData);
-
-/**
- * ORAM read operation that triggers a sequence of oblivious file reads and
- * writes to find the input BlockNumber blkno. Returns a char* containing the
- * requested block.
- *
- */
-int			read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appdata);
-
-/**
- * ORAM write request that triggers a sequence of oblivious file reads and
- * writes that hides the input block.
- *
- */
-int			write_oram(char *data, unsigned int blksize, BlockNumber blkno, ORAMState state, void *appData);
-
-
-/**
- * Close request that correctly closes all of the ORAM resourceS:
- * - Oblivious File (e.g: File descriptors)
- * - Position Map
- * - Stash
- */
-void		close_oram(ORAMState state, void *appData);
-
-#ifdef STASH_COUNT
-void        logStashes(ORAMState state);
-#endif
 
 #endif							/* ORAM_H */
