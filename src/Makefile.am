@@ -7,7 +7,7 @@ AM_CFLAGS = $(stash_count) -Wpadded
 
 
 
-pkginclude_HEADERS = include/oram/plblock.h include/oram/logger.h include/oram/ofile.h include/oram/oram.h include/oram/pmap.h include/oram/stash.h include/oram/orandom.h include/oram/foram.h include/oram/pmapdefs/pdeforam.h include/oram/pmapdefs/fdeforam.h include/oram/oram.h include/oram/oram.h include/oram/pathoram.h include/oram/forestoram.h
+pkginclude_HEADERS = include/oram/plblock.h include/oram/logger.h include/oram/ofile.h include/oram/oram.h include/oram/pmap.h include/oram/stash.h include/oram/orandom.h include/oram/pmapdefs/pdeforam.h include/oram/pmapdefs/fdeforam.h include/oram/oram.h include/oram/oram.h include/oram/pathoram.h include/oram/forestoram.h
 
 
 pathoram_tests = singleread singlewrite singlereadwrite multiread multiwriteread randomwrites randomwriteread largerandomwrites largerandomwriteread 
