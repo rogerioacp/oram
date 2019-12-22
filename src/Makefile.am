@@ -120,12 +120,8 @@ largerandomwritereadf_LDADD = $(COLLECTC_LIBS)
 
 TESTS = $(check_PROGRAMS)
 
-lib_LTLIBRARIES = libpathoram.la libforestoram.la
+lib_LTLIBRARIES = liboram.la
 
-libpathoram_la_SOURCES =  backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/stash.c backend/block/plblock.c backend/oram/pathoram.c
-libpathoram_la_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
-libpathoram_la_LIBADD = $(COLLECTC_LIBS)
-
-libforestoram_la_SOURCES =  backend/ofile/ofile.c backend/pmap/fpmap.c backend/stash/stash.c backend/block/plblock.c backend/oram/forestoram.c
-libforestoram_la_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
-libforestoram_la_LIBADD = $(COLLECTC_LIBS)
+liboram_la_SOURCES =  backend/ofile/ofile.c backend/pmap/pmap.c backend/pmap/fpmap.c backend/stash/stash.c backend/block/plblock.c backend/oram/pathoram.c backend/oram/forestoram.c
+liboram_la_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+liboram_la_LIBADD = $(COLLECTC_LIBS)
