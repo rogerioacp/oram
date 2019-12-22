@@ -27,6 +27,7 @@
  */
 typedef struct ORAMState *ORAMState;
 
+typedef struct ORAM ORAM;
 
 
 /**
@@ -35,9 +36,9 @@ typedef struct ORAMState *ORAMState;
  * requested block.
  *
  */
-typedef void (*oram_read) (char **ptr, 
+typedef int (*oram_read) (char **ptr, 
                            BlockNumber blkno, 
-                           ORAMState state, void *appdata);
+                           ORAM* oram, void *appdata);
 
 
 /**
@@ -45,8 +46,8 @@ typedef void (*oram_read) (char **ptr,
  * writes that hides the input block.
  *
  */
-typedef void (*oram_write) (char *data, unsigned int blksize, 
-                            blocknumber blkno, ORAMState state, void *appdata);
+typedef int (*oram_write) (char *data, unsigned int blksize, 
+                            BlockNumber blkno, ORAM* oram, void *appdata);
 
 /**
  * Close request that correctly closes all of the ORAM resourceS:
@@ -54,8 +55,7 @@ typedef void (*oram_write) (char *data, unsigned int blksize,
  * - Position Map
  * - Stash
  */
-
-typedef void (*oram_close) (ORAMState state, void *appData);
+typedef void (*oram_close) (ORAM* state, void *appData);
 
 
 
@@ -64,7 +64,7 @@ typedef void (*oram_logstashes) (ORAMState state);
 #endif
 
 
-typedef struct ORAM
+struct ORAM
 {
 
     //internal state
@@ -75,15 +75,16 @@ typedef struct ORAM
     oram_write  write;
     oram_close  close;
 
-} ORAM;
+};
+
 
 /**
- *  Structure used by the ORAM functions to read necessary
- *  blocks to complete a request.
+ * Structure used by the ORAM functions to read necessary
+ * blocks to complete a request.
  *
- *  The ORAM algorithms require multiple reads and write on different files
- *  to not only create the oblivious file but also store some additional
- *  metadata.
+ * The ORAM algorithms require mulltiple reads and write on different files
+ * to not only create the oblivious file but also store some additional
+ * metadata.
  *
  * This structure currently contemplates position based ORAM algorithms that
  * have a stash, a positionMap and the underlying oblivious file.

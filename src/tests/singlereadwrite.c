@@ -1,5 +1,12 @@
 #include "oram/oram.h"
 
+#ifdef TEST_PATHORAM
+#include "oram/pathoram.h"
+#elif TEST_FORESTORAM
+#include "oram/forestoram.h"
+#endif
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,7 +16,7 @@ int main(int argc, char *argv[]) {
     AMStash *stash;
     AMPMap *pmap;
     AMOFile *ofile;
-    ORAMState state;
+    ORAM* oram;
 
     stash = stashCreate();
     pmap = pmapCreate();
@@ -20,20 +27,28 @@ int main(int argc, char *argv[]) {
     amgr.am_pmap = pmap;
     amgr.am_ofile = ofile;
 
-    size_t fileSize = 300;// file with 100 bytes;
-    size_t blockSize = 20;// block size of 20 bytes;
-    size_t bucketCapcity = 1; // 1 bucket per tree node;
+    size_t nBlocks = 15;// file with 100 bytes;
+    size_t bSize = 20;// block size of 20 bytes;
+    size_t bCapacity = 1; // 1 bucket per tree node;
     size_t result = 0;
     char *data = NULL;
 
-    state = init_oram("teste", 15, blockSize, bucketCapcity, &amgr, NULL);
+#ifdef TEST_PATHORAM
+    oram = init_PathORAM("teste", nBlocks, bSize, bCapacity, &amgr, NULL);
+#elif TEST_FORESTORAM
+    oram = init_ForestORAM("teste", nBlocks, bSize, bCapacity, 1, &amgr, NULL);
+#endif
+
     char *teste = "HELLO!";
     size_t s_size = sizeof(char) * strlen(teste) + 1;
-    result = write_oram(teste, s_size, 0, state, NULL);
-    result = read_oram(&data, 0, state, NULL);
+
+    result = oram->write(teste, s_size, 0, oram, NULL);
+    result = oram->read(&data, 0, oram, NULL);
     result = strcmp(teste, data);
+    
     free(data);
-    close_oram(state, NULL);
+    oram->close(oram, NULL);
+
     return result;
 }
 

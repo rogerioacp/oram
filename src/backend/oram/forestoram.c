@@ -109,20 +109,33 @@ static void updateBlockLocation(BlockNumber blkno, ORAMState state);
 
 static void updateStashWithNewBlock(void *data, unsigned int blockSize, BlockNumber blkno, int oldPartition, int newPartition, ORAMState state, void *appDAta);
 
+static int read_forestoram(char **ptr, BlockNumber blkno, ORAM* state,
+                      void *appData);
 
-ORAMState
-init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
+static int write_forestoram(char *data, unsigned int blksize, BlockNumber blkno,
+                       ORAM* state, void *appdata);
+
+static void close_forestoram(ORAM* state, void *appData);
+
+
+static ORAM* buildORAM(ORAMState state);
+
+ORAM*
+init_ForestORAM(const char *file, unsigned int nblocks, unsigned int blockSize, 
+                unsigned int bucketCapacity, unsigned int nPartitions,
+                Amgr *amgr, void *appData)
 {
 
-	unsigned int minimumNumberOfNodes = 0;
-	unsigned int treeHeight;
-	unsigned int totalNodes;
-	unsigned int partitionTreeHeight;
-	unsigned int nPartitions;
-	unsigned int partitionNodes;
-	unsigned int partitionBlocks;
-	int			result;
+	unsigned int    minimumNumberOfNodes = 0;
+	unsigned int    treeHeight;
+	unsigned int    totalNodes;
+	unsigned int    partitionTreeHeight;
+	unsigned int    nodesPerPartition;
+	unsigned int    partitionBlocks;
+    unsigned int    partitionSize;
+	int			    result;
 	int			index;
+    ORAM*        oram;
 
 
 	ORAMState	state = NULL;
@@ -151,27 +164,24 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
 
-    nPartitions = (unsigned int) *appData;
+    nodesPerPartition = nblocks/nPartitions;
 
-	//partitionTreeHeight = calculatePartitionTreeHeight(treeHeight);
+    partitionTreeHeight = calculateTreeHeight(nodesPerPartition);
+ 
+    partitionSize = ((unsigned int) pow(2, treeHeight+1)) - 1;
 
-	//nPartitions = calculateNumberOfPartitions(treeHeight, partitionTreeHeight);
-    
-	partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
+	partitionBlocks = partitionSize * nPartitions;
 
-	partitionBlocks = partitionNodes * nPartitions;
     logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d\n", nblocks, nPartitions, partitionTreeHeight);
+
 	if (totalNodes > partitionBlocks)
 	{
-		/*
-		 * logger(DEBUG, "The total number of nodes does not fit in the
-		 * ORAM\n");
-		 */
+		logger(DEBUG, "The total number of nodes exceeds ORAM capacity\n");
 		abort();
 	}
 
 
-	state = buildORAMState(file, nblocks, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, nPartitions, partitionTreeHeight, partitionNodes, amgr);
+	state = buildORAMState(file, nblocks, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, nPartitions, partitionTreeHeight, partitionSize, amgr);
   
 
     #ifdef STASH_COUNT
@@ -198,7 +208,9 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
 	amgr->am_ofile->ofileinit(state->file, partitionBlocks, blockSize, appData);
 
-	return state;
+    oram = buildORAM(state);
+
+	return oram;
 }
 
 
@@ -247,6 +259,36 @@ buildORAMState(const char *filename, unsigned int nblocks,
 }
 
 
+ORAM* buildORAM(ORAMState state)
+{
+    ORAM* oram = NULL;
+
+    unsigned int save_errno = 0;
+
+    save_errno = errno;
+    errno = 0;
+
+    oram = (ORAM*) malloc(sizeof(struct ORAM));
+
+    if(state == NULL && errno == ENOMEM)
+    {
+        logger(OUT_OF_MEMORY, "Out of memory buinding ORAM\n");
+        errno = save_errno;
+        abort();
+    }
+
+    errno = save_errno;
+
+    oram->state = state;
+    oram->read = &read_forestoram;
+    oram->write = &write_forestoram;
+    oram->close = &close_forestoram;
+
+    return oram;
+
+}
+
+
 /**
  * Calculates the inverse of the result of a power of 2. This value will tell
  * us the minimum tree height to store all of the necessary blocks.
@@ -286,42 +328,11 @@ calculateTreeHeight(unsigned int minimumNumberOfNodes)
 	{
 		return height;
 	}
+
 }
 
 
-/**
-	Calculates the height of the tree of each partition on Forest ORAM.
-	Assuming that a classical Path ORAM required a tree with height at least treeHeight, then each partition on Forest ORAM will have only the logarithm of the required height.
 
-	For instance, a Path ORAM with tree height 7 that can store up to 255 nodes and can be divided in 17 partitions each one storing 15 nodes, giving a total of 255 nodes.
-*/
-/*unsigned int
-calculatePartitionTreeHeight(unsigned int treeHeight)
-{
-	return (unsigned int) ceil(log2(treeHeight));
-}*/
-
-/*
-unsigned int
-calculateNumberOfPartitions(unsigned int treeHeight, unsigned int partitionTreeHeight)
-{
-	unsigned int nTreeNodes;
-	unsigned int nSubTreeNodes;
-	unsigned int nPartitions;
-
-	nTreeNodes = (unsigned int) pow(2, treeHeight + 1) - 1;
-	nSubTreeNodes = (unsigned int) pow(2, partitionTreeHeight + 1) - 1;
-
-	nPartitions = nTreeNodes / nSubTreeNodes;
-
-	if (nPartitions * nSubTreeNodes < nTreeNodes)
-	{
-		nPartitions += 1;
-	}
-
-	return nPartitions;
-}
-*/
 
 /**
  * This function returns an array of TreeNode structures that specify
@@ -684,7 +695,8 @@ read_foram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 }
 
 int
-evict_foram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state, void *appData)
+evict_foram(char *data, unsigned int blkSize, BlockNumber blkno, 
+            ORAMState state, void *appData)
 {
 
 	struct Location oldLocation;
@@ -693,8 +705,9 @@ evict_foram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state
 	int			res;
 
 	/* line 1 and 2 of original paper */
-	memcpy(&oldLocation, state->amgr->am_pmap->pmget(state->pmap, state->file, blkno),
-		   sizeof(struct Location));
+	memcpy(&oldLocation, state->amgr->am_pmap->pmget(state->pmap, 
+                                                     state->file, blkno),
+           sizeof(struct Location));
 
 	updateBlockLocation(blkno, state);
 
@@ -703,7 +716,10 @@ evict_foram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state
 
 	if (blkSize != DUMMY_BLOCK)
 	{
-		updateStashWithNewBlock(data, blkSize, blkno, oldLocation.partition, newLocation->partition, state, appData);
+		updateStashWithNewBlock(data, blkSize, blkno, 
+                                oldLocation.partition,
+                                newLocation->partition, 
+                                state, appData);
 	}
 
 	/* line 10 to 15 of original paper */
@@ -714,10 +730,15 @@ evict_foram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state
 	return blkSize;
 }
 
-void
-close_oram(ORAMState state, void *appData)
+static void
+close_forestoram(ORAM* oram, void *appData)
 {
 	int			index = 0;
+    ORAMState   state = NULL;
+
+    //TODO: Add code assertions
+
+    state = oram->state;
     
     #ifdef STASH_COUNT
         logStashes(state);
@@ -740,28 +761,40 @@ close_oram(ORAMState state, void *appData)
 	free(state);
 }
 
-int
-read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
+static int
+read_forestoram(char **ptr, BlockNumber blkno, ORAM* oram, void *appData)
 {
 	int			blockSize = 0;
+    ORAMState   state = NULL;
+    
+    //TODO: Add code assertions
+    state = oram->state;
 
 	blockSize = read_foram(ptr, blkno, state, appData);
 	evict_foram(*ptr, (unsigned int) blockSize, blkno, state, appData);
+
 	return blockSize;
 }
 
 
 
-int
-write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state, void *appData)
+static int
+write_forestoram(char *data, unsigned int blkSize, BlockNumber blkno,
+                 ORAM* oram, void *appData)
 {
 	char	   *tmp_data = NULL;
 	int			result = 0;
+    ORAMState   state = NULL;
+
+    //TODO: Add code assertions
+    state = oram->state;
     
 	result = read_foram(&tmp_data, blkno, state, appData);
 	evict_foram(data, blkSize, blkno, state, appData);
+
     free(tmp_data);
-	return blkSize;
+	
+    return blkSize;
 }
 
 

@@ -47,6 +47,10 @@ struct ORAMState
 	unsigned int bucketCapacity;
 	/* Number of buckets in a Tree node(Z) */
 
+    /*Total number of real blocks stored in ORAM*/
+    unsigned int nblocks;
+
+
 	char	   *file;
 	/* File name of the protected file. */
 
@@ -97,16 +101,20 @@ static void updateStashWithNewBlock(void *data, unsigned int blockSize,
                                     BlockNumber blkno, 
                                     ORAMState state, void *appData);
 
+static ORAM* buildORAM(ORAMState state);
 
-static void read_oram(char **ptr, BlockNumber blkno, ORAMState state, 
-                      void *appData);
+static int 
+read_pathoram(char **ptr, BlockNumber blkno, ORAM* oram, void *appData);
 
-static void write_oram(char *data, unsigned int blksize, blocknumber blkno,
-                       ORAMState state, void *appdata);
+static int 
+write_pathoram(char *data, unsigned int blksize, BlockNumber blkno, 
+               ORAM* oram, void *appdata);
 
-static void close_oram(ORAMState state, void *appData);
+static void 
+close_pathoram(ORAM *state, void *appData);
 
-ORAM
+
+ORAM*
 init_PathORAM(const char *file, unsigned int nblocks, unsigned int blockSize, 
               unsigned int bucketCapacity, Amgr *amgr, void *appData)
 {
@@ -118,7 +126,7 @@ init_PathORAM(const char *file, unsigned int nblocks, unsigned int blockSize,
 	int			result;
     
 	ORAMState	state = NULL;
-    ORAM        oram = NULL;
+    ORAM*        oram = NULL;
 
 	/**
      * Calculates the number of leaf nodes necessary to store the number
@@ -203,15 +211,15 @@ buildORAMState(const char *filename, unsigned int nblocks,
 	return state;
 }
 
-ORAM buildORAM(ORAMState state){
-    ORAM oram = NULL;
+ORAM* buildORAM(ORAMState state){
+    ORAM* oram = NULL;
 
     unsigned int save_errno = 0;
 
     save_errno = errno;
     errno = 0;
 
-    oram = (ORAM) = malloc(sizeof(struct ORAM));
+    oram = (ORAM*) malloc(sizeof(struct ORAM));
 
     if(state == NULL && errno == ENOMEM)
     {
@@ -222,10 +230,10 @@ ORAM buildORAM(ORAMState state){
 
     errno = save_errno;
 
-    oram-state = state;
-    oram->read = &read_oram;
-    oram->write = &write_oram;
-    oram->close = &close_oram;
+    oram->state = state;
+    oram->read = &read_pathoram;
+    oram->write = &write_pathoram;
+    oram->close = &close_pathoram;
 
     return oram;
 }
@@ -589,9 +597,8 @@ updateStashWithNewBlock(void *data, unsigned int blkSize,
     #endif
 }
 
-
 int
-read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
+read_pathoram(char **ptr, BlockNumber blkno, ORAM* oram, void *appData)
 {
 	Location	location;
 	unsigned int leaf = 0;
@@ -599,6 +606,14 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	TreePath	path = NULL;
 	PLBList		list = NULL;
 	PLBList		blocks_to_write = NULL;
+    ORAMState   state = NULL;
+
+    //assert(oram!=NULL);
+    //assert(oram->state!=NULL); 
+    //assert(blkno<=oram->state->nblocks);
+
+
+    state = oram->state;
 
 	/* printf("Creating empty block\n"); */
 	PLBlock		plblock = createEmptyBlock();
@@ -648,17 +663,25 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 
 }
 
-int
-write_oram(char *data, unsigned int blkSize, BlockNumber blkno, 
-           ORAMState state, void *appData)
+static int
+write_pathoram(char *data, unsigned int blkSize, BlockNumber blkno, 
+           ORAM* oram, void *appData)
 {
 	Location	location;
 	unsigned int leaf = 0;
 	TreePath	path = NULL;
 	PLBList		list = NULL;
 	PLBList		blocks_to_write = NULL;
+    ORAMState   state = NULL;
+   
+    //assert(oram!=NULL);
+    //assert(oram->state!=NULL); 
+    //assert(blkno<=oram->state->nblocks);
 
-	/* line 1 and 2 of original paper */
+
+    state = oram->state;
+    
+    /* line 1 and 2 of original paper */
 	location = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
 	leaf = location->leaf;
 	updateBlockLeaf(blkno, state);
@@ -685,16 +708,26 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno,
 }
 
 void
-close_oram(ORAMState state, void *appData)
+close_pathoram(ORAM *oram, void *appData)
 {
+
+    ORAMState state = NULL;
+
+    //assert(oram!=NULL);
+    //assert(oram->state!=NULL); 
+ 
+    state = oram->state;
 
     #ifdef STASH_COUNT
     logStashes(state);
     #endif    
+
+    //close structures
 	state->amgr->am_stash->stashclose(state->stash, state->file, appData);
 	state->amgr->am_pmap->pmclose(state->pmap, state->file);
 	state->amgr->am_ofile->ofileclose(state->file, appData);
-	free(state->file);
+	
+    free(state->file);
 	free(state->amgr->am_stash);
 	free(state->amgr->am_pmap);
 	free(state->amgr->am_ofile);

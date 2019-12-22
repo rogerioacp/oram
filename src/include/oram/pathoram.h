@@ -26,11 +26,11 @@
  *
  */
 
-ORAM   init_PathORAM(const char *file, 
+ORAM*   init_PathORAM(const char *file, 
                  unsigned int nblocks, 
                  unsigned int blockSize, 
                  unsigned int bucketCapacity,
-                 ORAM *state, voidid *appData);
+                 Amgr *state, void *appData);
 
 
 #endif                  /*PATHORAM_H*/

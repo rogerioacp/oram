@@ -1,6 +1,13 @@
 #include "oram/oram.h"
 #include "oram/plblock.h"
 
+#ifdef TEST_PATHORAM
+#include "oram/pathoram.h"
+#elif TEST_FORESTORAM
+#include "oram/forestoram.h"
+#endif
+
+
 #include <stdio.h>
 #include <string.h>
 
@@ -11,7 +18,7 @@ main(int argc, char *argv[])
 	AMStash    *stash;
 	AMPMap	   *pmap;
 	AMOFile    *ofile;
-	ORAMState	state;
+	ORAM       *oram;
 
 	stash = stashCreate();
 	pmap = pmapCreate();
@@ -23,33 +30,33 @@ main(int argc, char *argv[])
 	amgr.am_pmap = pmap;
 	amgr.am_ofile = ofile;
 
-	size_t		fileSize = 100;
+	size_t		nBlocks = 15;
+	size_t		bSize = 20; // block size of 20 bytes;
+	size_t		bCapacity = 1; // 1 bucker per tree node;
 
-	//file with 100 bytes;
-	size_t		blockSize = 20;
 
-	//block size of 20 bytes;
-	size_t		bucketCapcity = 1;
-
-	//1 bucket per tree node;
 	int			result = 0;
-	size_t		nblocks = fileSize / blockSize;
 	int			index = 0;
-	char	   *data = NULL;
+	char	    *data = NULL;
 
-	state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
+#ifdef TEST_PATHORAM
+    oram = init_PathORAM("teste", nBlocks, bSize, bCapacity, &amgr, NULL);
+#elif TEST_FORESTORAM
+    oram = init_ForestORAM("teste", nBlocks, bSize, bCapacity, 1, &amgr, NULL);
+#endif
 
-	for (index = 0; index < nblocks; index++)
+
+	for (index = 0; index < nBlocks; index++)
 	{
 		/* printf("Going to read block offset %d\n", index); */
-		result = read_oram(&data, index, state, NULL);
+		result = oram->read(&data, index, oram, NULL);
 		if (result != DUMMY_BLOCK)
 		{
-			close_oram(state, NULL);
+			oram->close(oram, NULL);
 			return 1;
 		}
 	}
-	close_oram(state, NULL);
+	oram->close(oram, NULL);
 	return 0;
 }
 

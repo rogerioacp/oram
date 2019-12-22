@@ -26,12 +26,12 @@
  *
  */
 
-OORAM   init_ForestORAM(const char *file, 
+ORAM*   init_ForestORAM(const char *file, 
                  unsigned int nblocks, 
                  unsigned int blockSize, 
                  unsigned int bucketCapacity,
                  unsigned int nPartitions,
-                 ORAM *state, void *appData);
+                 Amgr *amgr, void *appData);
 
 
 #endif                  /*FORESTORAM_H*/

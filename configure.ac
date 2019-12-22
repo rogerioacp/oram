@@ -64,6 +64,5 @@ AM_CONDITIONAL([WINDOWS], [test "$build_windows" = "yes"])
 AM_CONDITIONAL([OSX], [test "$build_mac" = "yes"])
 
 
-#AM_CONDITIONAL([ENABLE_STASH_COUNT], [test "$stash_count" = "yes"])
 
 AC_OUTPUT
