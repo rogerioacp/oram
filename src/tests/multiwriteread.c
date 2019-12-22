@@ -3,8 +3,10 @@
 
 #ifdef TEST_PATHORAM
 #include "oram/pathoram.h"
+#include "oram/pmapdefs/pdeforam.h"
 #elif TEST_FORESTORAM
 #include "oram/forestoram.h"
+#include "oram/pmapdefs/fdeforam.h"
 #endif
 
 
@@ -42,7 +44,12 @@ main(int argc, char *argv[])
 	ORAM	   *oram;
 
 	stash = stashCreate();
-	pmap = pmapCreate();
+#ifdef TEST_PATHORAM
+    pmap = pmapCreate();
+#elif TEST_FORESTORAM
+    pmap = fpmapCreate();
+#endif
+
 	ofile = ofileCreate();
 
 	Amgr		amgr;

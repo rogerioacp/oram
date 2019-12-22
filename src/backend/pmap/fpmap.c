@@ -20,8 +20,6 @@
 #include <stdlib.h>
 #include <errno.h>
 
-
-#include "oram/pmap.h"
 #include "oram/logger.h"
 #include "oram/orandom.h"
 #include "oram/pmapdefs/fdeforam.h"
@@ -107,7 +105,7 @@ void pmapClose(PMap pmap, const char *filename) {
     free(pmap);
 }
 
-AMPMap *pmapCreate(void) {
+AMPMap *fpmapCreate(void) {
     AMPMap *pmap = (AMPMap *) malloc(sizeof(AMPMap));
     pmap->pminit = &pmapInit;
     pmap->pmget = &pmapGet;

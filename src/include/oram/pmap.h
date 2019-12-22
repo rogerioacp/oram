@@ -37,6 +37,4 @@ typedef struct AMPMap
 	pmclose_function pmclose;
 } AMPMap;
 
-AMPMap	   *pmapCreate(void);
-
 #endif							/* OFILE_H*/
