@@ -30,6 +30,7 @@ build_linux=no
 build_windows=no
 build_mac=no
 build_scount=no
+build_foram_small=no
 
 # Detect the target system
 case "${host}" in
@@ -53,10 +54,18 @@ AC_ARG_ENABLE([stash-count],
                              directive that counts the number of blocks in each
                              stash of Forest ORAM and Path ORAM. This is a
                              debuging feature that should not be activated by
-                             default]), [build_scount=yes],[stash_scount=no])
+                             default]), [build_scount=yes],[build_scount=no])
+
+AC_ARG_ENABLE([foram-small], 
+               AS_HELP_STRING([--enable-foram-small], [Forest ORAM is compiled
+                               to create a logarithm number of partitions based
+                               on the input number of blocks of
+                               init_oram]),
+                               [build_foram_small=yes],[build_foram_small=no])
+
 
 AM_CONDITIONAL([SCOUNT], [test "$build_scount" = "yes"])
-
+AM_CONDITIONAL([SFORAM], [test "$build_foram_small" = "yes"])
 
 # Pass the conditionals to automake
 AM_CONDITIONAL([LINUX], [test "$build_linux" = "yes"])

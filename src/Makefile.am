@@ -27,11 +27,10 @@ else
      random_file = backend/orandom/bsd_random.c
 endif
 
-#stash_count=-DSTASH_COUNT
 
-
-
-
+if SFORAM
+     stash_count += -DSFORAM
+endif
 
 
 memory_test_files = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/stash.c backend/block/plblock.c
