@@ -154,6 +154,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 #ifdef SFORAM
 	nPartitions = ceil(log2(nblocks));
     blocksPerPartition = ceil(nblocks / nPartitions);
+
     if(blocksPerPartition*nPartitions < totalNodes){
         blocksPerPartition += 1;
     }
@@ -161,6 +162,8 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
     partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 
     logger(DEBUG, "blocks per partition is %d\n", blocksPerPartition);
+    logger(DEBUG, "Partition tree height is %d\n", partitionTreeHeight);
+    logger(DEBUG, "partition nodes is %d\n", partitionNodes);
 #else
     partitionTreeHeight = calculatePartitionTreeHeight(treeHeight);
 
@@ -170,12 +173,10 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 #endif
 	partitionBlocks = partitionNodes * nPartitions;
     logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d\n", nblocks, nPartitions, partitionTreeHeight);
-	if (totalNodes > partitionBlocks)
+
+    if (nblocks > partitionBlocks)
 	{
-		/*
-		 * logger(DEBUG, "The total number of nodes does not fit in the
-		 * ORAM\n");
-		 */
+		logger(DEBUG, "The total number of nodes does not fit in the ORAM\n");
 		abort();
 	}
 
