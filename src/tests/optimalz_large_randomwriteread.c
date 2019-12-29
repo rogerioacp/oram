@@ -46,6 +46,7 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
 
     int string_size = 0;
     int index = 0;
+    int readi = 0;
     char *data = NULL;
     //printf("Going to init\n");
     //malloc input is size in bytes. sizeof gives size in bytes.
@@ -75,36 +76,38 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
         }
         strings[wOffset] = gen_random(string_size + 1);
         blockWriteOffset = sizeof(char) * strlen(strings[wOffset]) + 1;
-        //printf("Generated string %s\n", strings[wOffset]);
-        //printf("going to write to oram offset %zu the string %s\n", wOffset, strings[wOffset]);
+
+        // printf("going to write to oram offset %zu the string %s\n", wOffset, strings[wOffset]);
         write_oram(strings[wOffset], blockWriteOffset, wOffset, state, NULL);
-    }
 
-    for (index = 0; index < nblocks; index++) {
-        //printf("Going to read from oram offset %d\n",index);
-        result = read_oram(&data, index, state, NULL);
-        //printf("read from oram offset %d the value %s and compares to %s \n", index, data, strings[index]);
+        for (readi = 0; readi < nblocks; readi++) {
 
-        if ((result != DUMMY_BLOCK && result != strlen(data) + 1) || (result != DUMMY_BLOCK && strcmp(data, strings[index]) != 0)) {
-            close_oram(state, NULL);
-            return 1;
+            result = read_oram(&data, readi, state, NULL);
+            //printf("read from oram offset %d the value %s and compares to %s \n", readi, (char*) data, strings[readi]);
+
+            if ((result != DUMMY_BLOCK && result != strlen(data) + 1) || (result != DUMMY_BLOCK && strcmp(data, strings[readi]) != 0)) {
+                close_oram(state, NULL);
+                return 1;
+            }
+            free(data);
         }
-        free(strings[index]);
-        free(data);
     }
-
     close_oram(state, NULL);
+    for (index = 0; index < nblocks; index++) {
+        free(strings[index]);
+    }
     free(strings);
+
     return 0;
 }
 
 int main(int argc, char *argv[]) {
-    size_t nblocks = 10000; //bytes
+    size_t nblocks = 500; //bytes
     size_t blockSize = 20; // bytes
-    size_t bucketCapcity = 1; // nblocks
-    size_t nwrites = 500;
+    size_t bucketCapcity = 4; // nblocks
+    size_t nwrites = 2000;
 
-    int n_loops = 100;
+    int n_loops = 10;
     int i;
     int result = 0;
     for (i = 0; i < n_loops; i++) {

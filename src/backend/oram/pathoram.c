@@ -475,7 +475,6 @@ writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState state, void *app
 			ob_blkno = lob_blkno + index;
 			list_idx = list_offset - index;
 			block = list[list_idx];
-
 			state->amgr->am_ofile->ofilewrite(block, state->file, ob_blkno, appData);
 			if (block->blkno != DUMMY_BLOCK)
 			{

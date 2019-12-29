@@ -21,8 +21,8 @@ int main(int argc, char *argv[]) {
     amgr.am_ofile = ofile;
 
     size_t nblocks = 15;
-    size_t blockSize = 20;// block size of 20 bytes;
-    size_t bucketCapcity = 1; // 1 bucket per tree node;
+    size_t blockSize = 20; // block size of 20 bytes;
+    size_t bucketCapcity = 4; // 4 bucket per tree node;
     size_t result = 0;
     char *data = NULL;
 

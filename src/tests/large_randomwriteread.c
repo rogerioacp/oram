@@ -24,10 +24,9 @@ char *gen_random(const int len) {
 }
 
 
-int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites) {
+int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites) {
 
     int result = 0;
-    size_t nblocks = fileSize / blockSize;
     size_t wOffset = 0;
     size_t blockWriteOffset = 0;
 
@@ -103,16 +102,16 @@ int test(size_t fileSize, size_t blockSize, size_t bucketCapcity, size_t nwrites
 }
 
 int main(int argc, char *argv[]) {
-    size_t fileSize = 10000; //bytes
+    size_t nblocks = 500; //bytes
     size_t blockSize = 20; // bytes
     size_t bucketCapcity = 1; // nblocks
-    size_t nwrites = 500;
+    size_t nwrites = 2000;
 
-    int n_loops = 20;
+    int n_loops = 10;
     int i;
     int result = 0;
     for (i = 0; i < n_loops; i++) {
-        result |= test(fileSize, blockSize, bucketCapcity, nwrites);
+        result |= test(nblocks, blockSize, bucketCapcity, nwrites);
     }
     return result;
 }

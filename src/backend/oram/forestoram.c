@@ -161,9 +161,9 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
     partitionTreeHeight = calculateTreeHeight(blocksPerPartition);
     partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 
-    logger(DEBUG, "blocks per partition is %d\n", blocksPerPartition);
-    logger(DEBUG, "Partition tree height is %d\n", partitionTreeHeight);
-    logger(DEBUG, "partition nodes is %d\n", partitionNodes);
+    //logger(DEBUG, "blocks per partition is %d\n", blocksPerPartition);
+    //logger(DEBUG, "Partition tree height is %d\n", partitionTreeHeight);
+    //logger(DEBUG, "partition nodes is %d\n", partitionNodes);
 #else
     partitionTreeHeight = calculatePartitionTreeHeight(treeHeight);
 
@@ -172,7 +172,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 #endif
 	partitionBlocks = partitionNodes * nPartitions;
-    logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d\n", nblocks, nPartitions, partitionTreeHeight);
+    //logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d\n", nblocks, nPartitions, partitionTreeHeight);
 
     if (nblocks > partitionBlocks)
 	{

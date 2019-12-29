@@ -6,7 +6,7 @@ AM_CFLAGS = $(stash_count) -Wpadded
 pkginclude_HEADERS = include/oram/plblock.h include/oram/logger.h include/oram/ofile.h include/oram/oram.h include/oram/pmap.h include/oram/stash.h include/oram/orandom.h include/oram/foram.h include/oram/pmapdefs/pdeforam.h include/oram/pmapdefs/fdeforam.h
 
 
-pathoram_tests = singleread singlewrite singlereadwrite multiread multiwriteread randomwrites randomwriteread largerandomwrites largerandomwriteread optimalzread
+pathoram_tests = singleread singlewrite singlereadwrite multiread multiwriteread randomwrites randomwriteread largerandomwrites largerandomwriteread optimalzread optimalzwrite optimalzreadwrite optimalzmultiread optimalzmultiwriteread optimalzrandomwrites optimalzrandomwriteread optimalzlargerandomwrites optimalzlargerandomwriteread
 
 forestoram_tests = singlereadf singlewritef singlereadwritef multireadf multiwritereadf randomwritesf randomwritereadf largerandomwritesf largerandomwritereadf
 
@@ -124,6 +124,37 @@ optimalzread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_fil
 optimalzread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzread_LDADD = $(COLLECTC_LIBS)
  
+optimalzwrite_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_write.c
+optimalzwrite_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzwrite_LDADD = $(COLLECTC_LIBS)
+
+optimalzreadwrite_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_readwrite.c
+optimalzreadwrite_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzreadwrite_LDADD = $(COLLECTC_LIBS)
+
+optimalzmultiread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_multiread.c
+optimalzmultiread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzmultiread_LDADD = $(COLLECTC_LIBS)
+
+optimalzmultiwriteread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_multiwriteread.c
+optimalzmultiwriteread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzmultiwriteread_LDADD = $(COLLECTC_LIBS)
+
+optimalzrandomwrites_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_randomwrites.c
+optimalzrandomwrites_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzrandomwrites_LDADD = $(COLLECTC_LIBS)
+
+optimalzrandomwriteread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_randomwrites.c
+optimalzrandomwriteread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzrandomwriteread_LDADD = $(COLLECTC_LIBS)
+
+optimalzlargerandomwrites_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_largerandomwrites.c
+optimalzlargerandomwrites_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzlargerandomwrites_LDADD = $(COLLECTC_LIBS)
+
+optimalzlargerandomwriteread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_large_randomwriteread.c
+optimalzlargerandomwriteread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzlargerandomwriteread_LDADD = $(COLLECTC_LIBS)
 
 TESTS = $(check_PROGRAMS)
 
