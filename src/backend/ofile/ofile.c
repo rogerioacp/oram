@@ -35,7 +35,9 @@ static void fileWrite(const PLBlock block, const char *fileName, const BlockNumb
 static void fileClose(const char *filename, void* appData);
 
 
-void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize, void* appData) {
+void fileInit(const char *filename, unsigned int nblocks, 
+              unsigned int blocksize, void* appData) {
+
     int offset;
     file = (PLBList) malloc(sizeof(PLBlock) * nblocks);
     gnblocks = nblocks;

@@ -6,7 +6,7 @@ AM_CFLAGS = $(stash_count) -Wpadded
 pkginclude_HEADERS = include/oram/plblock.h include/oram/logger.h include/oram/ofile.h include/oram/oram.h include/oram/pmap.h include/oram/stash.h include/oram/orandom.h include/oram/foram.h include/oram/pmapdefs/pdeforam.h include/oram/pmapdefs/fdeforam.h
 
 
-pathoram_tests = singleread singlewrite singlereadwrite multiread multiwriteread randomwrites randomwriteread largerandomwrites largerandomwriteread 
+pathoram_tests = singleread singlewrite singlereadwrite multiread multiwriteread randomwrites randomwriteread largerandomwrites largerandomwriteread optimalzread
 
 forestoram_tests = singlereadf singlewritef singlereadwritef multireadf multiwritereadf randomwritesf randomwritereadf largerandomwritesf largerandomwritereadf
 
@@ -119,6 +119,11 @@ largerandomwriteread_LDADD = $(COLLECTC_LIBS)
 largerandomwritereadf_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/large_randomwriteread.c
 largerandomwritereadf_CFLAGS = $(stash_count)  $(COLLECTC_CFLAGS) -I $(srcdir)/include
 largerandomwritereadf_LDADD = $(COLLECTC_LIBS)
+
+optimalzread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_read.c
+optimalzread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzread_LDADD = $(COLLECTC_LIBS)
+ 
 
 TESTS = $(check_PROGRAMS)
 

@@ -69,10 +69,9 @@ typedef TreeNode *TreePath;
 
 static unsigned int calculateTreeHeight(unsigned int minimumNumberOfNodes);
 
-static ORAMState
-			buildORAMState(const char *filename, unsigned int nblocks,
-                           unsigned int blockSize, unsigned int minimumNumberOfNodes,
-						   unsigned int treeHeight, unsigned int bucketCapacity, Amgr *amgr);
+static ORAMState buildORAMState(const char *filename, unsigned int blockSize,
+                                unsigned int treeHeight,
+                                unsigned int bucketCapacity, Amgr *amgr);
 
 static TreePath getTreePath(ORAMState state, unsigned int leaf);
 
@@ -104,15 +103,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	int			result;
 	ORAMState	state = NULL;
 
-	/**
-     * Calculates the number of leaf nodes necessary to store the number
-     * of blocks in a file.
-     *
-     * If a file has 100 bytes with 10 blocks (N) of 10 bytes and the
-     * bucketCapcity (Z) of the tree is 2 real blocks then the tree needs at
-     * at least 5 nodes.
-     */
-	minimumNumberOfNodes = nblocks / bucketCapacity;
+
 
 	/**
      * If not every bucket fits in the minimum number of tree nodes, then add
@@ -124,10 +115,10 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 		minimumNumberOfNodes += 1;
 	}
 
-	treeHeight = calculateTreeHeight(minimumNumberOfNodes);
+	treeHeight = calculateTreeHeight(nblocks);
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
 
-	state = buildORAMState(file, nblocks, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, amgr);
+	state = buildORAMState(file, blockSize, treeHeight, bucketCapacity, amgr);
 	struct TreeConfig config;
 
 	config.treeHeight = treeHeight;
@@ -137,6 +128,9 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
     #ifdef  STASH_COUNT
     state->nblocksStashs = 0;
     #endif
+    
+    totalNodes = totalNodes*bucketCapacity;
+
 	amgr->am_ofile->ofileinit(state->file, totalNodes, blockSize, appData);
 
 	return state;
@@ -144,9 +138,8 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 }
 
 ORAMState
-buildORAMState(const char *filename, unsigned int nblocks,
-               unsigned int blockSize, unsigned int minimumNumberOfNodes,
-			   unsigned int treeHeight, unsigned int bucketCapacity, Amgr *amgr)
+buildORAMState(const char *filename, unsigned int blockSize, unsigned int treeHeight,
+               unsigned int bucketCapacity, Amgr *amgr)
 {
 
 	ORAMState	state = NULL;
@@ -157,7 +150,8 @@ buildORAMState(const char *filename, unsigned int nblocks,
 	save_errno = errno;
 	errno = 0;
 	state = (ORAMState) malloc(sizeof(struct ORAMState));
-	if (state == NULL && errno == ENOMEM)
+
+    if (state == NULL && errno == ENOMEM)
 	{
 		logger(OUT_OF_MEMORY, "Out Of Memory building ORAM STATE\n");
 		errno = save_errno;
@@ -201,15 +195,15 @@ buildORAMState(const char *filename, unsigned int nblocks,
  * nodes, thus in this case the function increments the tree height.
  * */
 unsigned int
-calculateTreeHeight(unsigned int minimumNumberOfNodes)
+calculateTreeHeight(unsigned int nblocks)
 {
 	unsigned int height,
 				nNodes;
 
-	height = (unsigned int) ceil(log2(minimumNumberOfNodes));
+	height = (unsigned int) ceil(log2(nblocks));
 	nNodes = (unsigned int) pow(2, height);
 
-	if (nNodes - 1 >= minimumNumberOfNodes)
+	if (nNodes - 1 >= nblocks)
 	{
 		return height - 1;
 	}
