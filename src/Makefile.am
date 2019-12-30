@@ -8,7 +8,7 @@ pkginclude_HEADERS = include/oram/plblock.h include/oram/logger.h include/oram/o
 
 pathoram_tests = singleread singlewrite singlereadwrite multiread multiwriteread randomwrites randomwriteread largerandomwrites largerandomwriteread optimalzread optimalzwrite optimalzreadwrite optimalzmultiread optimalzmultiwriteread optimalzrandomwrites optimalzrandomwriteread optimalzlargerandomwrites optimalzlargerandomwriteread
 
-forestoram_tests = singlereadf singlewritef singlereadwritef multireadf multiwritereadf randomwritesf randomwritereadf largerandomwritesf largerandomwritereadf
+forestoram_tests = singlereadf singlewritef singlereadwritef multireadf multiwritereadf randomwritesf randomwritereadf largerandomwritesf largerandomwritereadf optimalzreadf optimalzwritef optimalzreadwritef optimalzmultireadf optimalzmultiwritereadf optimalzrandomwritesf optimalzrandomwritereadf optimalzlargerandomwritesf optimalzlargerandomwritereadf
 
 
 #bin_PROGRAMS = read write readwrite
@@ -123,38 +123,74 @@ largerandomwritereadf_LDADD = $(COLLECTC_LIBS)
 optimalzread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_read.c
 optimalzread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzread_LDADD = $(COLLECTC_LIBS)
- 
+
+optimalzreadf_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/optimalz_read.c
+optimalzreadf_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzreadf_LDADD = $(COLLECTC_LIBS)
+
 optimalzwrite_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_write.c
 optimalzwrite_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzwrite_LDADD = $(COLLECTC_LIBS)
+
+optimalzwritef_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/optimalz_write.c
+optimalzwritef_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzwritef_LDADD = $(COLLECTC_LIBS)
 
 optimalzreadwrite_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_readwrite.c
 optimalzreadwrite_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzreadwrite_LDADD = $(COLLECTC_LIBS)
 
+optimalzreadwritef_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/optimalz_readwrite.c
+optimalzreadwritef_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzreadwritef_LDADD = $(COLLECTC_LIBS)
+
 optimalzmultiread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_multiread.c
 optimalzmultiread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzmultiread_LDADD = $(COLLECTC_LIBS)
+
+optimalzmultireadf_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/optimalz_multiread.c
+optimalzmultireadf_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzmultireadf_LDADD = $(COLLECTC_LIBS)
 
 optimalzmultiwriteread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_multiwriteread.c
 optimalzmultiwriteread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzmultiwriteread_LDADD = $(COLLECTC_LIBS)
 
+optimalzmultiwritereadf_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/optimalz_multiwriteread.c
+optimalzmultiwritereadf_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzmultiwritereadf_LDADD = $(COLLECTC_LIBS)
+
 optimalzrandomwrites_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_randomwrites.c
 optimalzrandomwrites_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzrandomwrites_LDADD = $(COLLECTC_LIBS)
+
+optimalzrandomwritesf_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/optimalz_randomwrites.c
+optimalzrandomwritesf_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzrandomwritesf_LDADD = $(COLLECTC_LIBS)
 
 optimalzrandomwriteread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_randomwrites.c
 optimalzrandomwriteread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzrandomwriteread_LDADD = $(COLLECTC_LIBS)
 
+optimalzrandomwritereadf_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/optimalz_randomwrites.c
+optimalzrandomwritereadf_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzrandomwritereadf_LDADD = $(COLLECTC_LIBS)
+
 optimalzlargerandomwrites_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_largerandomwrites.c
 optimalzlargerandomwrites_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzlargerandomwrites_LDADD = $(COLLECTC_LIBS)
 
+optimalzlargerandomwritesf_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/optimalz_largerandomwrites.c
+optimalzlargerandomwritesf_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzlargerandomwritesf_LDADD = $(COLLECTC_LIBS)
+
 optimalzlargerandomwriteread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/optimalz_large_randomwriteread.c
 optimalzlargerandomwriteread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 optimalzlargerandomwriteread_LDADD = $(COLLECTC_LIBS)
+
+optimalzlargerandomwritereadf_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) tests/optimalz_large_randomwriteread.c
+optimalzlargerandomwritereadf_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+optimalzlargerandomwritereadf_LDADD = $(COLLECTC_LIBS)
 
 TESTS = $(check_PROGRAMS)
 

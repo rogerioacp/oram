@@ -86,11 +86,11 @@ static unsigned int
 										unsigned int partitionTreeHeight);
 
 static ORAMState
-			buildORAMState(const char *filename, unsigned int nblocks,
-						   unsigned int blockSize,
-						   unsigned int minimumNumberOfNodes, unsigned int treeHeight,
-						   unsigned int bucketCapacity, unsigned int nPartitions,
-						   unsigned int partitionsHeight, unsigned int partitionNodes,
+			buildORAMState(const char *filename, unsigned int blockSize,
+                           unsigned int treeHeight, unsigned int bucketCapacity,
+                           unsigned int nPartitions, 
+                           unsigned int partitionsHeight, 
+                           unsigned int partitionNodes,
 						   Amgr *amgr);
 
 static TreePath getTreePath(ORAMState state, Location leaf);
@@ -114,7 +114,6 @@ ORAMState
 init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
 {
 
-	unsigned int minimumNumberOfNodes = 0;
 	unsigned int treeHeight;
 	unsigned int totalNodes;
 	unsigned int partitionTreeHeight;
@@ -127,30 +126,10 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 	ORAMState	state = NULL;
 
-	/**
-     * Calculates the number of leaf nodes necessary to store the number
-     * of blocks in a file.
-     *
-     * If a file has 100 bytes with 10 blocks (N) of 10 bytes and the
-     * bucketCapcity (Z) of the tree is 2 real blocks then the tree needs at
-     * at least 5 nodes.
-     */
-	minimumNumberOfNodes = nblocks / bucketCapacity;
-
-	/**
-     * If not every bucket fits in the minimum number of tree nodes, then add
-     * a new tree node to that will store the missing buckets plus a few dummy
-     * nodes.
-     */
-	if (nblocks % bucketCapacity != 0)
-	{
-		minimumNumberOfNodes += 1;
-	}
-
-	treeHeight = calculateTreeHeight(minimumNumberOfNodes);
+	treeHeight = calculateTreeHeight(nblocks);
 
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
-
+    //logger(DEBUG, "tree height is %d and total nodes are %d\n", treeHeight, totalNodes);
 #ifdef SFORAM
 	nPartitions = ceil(log2(nblocks));
     blocksPerPartition = ceil(nblocks / nPartitions);
@@ -171,7 +150,9 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 	partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 #endif
+
 	partitionBlocks = partitionNodes * nPartitions;
+    
     //logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d\n", nblocks, nPartitions, partitionTreeHeight);
 
     if (nblocks > partitionBlocks)
@@ -181,7 +162,9 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	}
 
 
-	state = buildORAMState(file, nblocks, blockSize, minimumNumberOfNodes, treeHeight, bucketCapacity, nPartitions, partitionTreeHeight, partitionNodes, amgr);
+	state = buildORAMState(file, blockSize, treeHeight, bucketCapacity, 
+                           nPartitions, partitionTreeHeight, partitionNodes,
+                           amgr);
   
 
     #ifdef STASH_COUNT
@@ -204,6 +187,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 	config.treeHeight = partitionTreeHeight;
 	config.nPartitions = nPartitions;
+    partitionBlocks = partitionBlocks*bucketCapacity;
 
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
 	amgr->am_ofile->ofileinit(state->file, partitionBlocks, blockSize, appData);
@@ -213,14 +197,10 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 
 ORAMState
-buildORAMState(const char *filename, unsigned int nblocks,
-               unsigned int blockSize,
-			   unsigned int minimumNumberOfNodes,
+buildORAMState(const char *filename, unsigned int blockSize,
 			   unsigned int treeHeight, unsigned int bucketCapacity,
-			   unsigned int nPartitions,
-			   unsigned int partitionTreeHeight,
-			   unsigned int partitionNodes,
-			   Amgr *amgr)
+			   unsigned int nPartitions, unsigned int partitionTreeHeight,
+			   unsigned int partitionNodes, Amgr *amgr)
 {
 
 	ORAMState	state = NULL;
@@ -438,7 +418,7 @@ getTreeNodes(ORAMState state, TreePath path, Location location, void *appData)
 
 	/* partition offset; */
 
-	pOffset = location->partition * state->partitionCapacity;
+	pOffset = location->partition * state->partitionCapacity*state->bucketCapacity;
 	initBlockList(state, &list);
 
 	for (level = 0; level < state->partitionsHeight + 1; level++)
@@ -591,7 +571,7 @@ writeBlocksToStorage(PLBList list, Location location, ORAMState state, void *app
 
 	/* partition offset; */
 
-	pOffset = location->partition * state->partitionCapacity;
+	pOffset = location->partition * state->partitionCapacity*state->bucketCapacity;
 	currentPos = location->leaf + (1 << state->partitionsHeight);
 
 	while (currentPos > 0)

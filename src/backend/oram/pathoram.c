@@ -96,35 +96,24 @@ ORAMState
 init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
 {
 
-	unsigned int minimumNumberOfNodes = 0;
 	unsigned int treeHeight;
 	unsigned int totalNodes;
 
 	int			result;
 	ORAMState	state = NULL;
 
-
-
-	/**
-     * If not every bucket fits in the minimum number of tree nodes, then add
-     * a new tree node to that will store the missing buckets plus a few dummy
-     * nodes.
-     */
-	if (nblocks % bucketCapacity != 0)
-	{
-		minimumNumberOfNodes += 1;
-	}
-
 	treeHeight = calculateTreeHeight(nblocks);
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
 
 	state = buildORAMState(file, blockSize, treeHeight, bucketCapacity, amgr);
-	struct TreeConfig config;
-
+	
+    struct TreeConfig config;
 	config.treeHeight = treeHeight;
+
 	/* Initialize external files (oblivious file, stash, possitionMap) */
 	state->stash = amgr->am_stash->stashinit(state->file, state->blockSize, appData);
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
+    
     #ifdef  STASH_COUNT
     state->nblocksStashs = 0;
     #endif
