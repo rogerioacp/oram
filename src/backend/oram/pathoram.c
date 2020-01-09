@@ -105,7 +105,9 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	treeHeight = calculateTreeHeight(nblocks);
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
 
-	state = buildORAMState(file, blockSize, treeHeight, bucketCapacity, amgr);
+	
+    logger(DEBUG, "Init pathoram for %d bocks with tree height %d and bucket capacity %d\n", nblocks, treeHeight, bucketCapacity);
+    state = buildORAMState(file, blockSize, treeHeight, bucketCapacity, amgr);
 	
     struct TreeConfig config;
 	config.treeHeight = treeHeight;

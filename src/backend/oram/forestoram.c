@@ -153,7 +153,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 	partitionBlocks = partitionNodes * nPartitions;
     
-    //logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d\n", nblocks, nPartitions, partitionTreeHeight);
+    logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d\n", nblocks, nPartitions, partitionTreeHeight);
 
     if (nblocks > partitionBlocks)
 	{
