@@ -16,7 +16,6 @@
 
 typedef struct Stash *Stash;
 
-
 typedef Stash (*stashinit_function) (const char *filename, const unsigned int blockSize, void *appData);
 
 typedef void (*stashget_function) (Stash stash, PLBlock block, const BlockNumber pl_blkno, const char *fileName, void *appData);

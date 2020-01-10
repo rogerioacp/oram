@@ -18,65 +18,116 @@
  */
 
 #include "oram/ofile.h"
+#include "oram/logger.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
+
+struct FileHandler{
+    PLBList file;
+    unsigned int nblocks;
+};
+
+static FileHandler fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize, void* appData);
+
+static void fileRead(FileHandler fhandler, PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
+
+static void fileWrite(FileHandler fhandler, const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
+
+static void fileClose(FileHandler fhandler, const char *filename, void* appData);
 
 
-PLBList file;
-unsigned int gnblocks;
-
-static void fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize, void* appData);
-
-static void fileRead(PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
-
-static void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
-
-static void fileClose(const char *filename, void* appData);
-
-
-void fileInit(const char *filename, unsigned int nblocks, 
+FileHandler fileInit(const char *filename, unsigned int nblocks, 
               unsigned int blocksize, void* appData) {
 
+    FileHandler handler;
     int offset;
-    file = (PLBList) malloc(sizeof(PLBlock) * nblocks);
-    gnblocks = nblocks;
+    unsigned int save_errno = 0;
+
+    save_errno = errno;
+    errno = 0;
+
+    handler = (FileHandler) malloc(sizeof(struct FileHandler));
+
+    if(handler == NULL && errno == ENOMEM)
+    {
+        logger(OUT_OF_MEMORY, "Out of memory initializing memory file handler\n");
+        errno = save_errno;
+        abort();
+    }
+
+    
+
+    handler->file = (PLBList) malloc(sizeof(PLBlock) * nblocks);
+    
+    if(handler->file  == NULL && errno == ENOMEM){
+
+        logger(OUT_OF_MEMORY, "Out of memory initializing memory file\n");
+        errno = save_errno;
+        abort();
+    }
+
+    errno = save_errno;
+
+    handler->nblocks = nblocks;
 
     for (offset = 0; offset < nblocks; offset++) {
-        file[offset] = (PLBlock) malloc(sizeof(struct PLBlock));
-        file[offset]->blkno = -1;
-        file[offset]->size = blocksize;
-        file[offset]->block = (void *) malloc(blocksize);
-        // blocks of blocksize bytes
-        memset(file[offset]->block, 0, blocksize);
+        save_errno = errno;
+        errno = 0;
+
+        handler->file[offset] = (PLBlock) malloc(sizeof(struct PLBlock));
+
+        if(handler->file[offset] == NULL && errno == ENOMEM)
+        {
+            logger(OUT_OF_MEMORY, "Out of memory initializing file block\n");
+		    errno = save_errno;
+		    abort();
+        }
+
+        errno = save_errno;
+        
+        handler->file[offset]->blkno = -1;
+        handler->file[offset]->size = blocksize;
+        handler->file[offset]->block = (void *) malloc(blocksize);
+        memset(handler->file[offset]->block, 0, blocksize);
     }
 
+    return handler;
+
 }
 
-void fileRead(PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
-    block->blkno = file[ob_blkno]->blkno;
-    block->size = file[ob_blkno]->size;
-    block->block = malloc(file[ob_blkno]->size);
-    //printf("Going to read block number %d\n", ob_blkno);
-    memcpy(block->block, file[ob_blkno]->block, file[ob_blkno]->size);
+void fileRead(FileHandler handler, PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
+
+    PLBlock cblock = handler->file[ob_blkno];
+
+    block->blkno = cblock->blkno;
+    block->size = cblock->size;
+    block->block = malloc(cblock->size);
+    memcpy(block->block, cblock->block, cblock->size);
 }
 
-void fileWrite(const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
-    file[ob_blkno]->blkno = block->blkno;
-    file[ob_blkno]->size = block->size;
-    //printf("Going to write block number %d\n", ob_blkno);
-    memcpy(file[ob_blkno]->block, block->block, block->size);
+void fileWrite(FileHandler handler, const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
+
+    PLBlock cblock = handler->file[ob_blkno];
+
+    cblock->blkno = block->blkno;
+    cblock->size = block->size;
+    memcpy(cblock->block, block->block, block->size);
 }
 
 
-void fileClose(const char * filename, void* appData){
+void fileClose(FileHandler handler, const char * filename, void* appData){
+
     int i;
 
-    for(i=0; i < gnblocks; i++){
-        free(file[i]->block);
-        free(file[i]);
+    for(i=0; i < handler->nblocks; i++){
+        free(handler->file[i]->block);
+        free(handler->file[i]);
     }
-    free(file);
+    free(handler->file);
+    free(handler);
 }
 
 AMOFile *ofileCreate(void) {

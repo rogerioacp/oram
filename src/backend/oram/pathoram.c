@@ -51,9 +51,11 @@ struct ORAMState
 	/* File name of the protected file. */
 
 	Amgr	   *amgr;
+
 	/* Set of external functions to handle ORAM states. */
 	Stash		stash;
 	PMap		pmap;
+    FileHandler fhandler;
     
     #ifdef STASH_COUNT
     unsigned int nblocksStashs;
@@ -122,7 +124,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
     
     totalNodes = totalNodes*bucketCapacity;
 
-	amgr->am_ofile->ofileinit(state->file, totalNodes, blockSize, appData);
+	state->fhandler = amgr->am_ofile->ofileinit(state->file, totalNodes, blockSize, appData);
 
 	return state;
 
@@ -148,6 +150,7 @@ buildORAMState(const char *filename, unsigned int blockSize, unsigned int treeHe
 		errno = save_errno;
 		abort();
 	}
+
 	errno = save_errno;
 
 	state->blockSize = blockSize;
@@ -322,7 +325,12 @@ getTreeNodes(ORAMState state, TreePath path, void *appData)
 			index = lcapacity + offset;
 
 			plblock = createEmptyBlock();
-			state->amgr->am_ofile->ofileread(plblock, state->file, (BlockNumber) ob_blkno, appData);
+
+			state->amgr->am_ofile->ofileread(state->fhandler,
+                                             plblock, 
+                                             state->file, 
+                                             (BlockNumber) ob_blkno, 
+                                             appData);
 			list[index] = plblock;
 		}
 	}
@@ -466,7 +474,13 @@ writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState state, void *app
 			ob_blkno = lob_blkno + index;
 			list_idx = list_offset - index;
 			block = list[list_idx];
-			state->amgr->am_ofile->ofilewrite(block, state->file, ob_blkno, appData);
+
+			state->amgr->am_ofile->ofilewrite(state->fhandler, 
+                                              block,
+                                              state->file,
+                                              ob_blkno,
+                                              appData);
+
 			if (block->blkno != DUMMY_BLOCK)
 			{
 				free(block->block);
@@ -608,7 +622,7 @@ close_oram(ORAMState state, void *appData)
     #endif    
 	state->amgr->am_stash->stashclose(state->stash, state->file, appData);
 	state->amgr->am_pmap->pmclose(state->pmap, state->file);
-	state->amgr->am_ofile->ofileclose(state->file, appData);
+	state->amgr->am_ofile->ofileclose(state->fhandler, state->file, appData);
 	free(state->file);
 	free(state->amgr->am_stash);
 	free(state->amgr->am_pmap);

@@ -62,6 +62,7 @@ struct ORAMState
 	/* Set of external functions to handle ORAM states */
 	Stash	   *stashes;
 	PMap		pmap;
+    FileHandler fhandler;
 
     #ifdef STASH_COUNT
         unsigned int         *nblocksStashs;
@@ -190,7 +191,11 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
     partitionBlocks = partitionBlocks*bucketCapacity;
 
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
-	amgr->am_ofile->ofileinit(state->file, partitionBlocks, blockSize, appData);
+
+	state->fhandler = amgr->am_ofile->ofileinit(state->file, 
+                                                partitionBlocks,
+                                                blockSize,
+                                                appData);
 
 	return state;
 }
@@ -433,7 +438,12 @@ getTreeNodes(ORAMState state, TreePath path, Location location, void *appData)
 			index = lcapacity + offset;
 
 			plblock = createEmptyBlock();
-			state->amgr->am_ofile->ofileread(plblock, state->file, (BlockNumber) ob_blkno, appData);
+
+			state->amgr->am_ofile->ofileread(state->fhandler, 
+                                             plblock, 
+                                             state->file, 
+                                             (BlockNumber) ob_blkno,
+                                             appData);
 			list[index] = plblock;
 		}
 	}
@@ -584,7 +594,11 @@ writeBlocksToStorage(PLBList list, Location location, ORAMState state, void *app
 			ob_blkno = lob_blkno + index;
 			list_idx = list_offset - index;
 			block = list[list_idx];
-			state->amgr->am_ofile->ofilewrite(block, state->file, ob_blkno, appData);
+			state->amgr->am_ofile->ofilewrite(state->fhandler, 
+                                              block, 
+                                              state->file, 
+                                              ob_blkno, 
+                                              appData);
 			if (block->blkno != DUMMY_BLOCK)
 			{
 
@@ -720,7 +734,7 @@ close_oram(ORAMState state, void *appData)
 	}
 
 	state->amgr->am_pmap->pmclose(state->pmap, state->file);
-	state->amgr->am_ofile->ofileclose(state->file, appData);
+	state->amgr->am_ofile->ofileclose(state->fhandler, state->file, appData);
 
 	free(state->stashes);
 	free(state->file);
