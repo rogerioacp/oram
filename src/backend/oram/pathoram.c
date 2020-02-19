@@ -30,7 +30,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdio.h>
 
 #include "oram/oram.h"
 #include "oram/logger.h"
@@ -44,6 +44,9 @@ struct ORAMState
 	/* Size of a single block in Bytes(B) */
 	unsigned int treeHeight;
 	/* Tree Height of the oblivious file(L) */
+
+    //unsigned int topBucketCapacity;
+    //unsigned int lowerBucketCapacity;
 	unsigned int bucketCapacity;
 	/* Number of buckets in a Tree node(Z) */
 
@@ -60,6 +63,7 @@ struct ORAMState
     #ifdef STASH_COUNT
     unsigned int max;
     unsigned int nblocksStashs;
+    unsigned int *blocksPerBucket;
     #endif
 };
 
@@ -80,11 +84,13 @@ static TreePath getTreePath(ORAMState state, unsigned int leaf);
 
 static void initBlockList(ORAMState state, PLBList *list);
 
-static PLBList getTreeNodes(ORAMState state, TreePath path, void *appData);
+static PLBList getTreeNodes(ORAMState state, TreePath path, PLBlock block, int blkno, void *appData);
 
 static void addBlocksToStash(ORAMState state, PLBList list, void *appData);
 
 static void getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, void *appData);
+
+void getBlocksToWrite2(PLBList treeBlocks, unsigned int a_leaf, ORAMState state, void *appData);
 
 static void writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState state, void *appData);
 
@@ -105,23 +111,25 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	int			result;
 	ORAMState	state = NULL;
 
-	treeHeight = calculateTreeHeight(nblocks);
+	treeHeight = calculateTreeHeight(nblocks)-1;
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
 
 	
-    logger(DEBUG, "Init pathoram for %d bocks with tree height %d and bucket capacity %d\n", nblocks, treeHeight, bucketCapacity);
+    logger(DEBUG, "Init pathoram for %d bocks with tree height %d and bucket capacity %d and total nodes %d\n", nblocks, treeHeight, bucketCapacity, totalNodes);
     state = buildORAMState(file, blockSize, treeHeight, bucketCapacity, amgr);
 	
     struct TreeConfig config;
 	config.treeHeight = treeHeight;
 
 	/* Initialize external files (oblivious file, stash, possitionMap) */
-	state->stash = amgr->am_stash->stashinit(state->file, state->blockSize, appData);
+	state->stash = amgr->am_stash->stashinit(state->file,treeHeight, state->blockSize, appData);
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
     
     #ifdef  STASH_COUNT
     state->max = 0;
     state->nblocksStashs = 0;
+    state->blocksPerBucket = (unsigned int*) malloc(sizeof(unsigned int)*totalNodes);
+    memset(state->blocksPerBucket,0, sizeof(unsigned int)*totalNodes);
     #endif
     
     totalNodes = totalNodes*bucketCapacity;
@@ -268,6 +276,7 @@ getTreePath(ORAMState state, unsigned int leaf)
 
 	while (currentPos > 0)
 	{
+        //logger(DEBUG, "Current Pos is %d\n", currentPos);
 		node = currentPos - 1;
 		path[currentHeight] = node;
 		currentHeight--;
@@ -298,7 +307,7 @@ initBlockList(ORAMState state, PLBList *list)
 }
 
 PLBList
-getTreeNodes(ORAMState state, TreePath path, void *appData)
+getTreeNodes(ORAMState state, TreePath path, PLBlock block, int blkno,  void *appData)
 {
 	int			level;
 	int			offset;
@@ -333,8 +342,32 @@ getTreeNodes(ORAMState state, TreePath path, void *appData)
                                              state->file, 
                                              (BlockNumber) ob_blkno, 
                                              appData);
-			list[index] = plblock;
-		}
+
+
+		    list[index] = plblock;
+
+            if(plblock->blkno == blkno){
+                logger(DEBUG, "Found target block in storage %s\n", plblock->block);
+                block->block = malloc(plblock->size);
+                memcpy(block->block, plblock->block, plblock->size);
+                block->blkno = blkno;
+                block->size = plblock->size;
+                //free(plblock->block);
+                //free(plblock);
+                //list[index] = createEmptyBlock();
+                //list[index]->block = malloc(state->blockSize);
+                memset(plblock->block, 0, plblock->size);
+                plblock->blkno = DUMMY_BLOCK;
+                
+            }
+
+            #ifdef STASH_COUNT
+                if(list[index] != DUMMY_BLOCK){
+                    //logger(DEBUG, "read-currentPos is %d\n", path[level]);
+                    state->blocksPerBucket[path[level]] -= 1;
+                }
+            #endif
+			}
 	}
 
 	return list;
@@ -368,6 +401,81 @@ addBlocksToStash(ORAMState state, PLBList list, void *appData)
 			free(list[index]);
 		}
 	}
+}
+
+
+void
+findSBlock(ORAMState state, PLBlock t_block, int a_leaf_level,
+           int s_leaf_node, int level_offset, void *appData){
+
+    PLBlock         pl_block;
+    unsigned int    s_leaf;
+    AMStash         *amStash = state->amgr->am_stash;
+    AMPMap          *amPmap = state->amgr->am_pmap;
+
+    amStash->stashstartIt(state->stash, state->file, appData);
+
+    while(amStash->stashnext(state->stash, state->file, &pl_block, appData)){
+        //logger(DEBUG, "Processing stashed block %d\n", pl_block->blkno);
+
+		s_leaf = amPmap->pmget(state->pmap, state->file, 
+                               (BlockNumber) pl_block->blkno)->leaf;
+
+		if (a_leaf_level == ((s_leaf + s_leaf_node) >> level_offset)){
+            //logger(DEBUG, "moved block from stash to tree list\n");
+            t_block->blkno = pl_block->blkno;
+            t_block->size = pl_block->size;
+            memcpy(t_block->block, pl_block->block, pl_block->size);
+            amStash->stashremove(state->stash, state->file, pl_block, appData);
+            break;
+		 }
+    }
+
+}
+
+
+void getBlocksToWrite2(PLBList treeBlocks, unsigned int a_leaf, ORAMState state, void *appData)
+{
+	unsigned int total = 0;
+
+	/* Index to keep track of current tree level */
+	unsigned int level = state->treeHeight + 1;
+	unsigned int a_leaf_node = a_leaf + (1 << (state->treeHeight));
+	unsigned int s_leaf_node = 1 << state->treeHeight;
+	unsigned int index = 0;
+	unsigned int level_offset = 0;
+	int			a_leaf_level = 0;
+	unsigned int loffset;
+	unsigned int bucket_offset = 0;
+    unsigned int z;
+
+	PLBlock		pl_block;
+    PLBlock     t_block;     
+
+    
+    for(; level > 0; level--){
+
+        level_offset = ((state->treeHeight + 1) - level);
+		a_leaf_level = a_leaf_node >> level_offset;
+		bucket_offset = (level - 1) * state->bucketCapacity;
+
+        for(z = 0; z < state->bucketCapacity; z++){
+                
+            index = bucket_offset + z;
+            t_block = treeBlocks[index];
+            if(t_block->blkno == DUMMY_BLOCK){
+                logger(DEBUG, "Found Dummy block to replace at level %d and offset %d\n", level, z);
+                findSBlock(state, t_block, a_leaf_level, 
+                           s_leaf_node, level_offset, appData);
+
+                if(t_block->blkno != DUMMY_BLOCK){
+                    logger(DEBUG, "Updated list block to blkno %d and data  %s and size %d\n", t_block->blkno, t_block->block, t_block->size);
+                }
+
+            }
+        }
+    }
+
 }
 
 /***
@@ -405,15 +513,17 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 		level_offset = ((state->treeHeight + 1) - level);
 		a_leaf_level = a_leaf_node >> level_offset;
 		bucket_offset = (level - 1) * state->bucketCapacity;
-
+        
 		/* Get blocks that satisfy current level */
 		while (state->amgr->am_stash->stashnext(state->stash, state->file, &pl_block, appData) && total < state->bucketCapacity)
 		{
 
+           // logger(DEBUG, "Processing block %d at level %d\n", pl_block->blkno, level);
 			s_leaf = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno)->leaf;
 
 			if (a_leaf_level == ((s_leaf + s_leaf_node) >> level_offset))
 			{
+                //logger(DEBUG, "ADD block to write\n");
 				index = bucket_offset + total;
 				selectedBlocks[index] = pl_block;
 				total++;
@@ -429,7 +539,7 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 		for (loffset = 0; loffset < total; loffset++)
 		{
 			#ifdef STASH_COUNT            
-            state->nblocksStashs -=1;
+            state->nblocksStashs -= 1;
             #endif
             index = bucket_offset + loffset;
 			state->amgr->am_stash->stashremove(state->stash, state->file, selectedBlocks[index], appData);
@@ -478,6 +588,14 @@ writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState state, void *app
 			list_idx = list_offset - index;
 			block = list[list_idx];
 
+            #ifdef STASH_COUNT
+                if(block->blkno != DUMMY_BLOCK)
+                {
+                    //logger(DEBUG, "write-currentPos is %d\n", currentPos);
+                    state->blocksPerBucket[currentPos-1] +=1;
+                }
+            #endif
+            
 			state->amgr->am_ofile->ofilewrite(state->fhandler, 
                                               block,
                                               state->file,
@@ -486,6 +604,8 @@ writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState state, void *app
 
 			if (block->blkno != DUMMY_BLOCK)
 			{
+
+                logger(DEBUG, "Write to ob_blkno %d data %s and size %d\n", ob_blkno, block->block, block->size);
 				free(block->block);
 				free(block);
 			}
@@ -522,6 +642,7 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno, ORA
         state->max = state->max < state->nblocksStashs? state->nblocksStashs: state->max;
     }   
     #endif
+    free(plblock);
 }
 
 
@@ -533,10 +654,13 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	unsigned int result = 0;
 	TreePath	path = NULL;
 	PLBList		list = NULL;
-	PLBList		blocks_to_write = NULL;
+	//PLBList		blocks_to_write = NULL;
+
 
 	/* printf("Creating empty block\n"); */
 	PLBlock		plblock = createEmptyBlock();
+    PLBlock     listBlock = createEmptyBlock();
+
 
 	/* printf("getting possition map\n"); */
 	/* line 1 and 2 of original paper */
@@ -547,33 +671,51 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 
 	/* line 3 to 5 of original paper */
 	path = getTreePath(state, leaf);
-	list = getTreeNodes(state, path, appData);
+	list = getTreeNodes(state, path, listBlock, blkno, appData);
+
 	/* printf("Add blocks to stash\n"); */
-	addBlocksToStash(state, list, appData);
+	//addBlocksToStash(state, list, appData);
+
 	/* printf("Getting block to stash\n"); */
 	/* Line 6 of original paper */
 	state->amgr->am_stash->stashget(state->stash, plblock, blkno, state->file, appData);
+
+    if (plblock->blkno != DUMMY_BLOCK){
+        printf("target block was %d found in stash %s\n" ,plblock->blkno, plblock->block);
+        free(listBlock);
+    }else{
+        printf("target block was %d found in storage %s\n", listBlock->blkno, listBlock->block);
+        plblock->blkno = blkno;
+        plblock->block = listBlock->block;
+        plblock->size = listBlock->size;
+        free(listBlock);
+    }
+
+    //printf("1- read string from stash %s\n", plblock->block);
 	/* printf("get blocks to write\n"); */
 	/* line 10 to 15 of original paper */
-	getBlocksToWrite(&blocks_to_write, leaf, state, appData);
-	/* printf("Write blocks to storage\n"); */
-	writeBlocksToStorage(blocks_to_write, leaf, state, appData);
-
+	getBlocksToWrite2(list, leaf, state, appData);
+    //printf("2 - read string from stash %s\n", plblock->block);
+    /* printf("Write blocks to storage\n"); */
+	writeBlocksToStorage(list, leaf, state, appData);
+    //printf("3- read string from stash %s\n", plblock->block);
 	/* Free Resources */
 	free(path);
 	/* The plblocks of the list cannot be freed as they may be in the stash */
 	free(list);
-	free(blocks_to_write);
+	//free(blocks_to_write);
 
 	*ptr = plblock->block;
 
 	/* No block has been inserted yet */
 	if (plblock->blkno == DUMMY_BLOCK)
 	{
+        printf("return not found\n");
 		result = DUMMY_BLOCK;
 	}
 	else
 	{
+        printf("return found\n");
 		result = plblock->size;
 	}
 
@@ -589,7 +731,11 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 	unsigned int leaf = 0;
 	TreePath	path = NULL;
 	PLBList		list = NULL;
-	PLBList		blocks_to_write = NULL;
+	//PLBList		blocks_to_write = NULL;
+
+
+    PLBlock     listBlock = createEmptyBlock();
+
 
 	/* line 1 and 2 of original paper */
 	location = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
@@ -598,21 +744,25 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 
 	/* line 3 to 5 of original paper */
 	path = getTreePath(state, leaf);
-	list = getTreeNodes(state, path, appData);
-	addBlocksToStash(state, list, appData);
-
+	list = getTreeNodes(state, path, listBlock, blkno, appData);
+    
+    free(listBlock->block);
+    free(listBlock);
+	//addBlocksToStash(state, list, appData);
+    //TODO: add block list to getBlocksToWrite
 	/* line 7 to 9 of original paper */
 	updateStashWithNewBlock(data, blkSize, blkno, state, appData);
 
 	/* line 10 to 15 of original paper */
-	getBlocksToWrite(&blocks_to_write, leaf, state, appData);
-	writeBlocksToStorage(blocks_to_write, leaf, state, appData);
-
+	getBlocksToWrite2(list, leaf, state, appData);
+	writeBlocksToStorage(list, leaf, state, appData);
+    
+    stashPrint(state->stash);
 	/* Free Resources */
 	free(path);
 	/* The plblocks of the list cannot be freed as they may be in the stash */
 	free(list);
-	free(blocks_to_write);
+	//free(blocks_to_write);
 
 	return blkSize;
 }
@@ -627,6 +777,10 @@ close_oram(ORAMState state, void *appData)
 	state->amgr->am_stash->stashclose(state->stash, state->file, appData);
 	state->amgr->am_pmap->pmclose(state->pmap, state->file);
 	state->amgr->am_ofile->ofileclose(state->fhandler, state->file, appData);
+    
+    #ifdef STASH_COUNT
+    free(state->blocksPerBucket);
+    #endif
 	free(state->file);
 	free(state->amgr->am_stash);
 	free(state->amgr->am_pmap);
@@ -637,6 +791,38 @@ close_oram(ORAMState state, void *appData)
 #ifdef STASH_COUNT
 void
 logStashes(ORAMState state){
+    int nbuckets;
+    int bucket;
+    int level;
+    int total=0;
+    int current = 0;
+    int level_total = 0;
+    int max = 0;
+    int total_blocks = 0;
+
+    nbuckets = ((unsigned int) pow(2, state->treeHeight + 1)) - 1;
+
+
     logger(DEBUG, "Stash has %d blocks and max is %d\n", state->nblocksStashs, state->max);
+    
+    //for(bucket = 0; bucket < nbuckets; bucket++){
+    //    logger(DEBUG, "Bucket %d has %d real blocks\n", bucket, state->blocksPerBucket[bucket]);
+    //}
+
+    for(level = 0; level < state->treeHeight+1; level++){
+            
+        for(current = 0; current < pow(2,level); current++){
+            level_total += state->blocksPerBucket[total];
+            total_blocks += state->blocksPerBucket[total];
+            if(state->blocksPerBucket[total]> max){
+                max = state->blocksPerBucket[total];
+            }
+            total+=1;
+        }
+        logger(DEBUG, "Level %d has %d real blocks, max %d and average %f\n", level, level_total, max, level_total/(pow(2,level)*state->bucketCapacity));
+        level_total = 0;
+        max = 0;
+    }
+    logger(DEBUG, "Total number of real blocks is %d", total_blocks);
 }
 #endif    

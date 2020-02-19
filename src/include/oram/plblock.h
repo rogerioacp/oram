@@ -19,9 +19,8 @@ typedef unsigned int BlockNumber;
 
 typedef struct PLBlock
 {
-	int			blkno;
-			  //blkno is - 1 if its dummy block.
-				int size;
+	int			blkno; // blkno is - 1 if its dummy block.
+	int         size;
 	void	   *block;
 }		   *PLBlock;
 

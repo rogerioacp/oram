@@ -46,14 +46,14 @@ main(int argc, char *argv[])
 	size_t		fileSize = 100;
 
 	//file with 100 bytes;
-	size_t		blockSize = 20;
+	size_t		blockSize = 25;
 
 	//block size of 20 bytes;
 	size_t		bucketCapcity = 1;
 
 	//1 bucket per tree node;
 	int			result = 0;
-	size_t		nblocks = fileSize / blockSize;
+	size_t		nblocks = 8;
 	int			string_size = 0;
 	int			index = 0;
 	char	   *data = NULL;
@@ -61,7 +61,7 @@ main(int argc, char *argv[])
 	/* printf("Going to init\n"); */
 	char	  **strings = (char **) malloc(sizeof(char *) * nblocks);
 
-	state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
+	state = init_oram("teste", 100, blockSize, bucketCapcity, &amgr, NULL);
 	/* printf("Going to write strings\n"); */
 
 	for (index = 0; index < nblocks; index++)
@@ -71,18 +71,16 @@ main(int argc, char *argv[])
 		string_size += 1;
 		strings[index] = gen_random(string_size);
 
-		/*
-		 * printf("Going to write on offset %d the string %s\n",index,
-		 * strings[index]);
-		 */
+		printf("Going to write on offset %d the string %s\n",index, strings[index]);
+		 
 		result = write_oram(strings[index], sizeof(char) * strlen(strings[index]) + 1, index, state, NULL);
 	}
 
 	for (index = 0; index < nblocks; index++)
 	{
-		/* printf("Going to read %d\n",index); */
+		printf("Going to read %d with str %s \n",index, strings[index]); 
 		result = read_oram(&data, index, state, NULL);
-		/* printf("read string %s with result %d\n", (char*) data, result); */
+		printf("read string %s with result %d\n", (char*) data, result);
 
 		if (result != strlen(data) + 1 || strcmp(data, strings[index]) != 0)
 		{

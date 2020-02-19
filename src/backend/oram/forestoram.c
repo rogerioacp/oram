@@ -65,7 +65,8 @@ struct ORAMState
     FileHandler fhandler;
 
     #ifdef STASH_COUNT
-        unsigned int         *nblocksStashs;
+    unsigned int         *nblocksStashs;
+    unsigned int         *blocksPerBucket;
     #endif
 };
 
@@ -111,6 +112,9 @@ static void updateBlockLocation(BlockNumber blkno, ORAMState state);
 static void updateStashWithNewBlock(void *data, unsigned int blockSize, BlockNumber blkno, int oldPartition, int newPartition, ORAMState state, void *appDAta);
 
 
+static void full_eviction(ORAMState state);
+
+
 ORAMState
 init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
 {
@@ -152,9 +156,9 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 #endif
 
-	partitionBlocks = partitionNodes * nPartitions;
+	partitionBlocks = partitionNodes * nPartitions*bucketCapacity;
     
-    logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d\n", nblocks, nPartitions, partitionTreeHeight);
+    logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d and bucketCapacity %d\n", nblocks, nPartitions, partitionTreeHeight, bucketCapacity);
 
     if (nblocks > partitionBlocks)
 	{
@@ -169,6 +173,8 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
   
 
     #ifdef STASH_COUNT
+        state->blocksPerBucket = (unsigned int*) malloc(sizeof(unsigned int)*partitionBlocks);
+        memset(state->blocksPerBucket,0,partitionBlocks*sizeof(unsigned int));
         state->nblocksStashs = (unsigned int*) malloc(sizeof(unsigned int)*nPartitions);
     #endif
 
@@ -177,7 +183,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 	for (index = 0; index < nPartitions; index++)
 	{
-		state->stashes[index] = amgr->am_stash->stashinit(state->file, state->blockSize, appData);
+		state->stashes[index] = amgr->am_stash->stashinit(state->file, nPartitions, state->blockSize, appData);
 
         #ifdef STASH_COUNT
             state->nblocksStashs[index] = 0;
@@ -438,12 +444,22 @@ getTreeNodes(ORAMState state, TreePath path, Location location, void *appData)
 			index = lcapacity + offset;
 
 			plblock = createEmptyBlock();
-
+            
 			state->amgr->am_ofile->ofileread(state->fhandler, 
                                              plblock, 
                                              state->file, 
                                              (BlockNumber) ob_blkno,
                                              appData);
+            #ifdef STASH_COUNT
+                if(plblock->blkno != DUMMY_BLOCK){
+                    int res = location->partition*state->partitionCapacity;
+                    //logger(DEBUG, "Partition capacition is %d\n",state->partitionCapacity);
+                    res += path[level];
+                    state->blocksPerBucket[res] -= 1;
+
+                    //logger(DEBUG, "partition %d , level %d, nodes %d, offset %d res %d\n", location->partition, level, path[level], offset, res);
+                }
+            #endif
 			list[index] = plblock;
 		}
 	}
@@ -594,6 +610,16 @@ writeBlocksToStorage(PLBList list, Location location, ORAMState state, void *app
 			ob_blkno = lob_blkno + index;
 			list_idx = list_offset - index;
 			block = list[list_idx];
+
+            #ifdef STASH_COUNT
+                if(block->blkno != DUMMY_BLOCK){
+                    int offset = location->partition*state->partitionCapacity;
+                    offset += currentPos-1;
+                    state->blocksPerBucket[offset] +=1;
+                    //logger(DEBUG, "partition %d , node %d, offset %d res %d\n", location->partition, currentPos, index, offset);
+
+                }
+            #endif
 			state->amgr->am_ofile->ofilewrite(state->fhandler, 
                                               block, 
                                               state->file, 
@@ -765,8 +791,37 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 	result = read_foram(&tmp_data, blkno, state, appData);
 	evict_foram(data, blkSize, blkno, state, appData);
     free(tmp_data);
-	return blkSize;
+    return blkSize;
 }
+
+void full_eviction(ORAMState state){
+    
+    int partition = 0;
+    int leaf = 0;
+    struct Location location;
+    PLBList list = NULL;
+    PLBList blocks_to_write = NULL;
+    partition = getRandomInt() % state->nPartitions;       
+    TreePath path = NULL;
+
+    for(leaf = 0; leaf < pow(2, state->partitionsHeight); leaf++){
+        location.partition = partition;
+        location.leaf = leaf;
+            
+        path = getTreePath(state, &location);
+        list = getTreeNodes(state, path, &location, NULL);
+        addBlocksToStash(state, list, &location, NULL);
+        free(path);
+        free(list);
+
+        getBlocksToWrite(&blocks_to_write, &location, state, NULL);
+        writeBlocksToStorage(blocks_to_write, &location, state, NULL);
+        free(blocks_to_write);
+    } 
+
+}
+
+
 
 
 #ifdef STASH_COUNT
@@ -774,17 +829,40 @@ void
 logStashes(ORAMState state)
 {
     int i = 0;
-    unsigned int total = 0;
     unsigned int value = 0;
+    int level = 0;
+    int current = 0;
+    int level_total = 0;
+    int max = 0;
+    int total = 0;
+    int total_blocks=0;
 
+       //full_eviction(state);
     logger(DEBUG, "---- Number of blocks in partition stashes -----\n");
  
     for(i = 0; i < state->nPartitions; i++){
         value = state->nblocksStashs[i];
-        total += value;
+        
         logger(DEBUG, "Stash %d has %d blocks\n", i, value);
+        //logger(DEBUG, "Total offset is %d\n", total);
+        for(level = 0; level < state->partitionsHeight+1; level++){
+            
+            for(current = 0; current < pow(2, level); current++){
+                level_total += state->blocksPerBucket[total];
+                total_blocks += state->blocksPerBucket[total];
+                if(state->blocksPerBucket[total]>max){
+                    max = state->blocksPerBucket[total];
+                }
+                total +=1;
+            }
+            logger(DEBUG, "Partion %d, level %d has %d real blocks, max %d\n", i, level, 
+                   level_total, max);
+            level_total = 0;
+            max = 0;
+        
+        }
     }
-    logger(DEBUG, "Total number of blocks %d\n", total);
+    logger(DEBUG, "Total number of blocks %d\n", total_blocks);
 
 }
 #endif

@@ -33,7 +33,7 @@ if SFORAM
 endif
 
 
-memory_test_files = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/stash.c backend/block/plblock.c
+memory_test_files = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/dstash.c backend/block/plblock.c
 
 memory_test_files_f = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/fpmap.c backend/stash/stash.c backend/block/plblock.c
 

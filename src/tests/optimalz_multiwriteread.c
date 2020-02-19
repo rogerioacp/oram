@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 	/* printf("Going to init\n"); */
 	char	  **strings = (char **) malloc(sizeof(char *) * nblocks);
 
-	state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
+	state = init_oram("teste", 200, blockSize, bucketCapcity, &amgr, NULL);
 	/* printf("Going to write strings\n"); */
 
 	for (index = 0; index < nblocks; index++)
@@ -79,9 +79,9 @@ main(int argc, char *argv[])
 
 	for (index = 0; index < nblocks; index++)
 	{
-		/* printf("Going to read %d\n",index); */
+		printf("Going to read %d\n",index);
 		result = read_oram(&data, index, state, NULL);
-		/* printf("read string %s with result %d\n", (char*) data, result); */
+		printf("read string %s with result %d\n", (char*) data, result);
 
 		if (result != strlen(data) + 1 || strcmp(data, strings[index]) != 0)
 		{

@@ -31,7 +31,7 @@ struct Stash
 
 
 /* non-export function prototypes */
-static Stash stashInit(const char *filename, const unsigned int blockSize, void *appData);
+static Stash stashInit(const char *filename, const unsigned int stashSize, const unsigned int blockSize, void *appData);
 
 static void stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData);
 
@@ -73,7 +73,7 @@ stashCreate(void)
 }
 
 Stash
-stashInit(const char *filename, const unsigned int blockSize, void *appData)
+stashInit(const char *filename, const unsigned int stashSize, const unsigned int blockSize, void *appData)
 {
 	Stash		stash = (Stash) malloc(sizeof(struct Stash));
 

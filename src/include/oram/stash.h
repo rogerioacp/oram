@@ -16,7 +16,7 @@
 
 typedef struct Stash *Stash;
 
-typedef Stash (*stashinit_function) (const char *filename, const unsigned int blockSize, void *appData);
+typedef Stash (*stashinit_function) (const char *filename, const unsigned int stashSize, const unsigned int blockSize, void *appData);
 
 typedef void (*stashget_function) (Stash stash, PLBlock block, const BlockNumber pl_blkno, const char *fileName, void *appData);
 
@@ -35,6 +35,8 @@ typedef void (*stashstartIt_function) (Stash stash, const char *filename, void *
 typedef unsigned int (*stashnext_function) (Stash stash, const char *filename, PLBlock *block, void *appData);
 
 typedef void (*stashcloseIt_function) (Stash stash, const char *filename, void *appData);
+
+void stashPrint(Stash stash);
 
 
 /* Access manager to stash */
