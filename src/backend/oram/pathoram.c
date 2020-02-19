@@ -58,6 +58,7 @@ struct ORAMState
     FileHandler fhandler;
     
     #ifdef STASH_COUNT
+    unsigned int max;
     unsigned int nblocksStashs;
     #endif
 };
@@ -119,6 +120,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
     
     #ifdef  STASH_COUNT
+    state->max = 0;
     state->nblocksStashs = 0;
     #endif
     
@@ -351,6 +353,7 @@ addBlocksToStash(ORAMState state, PLBList list, void *appData)
 
             #ifdef STASH_COUNT
             state->nblocksStashs += 1;
+            state->max = state->max < state->nblocksStashs? state->nblocksStashs: state->max;
             #endif
 			state->amgr->am_stash->stashadd(state->stash, state->file, list[index], appData);
 		}
@@ -516,6 +519,7 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno, ORA
     #ifdef STASH_COUNT
     if(!found){
         state->nblocksStashs +=1;
+        state->max = state->max < state->nblocksStashs? state->nblocksStashs: state->max;
     }   
     #endif
 }
@@ -633,6 +637,6 @@ close_oram(ORAMState state, void *appData)
 #ifdef STASH_COUNT
 void
 logStashes(ORAMState state){
-    logger(DEBUG, "Stash has %d blocks\n", state->nblocksStashs);
+    logger(DEBUG, "Stash has %d blocks and max is %d\n", state->nblocksStashs, state->max);
 }
 #endif    
