@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     size_t nblocks = 100; //bytes
     size_t blockSize = 20; // bytes
     size_t bucketCapcity = 4; // nblocks
-    size_t nwrites = 100;
+    size_t nwrites = 10;
 
     int n_loops = 100;
     int i;

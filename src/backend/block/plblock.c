@@ -115,3 +115,13 @@ freeBlock(PLBlock block)
 	free(block->block);
 	free(block);
 }
+
+void freeDummyBlock(){
+    if(dummyBlock != NULL){
+        if(dummyBlock->block !=NULL){
+            free(dummyBlock->block);
+        }
+        free(dummyBlock);
+    }
+    dummyBlock = NULL;
+}

@@ -36,5 +36,7 @@ PLBlock		createDummyBlock(unsigned int size);
 
 void		freeBlock(PLBlock block);
 
+void        freeDummyBlock();
+
 
 #endif							/* PLBLOCK_H */
