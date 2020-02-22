@@ -507,13 +507,13 @@ writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState state, void *app
 void
 updateBlockLeaf(BlockNumber blkno, ORAMState state)
 {
-	struct Location newLocation;
+	//struct Location newLocation;
 
-	BlockNumber r = ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, state->treeHeight)));
+	//BlockNumber r = ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, state->treeHeight)));
 
-	newLocation.leaf = r;
+	//newLocation.leaf = r;
 
-	state->amgr->am_pmap->pmupdate(state->pmap, &newLocation, blkno, state->file);
+	state->amgr->am_pmap->pmupdate(state->pmap, state->file, blkno);
 }
 
 void
@@ -553,7 +553,8 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	location = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
 	leaf = location->leaf;
 	/* printf("getting updateBlockLeaf\n"); */
-	updateBlockLeaf(blkno, state);
+	//updateBlockLeaf(blkno, state);
+	state->amgr->am_pmap->pmupdate(state->pmap, state->file, blkno);
 
 	/* line 3 to 5 of original paper */
 	path = getTreePath(state, leaf);
@@ -603,9 +604,11 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 	/* line 1 and 2 of original paper */
 	location = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
 	leaf = location->leaf;
-	updateBlockLeaf(blkno, state);
+	//updateBlockLeaf(blkno, state);
 
-	/* line 3 to 5 of original paper */
+    state->amgr->am_pmap->pmupdate(state->pmap, state->file, blkno);
+	
+    /* line 3 to 5 of original paper */
 	path = getTreePath(state, leaf);
 	list = getTreeNodes(state, path, appData);
 	addBlocksToStash(state, list, appData);

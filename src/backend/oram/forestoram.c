@@ -183,7 +183,16 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 
 	for (index = 0; index < nPartitions; index++)
 	{
-		state->stashes[index] = amgr->am_stash->stashinit(state->file, nPartitions, state->blockSize, appData);
+        #ifdef SFORAM
+        if(index == 0){
+            state->stashes[0] =  amgr->am_stash->stashinit(state->file, nPartitions*4, state->blockSize, appData);
+
+        }else{
+            state->stashes[index] = state->stashes[0];
+        }
+        #else
+		state->stashes[index] = amgr->am_stash->stashinit(state->file, nPartitions*2, state->blockSize, appData);
+        #endif
 
         #ifdef STASH_COUNT
             state->nblocksStashs[index] = 0;
@@ -450,6 +459,9 @@ getTreeNodes(ORAMState state, TreePath path, Location location, void *appData)
                                              state->file, 
                                              (BlockNumber) ob_blkno,
                                              appData);
+
+            //logger(DEBUG, "Read block %d from partition %d\n",plblock->blkno, location->partition);
+
             #ifdef STASH_COUNT
                 if(plblock->blkno != DUMMY_BLOCK){
                     int res = location->partition*state->partitionCapacity;
@@ -525,7 +537,7 @@ getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState state, v
 
 	PLBlock		pl_block;
 	PLBList		selectedBlocks;
-
+    int         condition = 0;
 
 
 	initBlockList(state, &selectedBlocks);
@@ -544,8 +556,12 @@ getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState state, v
 		{
 
 			s_location = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno);
-
-			if (a_leaf_level == ((s_location->leaf + s_leaf_node) >> level_offset))
+            
+            condition = a_leaf_level == ((s_location->leaf + s_leaf_node) >> level_offset);
+            #ifdef SFORAM
+            condition = condition && a_location->partition == s_location->partition;
+            #endif
+			if (condition)
 			{
 				index = bucket_offset + total;
 				selectedBlocks[index] = pl_block;
@@ -620,12 +636,14 @@ writeBlocksToStorage(PLBList list, Location location, ORAMState state, void *app
 
                 }
             #endif
+            //logger(DEBUG, "Write block %d to partition %d\n", block->blkno, location->partition);
 			state->amgr->am_ofile->ofilewrite(state->fhandler, 
                                               block, 
                                               state->file, 
                                               ob_blkno, 
                                               appData);
-			if (block->blkno != DUMMY_BLOCK)
+
+           	if (block->blkno != DUMMY_BLOCK)
 			{
 
 				free(block->block);
@@ -641,12 +659,12 @@ writeBlocksToStorage(PLBList list, Location location, ORAMState state, void *app
 void
 updateBlockLocation(BlockNumber blkno, ORAMState state)
 {
-	struct Location location;
+	//struct Location location;
 
-	location.partition = ((BlockNumber) getRandomInt() % ((BlockNumber) state->nPartitions));
-	location.leaf = ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, state->partitionsHeight)));
+	//location.partition = ((BlockNumber) getRandomInt() % ((BlockNumber) state->nPartitions));
+	//location.leaf = ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, state->partitionsHeight)));
 
-	state->amgr->am_pmap->pmupdate(state->pmap, &location, blkno, state->file);
+	state->amgr->am_pmap->pmupdate(state->pmap, state->file, blkno);
 
 }
 
@@ -657,9 +675,18 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno, int
 	PLBlock		plblock = createBlock((int) blkno, blkSize, data);
     int         found = 0;
 
+    #ifdef SFORAM
+    found = state->amgr->am_stash->stashupdate(state->stashes[0], state->file, plblock, appData);
+    #else
+    
+    //stashPrint(state->stashes[oldPartition]);
+
 	found = state->amgr->am_stash->stashtake(state->stashes[oldPartition], state->file, blkno, appData);
+
+    //stashPrint(state->stashes[newPartition]);
+
 	state->amgr->am_stash->stashadd(state->stashes[newPartition], state->file, plblock, appData);
-   
+    #endif
 
     #ifdef STASH_COUNT
         if(found){
@@ -687,6 +714,8 @@ read_foram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	list = getTreeNodes(state, path, location, appData);
 
 	addBlocksToStash(state, list, location, appData);
+
+
 	/* Line 6 of original paper */
 	state->amgr->am_stash->stashget(state->stashes[location->partition], plblock, blkno, state->file, appData);
 
@@ -726,7 +755,8 @@ evict_foram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state
 	memcpy(&oldLocation, state->amgr->am_pmap->pmget(state->pmap, state->file, blkno),
 		   sizeof(struct Location));
 
-	updateBlockLocation(blkno, state);
+	state->amgr->am_pmap->pmupdate(state->pmap, state->file, blkno);
+	//updateBlockLocation(blkno, state);
 
 	newLocation = state->amgr->am_pmap->pmget(state->pmap, state->file, blkno);
 
@@ -753,11 +783,16 @@ close_oram(ORAMState state, void *appData)
         logStashes(state);
         free(state->nblocksStashs);
     #endif
-
+    
+    #ifdef SFORAM
+    state->amgr->am_stash->stashclose(state->stashes[0], state->file, appData);
+    #else
 	for (index = 0; index < state->nPartitions; index++)
 	{
 		state->amgr->am_stash->stashclose(state->stashes[index], state->file, appData);
 	}
+
+    #endif
 
 	state->amgr->am_pmap->pmclose(state->pmap, state->file);
 	state->amgr->am_ofile->ofileclose(state->fhandler, state->file, appData);
@@ -768,6 +803,7 @@ close_oram(ORAMState state, void *appData)
 	free(state->amgr->am_pmap);
 	free(state->amgr->am_ofile);
 	free(state);
+    freeDummyBlock();
 }
 
 int

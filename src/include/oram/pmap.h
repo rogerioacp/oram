@@ -24,7 +24,7 @@ typedef PMap (*pminit_function) (const char *fileName, const unsigned int nBlock
 
 typedef Location (*pmget_function) (PMap pmap, const char *fileName, const BlockNumber blkno);
 
-typedef void (*pmupdate_function) (PMap pmap, Location newLocation, const BlockNumber realBlkno, const char *fileName);
+typedef void (*pmupdate_function) (PMap pmap, const char *fileName, const BlockNumber realBlkno);
 
 typedef void (*pmclose_function) (PMap pmap, const char *fileName);
 

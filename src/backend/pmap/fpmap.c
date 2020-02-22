@@ -29,6 +29,8 @@
 
 struct PMap {
     struct Location *map;
+    int treeHeight;
+    int nPartitions;
 };
 
 
@@ -36,7 +38,7 @@ static PMap pmapInit(const char *filename, const unsigned int nblocks, TreeConfi
 
 static Location pmapGet(PMap pmap, const char *fileName, const BlockNumber blkno);
 
-static void pmapUpdate(PMap pmap, Location newLocation, const BlockNumber realBlkno, const char *fileName);
+static void pmapUpdate(PMap pmap, const char *fileName, const BlockNumber realBlkno);
 
 static void pmapClose(PMap pmap, const char *filename);
 
@@ -88,6 +90,8 @@ PMap pmapInit(const char *filename, unsigned int nblocks, TreeConfig treeConfig)
         pmap->map[i].partition = partition;
         pmap->map[i].leaf = leaf;
     }
+    pmap->treeHeight = treeHeight;
+    pmap->nPartitions = nPartitions;
 
     return pmap;
 }
@@ -96,9 +100,10 @@ Location pmapGet(PMap pmap, const char *fileName, const BlockNumber blkno) {
     return &pmap->map[blkno];
 }
 
-void pmapUpdate(PMap pmap, Location newLocation, const BlockNumber realBlkno, const char *fileName) {
-    pmap->map[realBlkno].partition = newLocation->partition;
-    pmap->map[realBlkno].leaf = newLocation->leaf;
+void pmapUpdate(PMap pmap, const char *fileName, const BlockNumber realBlkno) {
+    pmap->map[realBlkno].partition =  (BlockNumber) ((BlockNumber) getRandomInt()  % ((BlockNumber) pmap->nPartitions));
+    pmap->map[realBlkno].leaf = (BlockNumber) ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, pmap->treeHeight)));
+
 }
 
 

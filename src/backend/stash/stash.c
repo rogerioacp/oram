@@ -156,14 +156,14 @@ stashRemove(Stash stash, const char *filename, const PLBlock block, void *appDat
 	PLBlock		aux = NULL;
 	void	   *element;
 
-	/* logger(DEBUG, "Going to remove stash  block number %d", block->blkno); */
+	//logger(DEBUG, "Going to remove stash  block number %d", block->blkno);
 
 	list_iter_init(&iter, stash->list);
 
 	while (list_iter_next(&iter, &element) != CC_ITER_END)
 	{
 		aux = (PLBlock) element;
-
+        
 		if ((unsigned int) aux->blkno == block->blkno)
 		{
 			break;
@@ -249,4 +249,21 @@ void
 stashCloseIt(Stash stash, const char *filename, void *appData)
 {
 	/* iterator = NULL; */
+}
+
+void stashPrint(Stash stash){
+
+	ListIter	iter;
+	PLBlock		aux = NULL;
+	void	   *element;
+    
+	logger(DEBUG, "-----stash print--------\n");
+
+	list_iter_init(&iter, stash->list);
+	while (list_iter_next(&iter, &element) != CC_ITER_END)
+	{
+		aux = (PLBlock) element;
+        logger(DEBUG, "Stash has block blkno %d\n", aux->blkno);
+	}
+
 }
