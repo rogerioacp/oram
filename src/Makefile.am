@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 # extra flag to check for padding in data structures for aligned accesses
 # https://wr.informatik.uni-hamburg.de/_media/teaching/wintersemester_2013_2014/epc-14-haase-svenhendrik-alignmentinc-paper.pdf
 AM_CFLAGS = $(stash_count) -Wpadded
-pkginclude_HEADERS = include/oram/plblock.h include/oram/logger.h include/oram/ofile.h include/oram/oram.h include/oram/pmap.h include/oram/stash.h include/oram/orandom.h include/oram/foram.h include/oram/pmapdefs/pdeforam.h include/oram/pmapdefs/fdeforam.h
+pkginclude_HEADERS = include/oram/plblock.h include/oram/logger.h include/oram/ofile.h include/oram/oram.h include/oram/pmap.h include/oram/stash.h include/oram/orandom.h include/oram/foram.h include/oram/pmapdefs/pdeforam.h include/oram/pmapdefs/fdeforam.h include/oram/common.h
 
 
 pathoram_tests = singleread singlewrite singlereadwrite multiread multiwriteread randomwrites randomwriteread largerandomwrites largerandomwriteread optimalzread optimalzwrite optimalzreadwrite optimalzmultiread optimalzmultiwriteread optimalzrandomwrites optimalzrandomwriteread optimalzlargerandomwrites optimalzlargerandomwriteread
