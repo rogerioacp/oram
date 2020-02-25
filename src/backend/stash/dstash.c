@@ -145,31 +145,18 @@ stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename,
 {
 	PLBlock		aux;
 	int         offset;
-    //int         condition;
-    //void	   *element;
 
-    //block->block = malloc(aux->size);
-    //char* data = malloc(stash->blockSize);
-    //memset (data, 0, stash->blockSize);
-    //logger(DEBUG, "StashGet block %d\n", pl_blkno);
 
     for(offset = 0; offset < stash->size; offset++){
         aux = stash->blocks[offset];
-        //condition = (aux->blkno) == pl_blkno;
-       // block->blkno = (condition & aux->blkno) | (condition & block->blkno);
-       // block->size = (condition & aux->size) | (condition & block->size);
-        //memset(data, condition, stash->blockSize);
-        //memcpy(block->block,    
 
         if((unsigned int) aux->blkno == pl_blkno){
-            //logger(DEBUG, "Found block in stash offset %d\n", aux->blkno);
             block->blkno = aux->blkno;
 			block->size = aux->size;
+            block->lsize = aux->lsize;
 			block->block = malloc(aux->size);
 			memcpy(block->block, aux->block, aux->size);
 
-        }else{
-            //logger(DEBUG, "stash offset %d has block %d\n",offset, aux->blkno);
         }
     }
 
@@ -178,7 +165,6 @@ stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename,
 void
 stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData)
 {
-	//logger(DEBUG, "Going to add to stash block number %d\n", block->blkno);
 
 	PLBlock		aux;
 	int                 offset;
@@ -189,7 +175,6 @@ stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData)
         if((unsigned int) aux->blkno == DUMMY_BLOCK){
             memcpy(aux, block, sizeof(struct PLBlock));
             free(block);
-            //logger(DEBUG, "Going to insert block %d in stash offset %d and string %s \n", aux->blkno, offset, aux->block);
             break;
         }
     }
@@ -198,11 +183,7 @@ stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData)
 
 int
 stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appData)
-{
-
-	
-   // logger(DEBUG, "Going to update stash with block number %d and string %s\n", block->blkno, block->block);
-	 
+{	 
 
     int     offset, target;
     int     found = 0;
@@ -214,28 +195,26 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
     for(offset = 0; offset < stash->size; offset++){
         
         aux = stash->blocks[offset];
-        //logger(DEBUG, "looping stash update %d\n", offset);
         if((unsigned int) aux->blkno == block->blkno){
-            //logger(DEBUG, "Found existing matching block at offset %d\n", offset);
             free(aux->block);
+            free(aux->location);
             target = offset;
             found =1;
             break;
         }else if(aux->blkno == DUMMY_BLOCK){
-            //logger(DEBUG, "Selected dummy block  at offset %d\n", offset);
             target = offset;
         }
     }
 
     aux = stash->blocks[target];
+    
     if(target == -1){
         logger(DEBUG, "No available space to write or update out of %d", stash->size);
         exit(-1);
     }
-    //assert(target != NULL);
+
     memcpy(aux, block, sizeof(struct PLBlock));
     free(block);
-    //logger(DEBUG, "updated stash offset %d offset with block blkno %d and string %s\n",  target , aux->blkno, aux->block);
     return found;
 
 }
@@ -244,15 +223,8 @@ void
 stashRemove(Stash stash, const char *filename, const PLBlock block, void *appData)
 {
 
-	PLBlock		aux;
-	int                 offset;
-
-
-    //logger(DEBUG, "Removing block %d from stash\n", block->blkno);
-    //free(block->block);
-   // memset(block->block, 0, block->size);
-   // block->size = 0;
-   // block->blkno = DUMMY_BLOCK;
+	PLBlock	aux;
+	int     offset;
 
     for(offset = 0; offset < stash->size; offset++){
         
@@ -260,14 +232,10 @@ stashRemove(Stash stash, const char *filename, const PLBlock block, void *appDat
         
         if((unsigned int) aux->blkno == block->blkno)
         {
-           //logger(DEBUG, "Removing block %d from stash at offset %d\n", aux->blkno, offset);
            stash->blocks[offset] = (PLBlock) malloc(sizeof(struct PLBlock));
            memset(stash->blocks[offset], 0, sizeof(struct PLBlock));
            stash->blocks[offset]->blkno = DUMMY_BLOCK;
-           //free(aux->block);
-           //memset(aux, 0, sizeof(struct PLBlock)); 
-           //aux->blkno = DUMMY_BLOCK;
-           //break;
+           break;
         }
 
     }
@@ -287,10 +255,11 @@ stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData)
         if((unsigned int) aux->blkno == blkno)
         {
             free(aux->block);
+            free(aux->location);
             memset(aux, 0 , sizeof(struct PLBlock));
             aux->blkno = DUMMY_BLOCK;
             found = 1;
-        //break;
+            break;
         }
 
     }
@@ -306,9 +275,9 @@ stashClose(Stash stash, const char *filename, void *appData)
     int offset;
 
     for(offset=0; offset < stash->size; offset++){
+        free(stash->blocks[offset]->location);
         free(stash->blocks[offset]->block);
         free(stash->blocks[offset]);
-       //stash->blocks[offset]->blkno = DUMMY_BLOCK;
     }
 
     free(stash->blocks);
@@ -331,9 +300,7 @@ stashNext(Stash stash, const char *filename, PLBlock *block, void *appData)
      
     for(offset=stash->it; offset < stash->size; offset++){
         aux = stash->blocks[offset];
-        //logger(DEBUG, "Iterating over stash offset %d\n", offset);
         if(aux->blkno != DUMMY_BLOCK){
-            //logger(DEBUG, "Found real block during iteration at offset %d\n", offset);
             onlyDummys = false;
             break;
         }
@@ -341,14 +308,10 @@ stashNext(Stash stash, const char *filename, PLBlock *block, void *appData)
 
     stash->it = offset +1;
     if(onlyDummys){
-        //logger(DEBUG, "Only dummies %d offset %d\n", onlyDummys, offset);
         return 0;
     }else{
-        //logger(DEBUG, " found real %d offset %d with data %s\n", onlyDummys, offset, aux->block);
-        *block = stash->blocks[offset];//createBlock(aux->blkno, aux->size, aux->block);
-        //stash->it = offset + 1;
-	    return 1;
-
+        *block = stash->blocks[offset];
+        return 1;
     }    
 }
 

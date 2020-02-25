@@ -88,7 +88,6 @@ stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename,
 	PLBlock		aux = NULL;
 	void	   *element;
 
-	/* logger(DEBUG, "Going to get from stash block number %d", pl_blkno); */
 	list_iter_init(&iter, stash->list);
 	while (list_iter_next(&iter, &element) != CC_ITER_END)
 	{
@@ -97,7 +96,6 @@ stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename,
 		{
 			block->blkno = aux->blkno;
 			block->size = aux->size;
-            block->lsize = aux->lsize;
 			block->block = malloc(aux->size);
 			memcpy(block->block, aux->block, aux->size);
 			break;
@@ -108,18 +106,12 @@ stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename,
 void
 stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData)
 {
-	/* logger(DEBUG, "Going to add to stash block number %d", block->blkno); */
 	list_add(stash->list, block);
 }
 
 int
 stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appData)
 {
-
-	/*
-	 * logger(DEBUG, "Going to update stash with block number %d",
-	 * block->blkno);
-	 */
 
 	ListIter	iter;
 	PLBlock		aux = NULL;
@@ -159,8 +151,6 @@ stashRemove(Stash stash, const char *filename, const PLBlock block, void *appDat
 	ListIter	iter;
 	PLBlock		aux = NULL;
 	void	   *element;
-
-	//logger(DEBUG, "Going to remove stash  block number %d", block->blkno);
 
 	list_iter_init(&iter, stash->list);
 
@@ -204,9 +194,6 @@ stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData)
         free(aux->location);
 		free(aux->block);
 		free(aux);
-		/* free((*block)->block); */
-		/* free(*block); */
-		/* *block = aux; */
 	}
 
 	return found;
