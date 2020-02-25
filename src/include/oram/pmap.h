@@ -4,7 +4,7 @@
  *	  prototypes for any position map implementation in backend/pmap
  *
  *
- * Copyright (c) 2018-2019, HASLab
+ * Copyright (c) 2018-2020, HASLab
  *
  *
  *-------------------------------------------------------------------------
@@ -13,11 +13,12 @@
 #ifndef PMAP_H
 #define PMAP_H
 
+#include "oram/common.h"
+
 typedef struct PMap *PMap;
 typedef struct Location *Location;
 typedef struct TreeConfig *TreeConfig;
 
-#include "oram/plblock.h"
 
 /*  nBlocks -> number of original blocks. */
 typedef PMap (*pminit_function) (const char *fileName, const unsigned int nBlocks, TreeConfig treeCofnig);

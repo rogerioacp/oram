@@ -30,17 +30,25 @@ struct FileHandler{
     unsigned int nblocks;
 };
 
-static FileHandler fileInit(const char *filename, unsigned int nblocks, unsigned int blocksize, void* appData);
+static FileHandler fileInit(const char *filename, unsigned int nblocks, 
+                            unsigned int blocksize, unsigned int locationSize,
+                            void* appData);
 
-static void fileRead(FileHandler fhandler, PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
+static void fileRead(FileHandler fhandler, PLBlock block, 
+                     const char *fileName, const BlockNumber ob_blkno, 
+                     void* appData);
 
-static void fileWrite(FileHandler fhandler, const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData);
+static void fileWrite(FileHandler fhandler, const PLBlock block, 
+                      const char *fileName, const BlockNumber ob_blkno,
+                      void* appData);
 
-static void fileClose(FileHandler fhandler, const char *filename, void* appData);
+static void fileClose(FileHandler fhandler, const char *filename, 
+                      void* appData);
 
 
 FileHandler fileInit(const char *filename, unsigned int nblocks, 
-              unsigned int blocksize, void* appData) {
+                     unsigned int blocksize, unsigned int locationSize,
+                     void* appData) {
 
     FileHandler handler;
     int offset;
@@ -89,40 +97,60 @@ FileHandler fileInit(const char *filename, unsigned int nblocks,
         errno = save_errno;
         
         handler->file[offset]->blkno = -1;
+        handler->file[offset]->lsize = locationSize;
         handler->file[offset]->size = blocksize;
+
+        /*TODO: Add verification code for available size*/
         handler->file[offset]->block = (void *) malloc(blocksize);
+        handler->file[offset]->location = (Location) malloc(locationSize);
+        
         memset(handler->file[offset]->block, 0, blocksize);
+        memset(handler->file[offset]->location, 0, locationSize);
     }
 
     return handler;
 
 }
 
-void fileRead(FileHandler handler, PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
+void
+fileRead(FileHandler handler, PLBlock block, const char *fileName,
+         const BlockNumber ob_blkno, void* appData) {
 
     PLBlock cblock = handler->file[ob_blkno];
 
     block->blkno = cblock->blkno;
     block->size = cblock->size;
+    block->lsize = cblock->lsize;
+
     block->block = malloc(cblock->size);
+    block->location = malloc(cblock->lsize);
+
     memcpy(block->block, cblock->block, cblock->size);
+    memcpy(block->location, cblock->location, cblock->lsize);
 }
 
-void fileWrite(FileHandler handler, const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void* appData) {
+void
+fileWrite(FileHandler handler, const PLBlock block, const char *fileName, 
+          const BlockNumber ob_blkno, void* appData) {
 
     PLBlock cblock = handler->file[ob_blkno];
 
     cblock->blkno = block->blkno;
     cblock->size = block->size;
+    cblock->lsize = block->lsize;
+
     memcpy(cblock->block, block->block, block->size);
+    memcpy(cblock->location, block->location, block->lsize);
 }
 
 
-void fileClose(FileHandler handler, const char * filename, void* appData){
+void 
+fileClose(FileHandler handler, const char * filename, void* appData){
 
     int i;
 
     for(i=0; i < handler->nblocks; i++){
+        free(handler->file[i]->location);
         free(handler->file[i]->block);
         free(handler->file[i]);
     }

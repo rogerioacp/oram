@@ -18,13 +18,24 @@
 
 typedef struct FileHandler* FileHandler;
 
-typedef FileHandler (*ofileinit_function) (const char *fileName, unsigned int totalNodes, unsigned int blockSize, void *appData);
+typedef FileHandler (*ofileinit_function) (const char *fileName, 
+                                           unsigned int totalNodes, 
+                                           unsigned int blockSize,
+                                           unsigned int locationSize,
+                                           void *appData);
 
-typedef void (*ofileread_function) (FileHandler handler, PLBlock block, const char *fileName, const BlockNumber ob_blkno, void *appData);
+typedef void (*ofileread_function) (FileHandler handler, 
+                                    PLBlock block, 
+                                    const char *fileName, 
+                                    const BlockNumber ob_blkno, void *appData);
 
-typedef void (*ofilewrite_function) (FileHandler handler, const PLBlock block, const char *fileName, const BlockNumber ob_blkno, void *appData);
+typedef void (*ofilewrite_function) (FileHandler handler,
+                                     const PLBlock block, 
+                                     const char *fileName, 
+                                     const BlockNumber ob_blkno, void *appData);
 
-typedef void (*ofileclose_function) (FileHandler, const char *fileName, void *appData);
+typedef void (*ofileclose_function) (FileHandler, 
+                                     const char *fileName, void *appData);
 
 typedef struct AMOFile
 {

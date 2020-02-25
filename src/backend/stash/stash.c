@@ -41,7 +41,7 @@ static void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const cha
 
 static void stashRemove(Stash stash, const char *filename, const PLBlock block, void *appData);
 
-int			stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData);
+int	stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData);
 
 
 static void stashClose(Stash stash, const char *filename, void *appData);
@@ -97,6 +97,7 @@ stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename,
 		{
 			block->blkno = aux->blkno;
 			block->size = aux->size;
+            block->lsize = aux->lsize;
 			block->block = malloc(aux->size);
 			memcpy(block->block, aux->block, aux->size);
 			break;
@@ -135,8 +136,11 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
 		{
 			found = 1;
 			free(aux->block);
+            free(aux->location);
 			aux->block = block->block;
 			aux->size = block->size;
+            aux->location = block->location;
+            aux->lsize = block->lsize;
 			free(block);
 			break;
 		}
@@ -197,6 +201,7 @@ stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData)
 	if (found)
 	{
 		list_remove(stash->list, aux, NULL);
+        free(aux->location);
 		free(aux->block);
 		free(aux);
 		/* free((*block)->block); */

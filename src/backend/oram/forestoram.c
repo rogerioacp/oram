@@ -210,6 +210,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	state->fhandler = amgr->am_ofile->ofileinit(state->file, 
                                                 partitionBlocks,
                                                 blockSize,
+                                                sizeof(struct Location),
                                                 appData);
 
 	return state;
@@ -589,7 +590,7 @@ getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState state, v
 		for (loffset = total; loffset < state->bucketCapacity; loffset++)
 		{
 			index = bucket_offset + loffset;
-			selectedBlocks[index] = createDummyBlock(state->blockSize);
+			selectedBlocks[index] = createDummyBlock(state->blockSize, sizeof(struct Location));
 		}
 
 		total = 0;
