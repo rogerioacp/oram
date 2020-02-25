@@ -80,7 +80,7 @@ static TreePath getTreePath(ORAMState state, unsigned int leaf);
 
 static void initBlockList(ORAMState state, PLBList *list);
 
-static PLBList getTreeNodes(ORAMState state, TreePath path, Location location, void *appData);
+static PLBList getTreeNodes(ORAMState state, TreePath path, void *appData);
 
 static void addBlocksToStash(ORAMState state, PLBList list, void *appData);
 
@@ -88,8 +88,6 @@ static void getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMSt
 
 static void writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState state, void *appData);
 
-
-static void updateBlockLeaf(BlockNumber blkno, ORAMState state);
 
 static void updateStashWithNewBlock(void *data, unsigned int blockSize, 
                                     BlockNumber blkno, ORAMState state,
@@ -303,7 +301,7 @@ initBlockList(ORAMState state, PLBList *list)
 }
 
 PLBList
-getTreeNodes(ORAMState state, TreePath path, Location location, void *appData)
+getTreeNodes(ORAMState state, TreePath path, void *appData)
 {
 	int			level;
 	int			offset;
@@ -331,7 +329,6 @@ getTreeNodes(ORAMState state, TreePath path, Location location, void *appData)
 			ob_blkno = lob_blkno + offset;
 			index = lcapacity + offset;
 
-            /*TODO: ADD set Location*/
 			plblock = createEmptyBlock();
 
 			state->amgr->am_ofile->ofileread(state->fhandler,
@@ -339,8 +336,6 @@ getTreeNodes(ORAMState state, TreePath path, Location location, void *appData)
                                              state->file, 
                                              (BlockNumber) ob_blkno, 
                                              appData);
-            //setLocation(plblock, location);
-
 			list[index] = plblock;
 
 		}
@@ -416,7 +411,6 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 		level_offset = ((state->treeHeight + 1) - level);
 		a_leaf_level = a_leaf_node >> level_offset;
 		bucket_offset = (level - 1) * state->bucketCapacity;
-        //logger(DEBUG, "Going to iterate over stash at level %d\n",level);
 		/* Get blocks that satisfy current level */
 		while (stash->stashnext(state->stash, state->file, &pl_block, appData)
                && total < state->bucketCapacity)
@@ -446,7 +440,6 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
             state->nblocksStashs -=1;
             #endif
             index = bucket_offset + loffset;
-            //logger(DEBUG, "Number of blocks in stash is %d\n", state->nblocksStashs);
 			stash->stashremove(state->stash, state->file, 
                                selectedBlocks[index], appData);
 		}
@@ -514,17 +507,7 @@ writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState state, void *app
 	}
 }
 
-void
-updateBlockLeaf(BlockNumber blkno, ORAMState state)
-{
-	//struct Location newLocation;
 
-	//BlockNumber r = ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, state->treeHeight)));
-
-	//newLocation.leaf = r;
-
-	state->amgr->am_pmap->pmupdate(state->pmap, state->file, blkno);
-}
 
 void
 updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno, 
@@ -539,10 +522,10 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno,
     setLocation(plblock, location, sizeof(struct Location));
     int         found = 0;
 
-    //logger(DEBUG, "Number of blocks in stash is %d\n", state->nblocksStashs);
-	found = state->amgr->am_stash->stashupdate(state->stash, state->file, plblock, appData);
-    //free(plblock);
-    #ifdef STASH_COUNT
+	found = state->amgr->am_stash->stashupdate(state->stash, state->file, 
+                                               plblock, appData);
+    
+#ifdef STASH_COUNT
     if(!found){
         state->nblocksStashs +=1;
         state->max = state->max < state->nblocksStashs? state->nblocksStashs: state->max;
@@ -555,13 +538,13 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno,
 int
 read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 {
-	Location	location;
-    struct Location cLocation;
-	unsigned int leaf = 0;
-	unsigned int result = 0;
-	TreePath	path = NULL;
-	PLBList		list = NULL;
-	PLBList		blocks_to_write = NULL;
+	Location	    location;
+    struct Location nLocation;
+	unsigned int    leaf = 0;
+	unsigned int    result = 0;
+	TreePath	    path = NULL;
+	PLBList		    list = NULL;
+	PLBList		    blocks_to_write = NULL;
     
     AMPMap*      pmap = state->amgr->am_pmap;  
     AMStash*     stash = state->amgr->am_stash;
@@ -573,15 +556,13 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	/* line 1 and 2 of original paper */
 	location = pmap->pmget(state->pmap, state->file, blkno);
 	leaf = location->leaf;
-    cLocation.leaf = leaf;
 
 	/* printf("getting updateBlockLeaf\n"); */
-	//updateBlockLeaf(blkno, state);
 	pmap->pmupdate(state->pmap, state->file, blkno);
 
 	/* line 3 to 5 of original paper */
 	path = getTreePath(state, leaf);
-	list = getTreeNodes(state, path, &cLocation, appData);
+	list = getTreeNodes(state, path, appData);
 	/* printf("Add blocks to stash\n"); */
 	addBlocksToStash(state, list, appData);
 	/* printf("Getting block to stash\n"); */
@@ -590,9 +571,9 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	stash->stashget(state->stash, plblock, blkno, state->file, appData);
     
     //Updat the block location in the stash if its stored there.
-    cLocation.leaf = pmap->pmget(state->pmap, state->file, blkno)->leaf;
+    nLocation.leaf = pmap->pmget(state->pmap, state->file, blkno)->leaf;
     updateStashWithNewBlock(plblock->block, plblock->size, plblock->blkno, 
-                            state, &cLocation, appData);
+                            state, &nLocation, appData);
 	/* printf("get blocks to write\n"); */
 	/* line 10 to 15 of original paper */
 	getBlocksToWrite(&blocks_to_write, leaf, state, appData);
@@ -628,31 +609,29 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 
 	Location	location;
     /*current location*/
-    struct Location cLocation;
+    struct Location nLocation;
 
 	unsigned int leaf = 0;
 	TreePath	path = NULL;
 	PLBList		list = NULL;
 	PLBList		blocks_to_write = NULL;
-    AMPMap*      pmap = state->amgr->am_pmap;  
+    AMPMap*     pmap = state->amgr->am_pmap;  
     //logger(DEBUG, "write_oram blocknumber %d\n", blkno);
 	/* line 1 and 2 of original paper */
 	location = pmap->pmget(state->pmap, state->file, blkno);
 	leaf = location->leaf;
-    cLocation.leaf = leaf;
-	//updateBlockLeaf(blkno, state);
 
     pmap->pmupdate(state->pmap, state->file, blkno);
 	
     /* line 3 to 5 of original paper */
 	path = getTreePath(state, leaf);
-	list = getTreeNodes(state, path, &cLocation, appData);
+	list = getTreeNodes(state, path, appData);
 	addBlocksToStash(state, list, appData);
 
-    cLocation.leaf = pmap->pmget(state->pmap, state->file, blkno)->leaf;
+    nLocation.leaf = pmap->pmget(state->pmap, state->file, blkno)->leaf;
     
 	/* line 7 to 9 of original paper */
-	updateStashWithNewBlock(data, blkSize, blkno, state, &cLocation, appData);
+	updateStashWithNewBlock(data, blkSize, blkno, state, &nLocation, appData);
 
 	/* line 10 to 15 of original paper */
 	getBlocksToWrite(&blocks_to_write, leaf, state, appData);
