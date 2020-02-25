@@ -33,6 +33,7 @@
 
 
 #include "oram/oram.h"
+#include "oram/coram.h"
 #include "oram/logger.h"
 #include "oram/orandom.h"
 #include "oram/pmapdefs/pdeforam.h"
@@ -572,6 +573,8 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
     
     //Updat the block location in the stash if its stored there.
     nLocation.leaf = pmap->pmget(state->pmap, state->file, blkno)->leaf;
+
+    //logger(DEBUG, "read ORAM offset %d from leaf %d to leaf %d\n", blkno, leaf, nLocation.leaf); 
     updateStashWithNewBlock(plblock->block, plblock->size, plblock->blkno, 
                             state, &nLocation, appData);
 	/* printf("get blocks to write\n"); */
@@ -629,7 +632,7 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 	addBlocksToStash(state, list, appData);
 
     nLocation.leaf = pmap->pmget(state->pmap, state->file, blkno)->leaf;
-    
+    //logger(DEBUG, "Write ORAM offset %d from leaf %d to leaf %d\n", blkno, leaf, nLocation.leaf); 
 	/* line 7 to 9 of original paper */
 	updateStashWithNewBlock(data, blkSize, blkno, state, &nLocation, appData);
 
@@ -662,6 +665,15 @@ close_oram(ORAMState state, void *appData)
 	free(state->amgr->am_ofile);
 	free(state);
     freeDummyBlock();
+}
+
+
+void setToken(ORAMState state, const unsigned int* token){
+    if (state->amgr->am_pmap->pmstoken!= NULL){
+        state->amgr->am_pmap->pmstoken(state->pmap, token);
+    }else{
+        logger(DEBUG, "Set Token function is not available in PMAP!");
+    }
 }
 
 #ifdef STASH_COUNT

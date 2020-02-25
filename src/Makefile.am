@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 # extra flag to check for padding in data structures for aligned accesses
 # https://wr.informatik.uni-hamburg.de/_media/teaching/wintersemester_2013_2014/epc-14-haase-svenhendrik-alignmentinc-paper.pdf
 AM_CFLAGS = $(stash_count) -Wpadded
-pkginclude_HEADERS = include/oram/plblock.h include/oram/logger.h include/oram/ofile.h include/oram/oram.h include/oram/pmap.h include/oram/stash.h include/oram/orandom.h include/oram/foram.h include/oram/pmapdefs/pdeforam.h include/oram/pmapdefs/fdeforam.h include/oram/common.h
+pkginclude_HEADERS = include/oram/plblock.h include/oram/logger.h include/oram/ofile.h include/oram/oram.h include/oram/pmap.h include/oram/stash.h include/oram/orandom.h include/oram/foram.h include/oram/pmapdefs/pdeforam.h include/oram/pmapdefs/fdeforam.h include/oram/common.h include/oram/coram.h
 
 
 pathoram_tests = singleread singlewrite singlereadwrite multiread multiwriteread randomwrites randomwriteread largerandomwrites largerandomwriteread optimalzread optimalzwrite optimalzreadwrite optimalzmultiread optimalzmultiwriteread optimalzrandomwrites optimalzrandomwriteread optimalzlargerandomwrites optimalzlargerandomwriteread
@@ -14,8 +14,10 @@ doubleobliv_tests = optimalzreaddouble optimalzwritedouble optimalzreadwritedoub
 
 doubleoblivf_tests = optimalzreaddoublef optimalzwritedoublef optimalzreadwritedoublef optimalzmultireaddoublef optimalzmultiwritereaddoublef optimalzrandomwritesdoublef optimalzrandomwritereaddoublef optimalzlargerandomwritesdoublef optimalzlargerandomwritereaddoublef
 
+tpmap_tests = tpmappathoram
+
 #bin_PROGRAMS = read write readwrite
-check_PROGRAMS = $(pathoram_tests) $(forestoram_tests) $(doubleobliv_tests) $(doubleoblivf_tests)
+check_PROGRAMS =  $(tpmap_tests) $(pathoram_tests) $(doubleobliv_tests) $(forestoram_tests) $(doubleoblivf_tests) 
 #check_PROGRAMS = $(doubleobliv_tests)
 
 
@@ -44,6 +46,9 @@ memory_test_files_f = backend/logger/logger.c backend/ofile/ofile.c backend/pmap
 memory_test_files_d = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/dstash.c backend/block/plblock.c
 
 memory_test_files_df = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/fpmap.c backend/stash/dstash.c backend/block/plblock.c
+
+memory_test_tpmap =  backend/logger/logger.c backend/ofile/ofile.c backend/pmap/tpmap.c backend/stash/stash.c backend/block/plblock.c
+
 
 singleread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/singleread.c
 singleread_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include  
@@ -278,6 +283,11 @@ optimalzlargerandomwritereaddoublef_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -
 optimalzlargerandomwritereaddoublef_LDADD = $(COLLECTC_LIBS)
 
 
+#Token pmap tests
+
+tpmappathoram_SOURCES =  backend/oram/pathoram.c $(memory_test_tpmap) $(random_file) tests/tpmap.c
+tpmappathoram_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+tpmappathoram_LDADD = $(COLLECTC_LIBS)
 
 TESTS = $(check_PROGRAMS)
 

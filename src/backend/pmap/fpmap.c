@@ -16,7 +16,6 @@
  */
 
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 
@@ -118,6 +117,7 @@ AMPMap *pmapCreate(void) {
     pmap->pmget = &pmapGet;
     pmap->pmupdate = &pmapUpdate;
     pmap->pmclose = &pmapClose;
+    pmap->pmstoken = NULL;
     return pmap;
 }
 

@@ -1,13 +1,10 @@
 /*-------------------------------------------------------------------------
  *
- * pmap.c
- *      In-memory implementation of a position map.
- *
- * Implementation of a in-memory position map that maps block offsets to
- * oram leaf nodes in an array. This implementation assumes that only a
- * single file is being accessed obliviously and ignores the filename.
- *
- * Copyright (c) 2018-2019, HASLab
+ * Token pmap.c
+ * Implementation of a pmap that generates the leaf of a pathoram tree
+ * from a cryptographic token given as input by a client application.
+ * 
+ * Copyright (c) 2018-2020, HASLab
  *
  * IDENTIFICATION
  *        backend/pmap/pmap.c
@@ -17,15 +14,21 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "oram/pmap.h"
 #include "oram/orandom.h"
 #include "oram/pmapdefs/pdeforam.h"
 
+//The token size is 32 integers (128 bits, the size of an AES block)
+#define TOKEN_SIZE 32
+
 struct PMap
 {
-	struct Location *map;
-    int treeHeight;
+
+    int treeHeight; 
+    unsigned int* token;
+    Location loc;
 };
 
 
@@ -37,6 +40,8 @@ static void pmapUpdate(PMap pmap, const char *fileName, const BlockNumber realBl
 
 static void pmapClose(PMap pmap, const char *filename);
 
+static void pmapSetToken(PMap pmap, const unsigned int* token);
+
 PMap
 pmapInit(const char *filename, unsigned int nblocks, TreeConfig treeConfig)
 {
@@ -45,35 +50,39 @@ pmapInit(const char *filename, unsigned int nblocks, TreeConfig treeConfig)
 	PMap		pmap;
 
 	pmap = (PMap) malloc(sizeof(struct PMap));
-	pmap->map = (Location) malloc(sizeof(struct Location) * nblocks);
     pmap->treeHeight = treeConfig->treeHeight;
-
-	for (i = 0; i < nblocks; i++)
-	{
-		r = (BlockNumber) ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, treeConfig->treeHeight)));
-		pmap->map[i].leaf = r;
-	}
+    pmap->token = (unsigned int*) malloc(TOKEN_SIZE*sizeof(unsigned int));
+    pmap->loc = (Location) malloc(sizeof(struct Location));
 
 	return pmap;
+}
+
+void pmapSetToken(PMap pmap, const unsigned int* token){
+    memcpy(pmap->token, token, TOKEN_SIZE*sizeof(unsigned int));
 }
 
 Location
 pmapGet(PMap pmap, const char *fileName, const BlockNumber blkno)
 {
-	return &pmap->map[blkno];
+	pmap->loc->leaf = (pmap->token[0] % ((BlockNumber) (pow(2, pmap->treeHeight))));
+    return pmap->loc;
 }
 
 
 void
 pmapUpdate(PMap pmap, const char *fileName, const BlockNumber realBlkno){
-    pmap->map[realBlkno].leaf = (BlockNumber) ((BlockNumber) getRandomInt()) % ((BlockNumber) (pow(2, pmap->treeHeight)));
+    //Simply shifts the next token to the first posstion
+    //Both the path oram and forest oram will issue a new pmapGet request
+    //that will return a new leaf location.
+    pmap->token[0] = pmap->token[1]; 
 
 }
 
 void
 pmapClose(PMap pmap, const char *filename)
 {
-	free(pmap->map);
+    free(pmap->loc);
+    free(pmap->token);
 	free(pmap);
 }
 
@@ -86,6 +95,6 @@ pmapCreate(void)
 	pmap->pmget = &pmapGet;
 	pmap->pmupdate = &pmapUpdate;
 	pmap->pmclose = &pmapClose;
-    pmap->pmstoken = NULL;
+    pmap->pmstoken = &pmapSetToken;
 	return pmap;
 }

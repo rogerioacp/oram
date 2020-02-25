@@ -29,6 +29,9 @@ typedef void (*pmupdate_function) (PMap pmap, const char *fileName, const BlockN
 
 typedef void (*pmclose_function) (PMap pmap, const char *fileName);
 
+typedef void (*pmsettoken_function) (PMap pmap, const unsigned int* token);
+
+
 /*Access manager to position map*/
 typedef struct AMPMap
 {
@@ -36,6 +39,7 @@ typedef struct AMPMap
 	pmget_function pmget;
 	pmupdate_function pmupdate;
 	pmclose_function pmclose;
+    pmsettoken_function pmstoken;
 } AMPMap;
 
 AMPMap	   *pmapCreate(void);

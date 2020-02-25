@@ -872,7 +872,13 @@ void full_eviction(ORAMState state){
 
 }
 
-
+void setToken(ORAMState state, const unsigned int* token){
+    if (state->amgr->am_pmap->pmstoken!= NULL){
+        state->amgr->am_pmap->pmstoken(state->pmap, token);
+    }else{
+        logger(DEBUG, "Set Token function is not available in PMAP!");
+    }
+}
 
 
 #ifdef STASH_COUNT
