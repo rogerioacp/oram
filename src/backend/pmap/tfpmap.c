@@ -1,13 +1,13 @@
 /*-------------------------------------------------------------------------
  *
- * Token pmap for path oram
+ * Token pmap for forest oram
  * Implementation of a pmap that generates the leaf of a pathoram tree
  * from a cryptographic token given as input by a client application.
  * 
  * Copyright (c) 2018-2020, HASLab
  *
  * IDENTIFICATION
- *        backend/pmap/tpmap.c
+ *        backend/pmap/tfpmap.c
  *
  *-------------------------------------------------------------------------
  */
@@ -18,7 +18,7 @@
 
 #include "oram/pmap.h"
 #include "oram/orandom.h"
-#include "oram/pmapdefs/pdeforam.h"
+#include "oram/pmapdefs/fdeforam.h"
 
 //The token size is 32 integers (128 bits, the size of an AES block)
 #define TOKEN_SIZE 32
@@ -26,7 +26,8 @@
 struct PMap
 {
 
-    int treeHeight; 
+    int treeHeight;
+    int nPartitions;
     unsigned int* token;
     Location loc;
 };
@@ -51,6 +52,7 @@ pmapInit(const char *filename, unsigned int nblocks, TreeConfig treeConfig)
 
 	pmap = (PMap) malloc(sizeof(struct PMap));
     pmap->treeHeight = treeConfig->treeHeight;
+    pmap->nPartitions = treeConfig->nPartitions;
     pmap->token = (unsigned int*) malloc(TOKEN_SIZE*sizeof(unsigned int));
     pmap->loc = (Location) malloc(sizeof(struct Location));
 
@@ -64,7 +66,8 @@ void pmapSetToken(PMap pmap, const unsigned int* token){
 Location
 pmapGet(PMap pmap, const char *fileName, const BlockNumber blkno)
 {
-	pmap->loc->leaf = (pmap->token[0] % ((BlockNumber) (pow(2, pmap->treeHeight))));
+	pmap->loc->leaf = (BlockNumber) (pmap->token[0] % ((BlockNumber) (pow(2, pmap->treeHeight))));
+	pmap->loc->partition = (BlockNumber) (pmap->token[2] % (BlockNumber)  pmap->nPartitions);
     return pmap->loc;
 }
 
@@ -74,7 +77,8 @@ pmapUpdate(PMap pmap, const char *fileName, const BlockNumber realBlkno){
     //Simply shifts the next token to the first posstion
     //Both the path oram and forest oram will issue a new pmapGet request
     //that will return a new leaf location.
-    pmap->token[0] = pmap->token[1]; 
+    pmap->token[0] = pmap->token[1];
+    pmap->token[2] = pmap->token[3];
 
 }
 

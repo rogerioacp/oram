@@ -14,7 +14,7 @@ doubleobliv_tests = optimalzreaddouble optimalzwritedouble optimalzreadwritedoub
 
 doubleoblivf_tests = optimalzreaddoublef optimalzwritedoublef optimalzreadwritedoublef optimalzmultireaddoublef optimalzmultiwritereaddoublef optimalzrandomwritesdoublef optimalzrandomwritereaddoublef optimalzlargerandomwritesdoublef optimalzlargerandomwritereaddoublef
 
-tpmap_tests = tpmappathoram
+tpmap_tests = tpmappathoram tpmappathoramd tforest tforestd
 
 #bin_PROGRAMS = read write readwrite
 check_PROGRAMS =  $(tpmap_tests) $(pathoram_tests) $(doubleobliv_tests) $(forestoram_tests) $(doubleoblivf_tests) 
@@ -48,6 +48,13 @@ memory_test_files_d = backend/logger/logger.c backend/ofile/ofile.c backend/pmap
 memory_test_files_df = backend/logger/logger.c backend/ofile/ofile.c backend/pmap/fpmap.c backend/stash/dstash.c backend/block/plblock.c
 
 memory_test_tpmap =  backend/logger/logger.c backend/ofile/ofile.c backend/pmap/tpmap.c backend/stash/stash.c backend/block/plblock.c
+
+memory_test_tpmapd =  backend/logger/logger.c backend/ofile/ofile.c backend/pmap/tpmap.c backend/stash/dstash.c backend/block/plblock.c
+
+memory_test_tpmapf =  backend/logger/logger.c backend/ofile/ofile.c backend/pmap/tfpmap.c backend/stash/stash.c backend/block/plblock.c
+
+
+memory_test_tpmapfd =  backend/logger/logger.c backend/ofile/ofile.c backend/pmap/tfpmap.c backend/stash/dstash.c backend/block/plblock.c
 
 
 singleread_SOURCES = backend/oram/pathoram.c $(memory_test_files) $(random_file) tests/singleread.c
@@ -288,6 +295,19 @@ optimalzlargerandomwritereaddoublef_LDADD = $(COLLECTC_LIBS)
 tpmappathoram_SOURCES =  backend/oram/pathoram.c $(memory_test_tpmap) $(random_file) tests/tpmap.c
 tpmappathoram_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 tpmappathoram_LDADD = $(COLLECTC_LIBS)
+
+tpmappathoramd_SOURCES =  backend/oram/pathoram.c $(memory_test_tpmapd) $(random_file) tests/tpmap.c
+tpmappathoramd_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+tpmappathoramd_LDADD = $(COLLECTC_LIBS)
+
+tforest_SOURCES =  backend/oram/forestoram.c $(memory_test_tpmapf) $(random_file) tests/tpmap.c
+tforest_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+tforest_LDADD = $(COLLECTC_LIBS)
+
+tforestd_SOURCES =  backend/oram/forestoram.c $(memory_test_tpmapfd) $(random_file) tests/tpmap.c
+tforestd_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+tforestd_LDADD = $(COLLECTC_LIBS)
+
 
 TESTS = $(check_PROGRAMS)
 

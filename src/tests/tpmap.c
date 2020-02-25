@@ -31,7 +31,8 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
     int     result = 0;
     size_t  wOffset = 0;
     size_t  blockWriteOffset = 0;
-    unsigned int     locations[nblocks];
+    unsigned int     leafs[nblocks];
+    unsigned int     partitions[nblocks];
     AMStash *stash;
     AMPMap *pmap;
     AMOFile *ofile;
@@ -51,7 +52,9 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
     int readi = 0;
     char *data = NULL;
     unsigned int token[16];
-    unsigned int next;
+
+    unsigned int nextLeaf;
+    unsigned int nextPartition;
     
 
     //printf("Going to init\n");
@@ -59,11 +62,12 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
     char **strings = (char **) malloc(sizeof(char *) * nblocks);
     for (index = 0; index < nblocks; index++) {
         strings[index] = NULL;
-        locations[index] = getRandomInt();
+        leafs[index] = getRandomInt();
+        partitions[index] = getRandomInt();
 
     }
 
-    state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
+    state = init_oram("teste", 40, blockSize, bucketCapcity, &amgr, NULL);
     //printf("Going to write strings\n");
 
     for (index = 0; index < nwrites; index++) {
@@ -85,26 +89,34 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
         strings[wOffset] = gen_random(string_size + 1);
         blockWriteOffset = sizeof(char) * strlen(strings[wOffset]) + 1;
         
-        next = getRandomInt();
-        token[0] = locations[wOffset];
-        token[1] = next;
+        nextLeaf = getRandomInt();
+        nextPartition = getRandomInt();
+        token[0] = leafs[wOffset];
+        token[1] = nextLeaf;
+        token[2] = partitions[wOffset];
+        token[3] = nextPartition;
 
         setToken(state, token);
         
         //printf("going to write to oram offset %zu the string %s at locations %d and %d\n", wOffset, strings[wOffset], token[0], token[1]);
         write_oram(strings[wOffset], blockWriteOffset, wOffset, state, NULL);
-        locations[wOffset] = next;
+        leafs[wOffset] = nextLeaf;
+        partitions[wOffset] = nextPartition;
 
 
         for (readi = 0; readi < nblocks; readi++) {
-            next = getRandomInt();
-            token[0] = locations[readi];
-            token[1] = next;
+            nextLeaf = getRandomInt();
+            nextPartition = getRandomInt();
+            token[0] = leafs[readi];
+            token[1] = nextLeaf;
+            token[2] = partitions[readi];
+            token[3] = nextPartition;
             setToken(state, token); 
             //printf("going to rea from oram offset %d at location %d and %d \n", readi, token[0], token[1]);
 
             result = read_oram(&data, readi, state, NULL);
-            locations[readi] = next;
+            leafs[readi] = nextLeaf;
+            partitions[readi] = nextPartition;
             //printf("read from oram offset %d the value %s and compares to %s \n", readi, (char*) data, strings[readi]);
 
             if ((result != DUMMY_BLOCK && result != strlen(data) + 1) || (result != DUMMY_BLOCK && strcmp(data, strings[readi]) != 0)) {
@@ -124,12 +136,12 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
 }
 
 int main(int argc, char *argv[]) {
-    size_t nblocks = 100; //bytes
+    size_t nblocks = 500; //bytes
     size_t blockSize = 20; // bytes
-    size_t bucketCapcity = 1; // nblocks
+    size_t bucketCapcity = 4; // nblocks
     size_t nwrites = 20;
 
-    int n_loops = 100;
+    int n_loops = 2;
     int i;
     int result = 0;
     for (i = 0; i < n_loops; i++) {
