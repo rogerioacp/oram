@@ -153,7 +153,7 @@ stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename,
         if((unsigned int) aux->blkno == pl_blkno){
             block->blkno = aux->blkno;
 			block->size = aux->size;
-            block->lsize = aux->lsize;
+            //block->lsize = aux->lsize;
 			block->block = malloc(aux->size);
 			memcpy(block->block, aux->block, aux->size);
 
@@ -197,7 +197,7 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
         aux = stash->blocks[offset];
         if((unsigned int) aux->blkno == block->blkno){
             free(aux->block);
-            free(aux->location);
+            //free(aux->location);
             target = offset;
             found =1;
             break;
@@ -255,7 +255,7 @@ stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData)
         if((unsigned int) aux->blkno == blkno)
         {
             free(aux->block);
-            free(aux->location);
+            //free(aux->location);
             memset(aux, 0 , sizeof(struct PLBlock));
             aux->blkno = DUMMY_BLOCK;
             found = 1;
@@ -275,7 +275,7 @@ stashClose(Stash stash, const char *filename, void *appData)
     int offset;
 
     for(offset=0; offset < stash->size; offset++){
-        free(stash->blocks[offset]->location);
+        //free(stash->blocks[offset]->location);
         free(stash->blocks[offset]->block);
         free(stash->blocks[offset]);
     }

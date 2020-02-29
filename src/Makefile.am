@@ -311,12 +311,21 @@ tforestd_LDADD = $(COLLECTC_LIBS)
 
 TESTS = $(check_PROGRAMS)
 
-lib_LTLIBRARIES = libpathoram.la libforestoram.la
+lib_LTLIBRARIES = libpathoram.la libforestoram.la libtpathoram.la libtforestoram.la
 
 libpathoram_la_SOURCES =  backend/ofile/ofile.c backend/pmap/pmap.c backend/stash/stash.c backend/block/plblock.c backend/oram/pathoram.c
 libpathoram_la_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 libpathoram_la_LIBADD = $(COLLECTC_LIBS)
 
+libtpathoram_la_SOURCES =  backend/ofile/ofile.c backend/pmap/tpmap.c backend/stash/stash.c backend/block/plblock.c backend/oram/pathoram.c
+libtpathoram_la_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+libtpathoram_la_LIBADD = $(COLLECTC_LIBS)
+
+
 libforestoram_la_SOURCES =  backend/ofile/ofile.c backend/pmap/fpmap.c backend/stash/stash.c backend/block/plblock.c backend/oram/forestoram.c
 libforestoram_la_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 libforestoram_la_LIBADD = $(COLLECTC_LIBS)
+
+libtforestoram_la_SOURCES =  backend/ofile/ofile.c backend/pmap/tfpmap.c backend/stash/stash.c backend/block/plblock.c backend/oram/forestoram.c
+libtforestoram_la_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+libtforestoram_la_LIBADD = $(COLLECTC_LIBS)

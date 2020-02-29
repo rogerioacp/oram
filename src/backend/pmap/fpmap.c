@@ -111,13 +111,16 @@ void pmapClose(PMap pmap, const char *filename) {
     free(pmap);
 }
 
+void pmapSetToken(PMap pmap, const unsigned int* token){
+}
+
 AMPMap *pmapCreate(void) {
     AMPMap *pmap = (AMPMap *) malloc(sizeof(AMPMap));
     pmap->pminit = &pmapInit;
     pmap->pmget = &pmapGet;
     pmap->pmupdate = &pmapUpdate;
     pmap->pmclose = &pmapClose;
-    pmap->pmstoken = NULL;
+    pmap->pmstoken = &pmapSetToken;
     return pmap;
 }
 

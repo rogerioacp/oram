@@ -97,6 +97,8 @@ stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename,
 			block->blkno = aux->blkno;
 			block->size = aux->size;
 			block->block = malloc(aux->size);
+            block->location[0] = aux->location[0];
+            block->location[1] = aux->location[1];
 			memcpy(block->block, aux->block, aux->size);
 			break;
 		}
@@ -128,11 +130,12 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
 		{
 			found = 1;
 			free(aux->block);
-            free(aux->location);
 			aux->block = block->block;
 			aux->size = block->size;
-            aux->location = block->location;
-            aux->lsize = block->lsize;
+            aux->location[0] = block->location[0];
+            aux->location[1] = block->location[1];
+            //aux->location = block->location;
+            //aux->lsize = block->lsize;
 			free(block);
 			break;
 		}
@@ -191,7 +194,6 @@ stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData)
 	if (found)
 	{
 		list_remove(stash->list, aux, NULL);
-        free(aux->location);
 		free(aux->block);
 		free(aux);
 	}

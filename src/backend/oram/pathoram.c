@@ -337,6 +337,7 @@ getTreeNodes(ORAMState state, TreePath path, void *appData)
                                              state->file, 
                                              (BlockNumber) ob_blkno, 
                                              appData);
+
 			list[index] = plblock;
 
 		}
@@ -369,7 +370,6 @@ addBlocksToStash(ORAMState state, PLBList list, void *appData)
 			 * block. This memory needs to be freed or is leaked as its is not
 			 * added to the stash and there are no more references to it
 			 */
-            free(list[index]->location);
 			free(list[index]->block);
 			free(list[index]);
 		}
@@ -418,7 +418,8 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 		{
 
 			//s_leaf = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno)->leaf;
-            s_leaf = pl_block->location->leaf;
+            s_leaf = pl_block->location[0];
+
             //logger(DEBUG, "leaf values are %d %d\n", s_leaf, s_leaf2);
 			if (a_leaf_level == ((s_leaf + s_leaf_node) >> level_offset))
 			{
@@ -453,6 +454,7 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 
 		for (; loffset < state->bucketCapacity; loffset++)
 		{
+
             index = bucket_offset + loffset;
 			selectedBlocks[index] = createDummyBlock(state->blockSize, sizeof(struct Location));
 		}
@@ -494,10 +496,8 @@ writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState state, void *app
                                               ob_blkno,
                                               appData);
 
-
 			if (block->blkno != DUMMY_BLOCK)
 			{
-                free(block->location);
 				free(block->block);
 				free(block);
 			}
@@ -520,7 +520,8 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno,
 
 
 	PLBlock		plblock = createBlock((int) blkno, blkSize, data);
-    setLocation(plblock, location, sizeof(struct Location));
+    //setLocation(plblock, location, sizeof(struct Location));
+    plblock->location[0] = location->leaf;
     int         found = 0;
 
 	found = state->amgr->am_stash->stashupdate(state->stash, state->file, 
@@ -599,7 +600,7 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	{
 		result = plblock->size;
 	}
-    free(plblock->location);
+    //free(plblock->location);
 	free(plblock);
 	return result;
 

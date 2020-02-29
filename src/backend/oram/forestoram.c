@@ -466,8 +466,6 @@ getTreeNodes(ORAMState state, TreePath path, Location location, void *appData)
                                              (BlockNumber) ob_blkno,
                                              appData);
 
-            //logger(DEBUG, "Read block %d from partition %d\n",plblock->blkno, location->partition);
-
             #ifdef STASH_COUNT
                 if(plblock->blkno != DUMMY_BLOCK){
                     int res = location->partition*state->partitionCapacity;
@@ -510,7 +508,6 @@ addBlocksToStash(ORAMState state, PLBList list, Location location, void *appData
 			 * block. This memory needs to be freed or is leaked as its is not
 			 * added to the stash and there are no more references to it
 			 */
-            free(list[index]->location);
 			free(list[index]->block);
 			free(list[index]);
 		}
@@ -540,11 +537,12 @@ getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState state, v
 	unsigned int bucket_offset = 0;
 
 	/* Location of  a stashed node */
-	Location	s_location = 0;
 
 	PLBlock		pl_block;
 	PLBList		selectedBlocks;
     int         condition = 0;
+    unsigned int s_leaf = 0;
+    unsigned int s_partition = 0;
 
 
     AMStash* stash = state->amgr->am_stash;
@@ -566,11 +564,14 @@ getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState state, v
 		{
 
 			//s_location = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno);
-            s_location = pl_block->location;
-            condition = a_leaf_level == ((s_location->leaf + s_leaf_node) >> level_offset);
-            #ifdef SFORAM
-            condition = condition && a_location->partition == s_location->partition;
-            #endif
+            //s_location = pl_block->location;
+            s_leaf = pl_block->location[0];
+            s_partition = pl_block->location[1];
+
+            condition = a_leaf_level == ((s_leaf + s_leaf_node) >> level_offset);
+            //the partition test is only relevant if the blocks are being read
+            //from a single stash.
+            condition = condition && a_location->partition == s_partition;
 			if (condition)
 			{
 				index = bucket_offset + total;
@@ -602,6 +603,8 @@ getBlocksToWrite(PLBList *blocksToWrite, Location a_location, ORAMState state, v
 		{
 			index = bucket_offset + loffset;
 			selectedBlocks[index] = createDummyBlock(state->blockSize, sizeof(struct Location));
+
+            //logger(DEBUG, "Adding dummy block of size %d with data %x", state->blockSize, selectedBlocks[index]->block);
 		}
 
 		total = 0;
@@ -648,7 +651,6 @@ writeBlocksToStorage(PLBList list, Location location, ORAMState state, void *app
 
                 }
             #endif
-            //logger(DEBUG, "Write block %d to partition %d\n", block->blkno, location->partition);
 			state->amgr->am_ofile->ofilewrite(state->fhandler, 
                                               block, 
                                               state->file, 
@@ -657,7 +659,6 @@ writeBlocksToStorage(PLBList list, Location location, ORAMState state, void *app
 
            	if (block->blkno != DUMMY_BLOCK)
 			{
-                free(block->location);
 				free(block->block);
 				free(block);
 			}
@@ -678,8 +679,9 @@ updateStashWithNewBlock(void *data,
     int         found = 0;
     AMStash*    stash = state->amgr->am_stash;
 	PLBlock     plblock = createBlock((int) blkno, blkSize, data);
-
-    setLocation(plblock, nLocation, sizeof(struct Location));
+    plblock->location[0] = nLocation->leaf;
+    plblock->location[1] = nLocation->partition;
+    //setLocation(plblock, nLocation, sizeof(struct Location));
 
     #ifdef SFORAM
         found = stash->stashupdate(state->stashes[0], state->file,
@@ -724,7 +726,6 @@ read_foram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	list = getTreeNodes(state, path, location, appData);
 
 	addBlocksToStash(state, list, location, appData);
-
 
 	/* Line 6 of original paper */
 	stash->stashget(state->stashes[location->partition], plblock, blkno, 
@@ -780,7 +781,6 @@ evict_foram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state
                                 oldLocation.partition, 
                                 &newLocation, state, appData);
 	}
-
 	/* line 10 to 15 of original paper */
 	getBlocksToWrite(&blocks_to_write, &oldLocation, state, appData);
 	writeBlocksToStorage(blocks_to_write, &oldLocation, state, appData);
@@ -825,7 +825,6 @@ int
 read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 {
 	int			blockSize = 0;
-
 	blockSize = read_foram(ptr, blkno, state, appData);
 	evict_foram(*ptr, (unsigned int) blockSize, blkno, state, appData);
 	return blockSize;
@@ -838,7 +837,6 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 {
 	char	   *tmp_data = NULL;
 	int			result = 0;
-    
 	result = read_foram(&tmp_data, blkno, state, appData);
 	evict_foram(data, blkSize, blkno, state, appData);
     free(tmp_data);

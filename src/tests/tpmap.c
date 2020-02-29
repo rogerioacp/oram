@@ -51,7 +51,7 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
     int index = 0;
     int readi = 0;
     char *data = NULL;
-    unsigned int token[16];
+    unsigned int token[32];
 
     unsigned int nextLeaf;
     unsigned int nextPartition;

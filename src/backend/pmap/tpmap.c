@@ -20,8 +20,8 @@
 #include "oram/orandom.h"
 #include "oram/pmapdefs/pdeforam.h"
 
-//The token size is 32 integers (128 bits, the size of an AES block)
-#define TOKEN_SIZE 32
+//The token size is 4 integers (128 bits, the size of an AES block)
+#define TOKEN_SIZE 4
 
 struct PMap
 {

@@ -69,7 +69,7 @@ createEmptyBlock(void)
 	block->blkno = DUMMY_BLOCK;
 	block->size = -1;
 	block->block = NULL;
-    block->location = NULL;
+    memset(block->location, 0, sizeof(unsigned int)*2);
 	errno = save_errno;
 	return block;
 }
@@ -93,10 +93,7 @@ createRandomBlock(unsigned int size, unsigned int lsize)
 	}
 
 	memset(block->block, 0, size);
-
-    block->location = (Location) malloc(lsize);
-    memset(block->location, 0, lsize);
-    block->lsize = lsize;
+    block->location[0] = block->location[1] = 0;
 	block->size = size;
 	errno = save_errno;
 	return block;
@@ -114,24 +111,22 @@ createDummyBlock(unsigned int size, unsigned int lsize)
 	return dummyBlock;
 }
 
-
+/*
 void
 setLocation(PLBlock block, Location location, unsigned int size){
 
     block->lsize = size;
     block->location = (Location) malloc(block->lsize);
 
-    //logger(DEBUG, "Setting location of blkno %d to %d\n", block->blkno, location->leaf);
     memcpy(block->location, location, block->lsize);
     //block->location->leaf = location->leaf;
     //logger(DEBUG, "location is %d\n", block->location->leaf); 
-}
+}*/
 
 
 void
 freeBlock(PLBlock block)
 {
-    free(block->location);
     free(block->block);
 	free(block);
 }
@@ -141,7 +136,6 @@ freeDummyBlock(){
     if(dummyBlock != NULL){
         if(dummyBlock->block !=NULL){
             free(dummyBlock->block);
-            free(dummyBlock->location);
         }
         free(dummyBlock);
     }

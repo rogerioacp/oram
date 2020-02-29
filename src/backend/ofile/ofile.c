@@ -97,15 +97,14 @@ FileHandler fileInit(const char *filename, unsigned int nblocks,
         errno = save_errno;
         
         handler->file[offset]->blkno = -1;
-        handler->file[offset]->lsize = locationSize;
-        handler->file[offset]->size = blocksize;
+               handler->file[offset]->size = blocksize;
 
         /*TODO: Add verification code for available size*/
         handler->file[offset]->block = (void *) malloc(blocksize);
-        handler->file[offset]->location = (Location) malloc(locationSize);
-        
+                
         memset(handler->file[offset]->block, 0, blocksize);
-        memset(handler->file[offset]->location, 0, locationSize);
+        handler->file[offset]->location[0] = 0;   
+        handler->file[offset]->location[1] = 0;    
     }
 
     return handler;
@@ -120,13 +119,11 @@ fileRead(FileHandler handler, PLBlock block, const char *fileName,
 
     block->blkno = cblock->blkno;
     block->size = cblock->size;
-    block->lsize = cblock->lsize;
-
+    block->location[0] = cblock->location[0];
+    block->location[1] = cblock->location[1];
     block->block = malloc(cblock->size);
-    block->location = malloc(cblock->lsize);
 
     memcpy(block->block, cblock->block, cblock->size);
-    memcpy(block->location, cblock->location, cblock->lsize);
 }
 
 void
@@ -137,10 +134,10 @@ fileWrite(FileHandler handler, const PLBlock block, const char *fileName,
 
     cblock->blkno = block->blkno;
     cblock->size = block->size;
-    cblock->lsize = block->lsize;
+    cblock->location[0] = block->location[0];
+    cblock->location[1] = block->location[1];
 
     memcpy(cblock->block, block->block, block->size);
-    memcpy(cblock->location, block->location, block->lsize);
 }
 
 
@@ -150,7 +147,6 @@ fileClose(FileHandler handler, const char * filename, void* appData){
     int i;
 
     for(i=0; i < handler->nblocks; i++){
-        free(handler->file[i]->location);
         free(handler->file[i]->block);
         free(handler->file[i]);
     }
