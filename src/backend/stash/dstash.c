@@ -92,7 +92,7 @@ stashInit(const char *filename, const unsigned int stashSize, const unsigned int
         errno = save_errno;
         abort();
     }
-    logger(DEBUG, "Initializing stash with size %d\n", stashSize);
+    //logger(DEBUG, "Initializing stash with size %d\n", stashSize);
     stash->blocks = (PLBlock*) malloc(sizeof(PLBlock)*stashSize);
     
     if(stash->blocks == NULL  && errno == ENOMEM){
@@ -167,15 +167,16 @@ stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData)
 {
 
 	PLBlock		aux;
-	int                 offset;
-
+	int         offset, inserted;
+    inserted = 0;
     for(offset = 0; offset < stash->size; offset++)
     {
         aux = stash->blocks[offset];
-        if((unsigned int) aux->blkno == DUMMY_BLOCK){
+        if(!inserted && (unsigned int) aux->blkno == DUMMY_BLOCK){
             memcpy(aux, block, sizeof(struct PLBlock));
             free(block);
-            break;
+            inserted = 1;
+            //break;
         }
     }
 
@@ -195,13 +196,13 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
     for(offset = 0; offset < stash->size; offset++){
         
         aux = stash->blocks[offset];
-        if((unsigned int) aux->blkno == block->blkno){
+        if(!found && (unsigned int) aux->blkno == block->blkno){
             free(aux->block);
             //free(aux->location);
             target = offset;
             found =1;
-            break;
-        }else if(aux->blkno == DUMMY_BLOCK){
+            //break;
+        }else if(!found && aux->blkno == DUMMY_BLOCK){
             target = offset;
         }
     }
@@ -235,7 +236,7 @@ stashRemove(Stash stash, const char *filename, const PLBlock block, void *appDat
            stash->blocks[offset] = (PLBlock) malloc(sizeof(struct PLBlock));
            memset(stash->blocks[offset], 0, sizeof(struct PLBlock));
            stash->blocks[offset]->blkno = DUMMY_BLOCK;
-           break;
+           //break;
         }
 
     }
@@ -259,7 +260,7 @@ stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData)
             memset(aux, 0 , sizeof(struct PLBlock));
             aux->blkno = DUMMY_BLOCK;
             found = 1;
-            break;
+            //break;
         }
 
     }
