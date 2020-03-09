@@ -16,7 +16,9 @@ doubleoblivf_tests = optimalzreaddoublef optimalzwritedoublef optimalzreadwrited
 
 tpmap_tests = tpmappathoram tpmappathoramd tforest tforestd
 
-#bin_PROGRAMS = read write readwrite
+bin_PROGRAMS = randomwritebench randomreadbench randomwritebenchd randomreadbenchd randomwritebenchf randomreadbenchf randomwritebenchfd randomreadbenchfd
+
+
 check_PROGRAMS =  $(tpmap_tests) $(pathoram_tests) $(doubleobliv_tests) $(forestoram_tests) $(doubleoblivf_tests) 
 #check_PROGRAMS = $(doubleobliv_tests)
 
@@ -329,3 +331,39 @@ libforestoram_la_LIBADD = $(COLLECTC_LIBS)
 libtforestoram_la_SOURCES =  backend/ofile/ofile.c backend/pmap/tfpmap.c backend/stash/stash.c backend/block/plblock.c backend/oram/forestoram.c
 libtforestoram_la_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
 libtforestoram_la_LIBADD = $(COLLECTC_LIBS)
+
+
+# benchmarks bins
+
+randomwritebench_SOURCES = backend/oram/pathoram.c  $(memory_test_files) $(random_file) benchmarks/randomread.c 
+randomwritebench_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+randomwritebench_LDADD = $(COLLECTC_LIBS)
+
+randomwritebenchd_SOURCES = backend/oram/pathoram.c  $(memory_test_files_d) $(random_file) benchmarks/randomread.c 
+randomwritebenchd_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+randomwritebenchd_LDADD = $(COLLECTC_LIBS)
+
+randomwritebenchf_SOURCES = backend/oram/forestoram.c  $(memory_test_files_f) $(random_file) benchmarks/randomread.c 
+randomwritebenchf_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+randomwritebenchf_LDADD = $(COLLECTC_LIBS)
+
+randomwritebenchfd_SOURCES = backend/oram/forestoram.c  $(memory_test_files_df) $(random_file) benchmarks/randomread.c 
+randomwritebenchfd_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+randomwritebenchfd_LDADD = $(COLLECTC_LIBS)
+
+
+randomreadbench_SOURCES = backend/oram/pathoram.c  $(memory_test_files) $(random_file) benchmarks/randomread.c 
+randomreadbench_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+randomreadbench_LDADD = $(COLLECTC_LIBS)
+
+randomreadbenchd_SOURCES = backend/oram/pathoram.c  $(memory_test_files_d) $(random_file) benchmarks/randomread.c 
+randomreadbenchd_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+randomreadbenchd_LDADD = $(COLLECTC_LIBS)
+
+randomreadbenchf_SOURCES = backend/oram/forestoram.c $(memory_test_files_f) $(random_file) benchmarks/randomread.c 
+randomreadbenchf_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+randomreadbenchf_LDADD = $(COLLECTC_LIBS)
+
+randomreadbenchfd_SOURCES = backend/oram/forestoram.c  $(memory_test_files_df) $(random_file) benchmarks/randomread.c 
+randomreadbenchfd_CFLAGS = $(stash_count) $(COLLECTC_CFLAGS) -I $(srcdir)/include
+randomreadbenchfd_LDADD = $(COLLECTC_LIBS)
