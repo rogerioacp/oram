@@ -60,7 +60,7 @@ struct ORAMState
     
     #ifdef STASH_COUNT
     unsigned int max;
-    unsigned int nblocksStashs;
+    unsigned int nblocksStash;
     #endif
 };
 
@@ -122,7 +122,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
     
     #ifdef  STASH_COUNT
     state->max = 0;
-    state->nblocksStashs = 0;
+    state->nblocksStash = 0;
     #endif
     
     totalNodes = totalNodes*bucketCapacity;
@@ -358,8 +358,8 @@ addBlocksToStash(ORAMState state, PLBList list, void *appData)
 		{
 
             #ifdef STASH_COUNT
-            state->nblocksStashs += 1;
-            state->max = state->max < state->nblocksStashs? state->nblocksStashs: state->max;
+            state->nblocksStash += 1;
+            state->max = state->max < state->nblocksStash? state->nblocksStash: state->max;
             #endif
 			state->amgr->am_stash->stashadd(state->stash, state->file, list[index], appData);
 		}
@@ -439,7 +439,7 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 		for (loffset = 0; loffset < total; loffset++)
 		{
 			#ifdef STASH_COUNT            
-            state->nblocksStashs -=1;
+            state->nblocksStash -=1;
             #endif
             index = bucket_offset + loffset;
 			stash->stashremove(state->stash, state->file, 
@@ -529,10 +529,10 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno,
     
 #ifdef STASH_COUNT
     if(!found){
-        state->nblocksStashs +=1;
-        state->max = state->max < state->nblocksStashs? state->nblocksStashs: state->max;
+        state->nblocksStash +=1;
+        state->max = state->max < state->nblocksStash? state->nblocksStash: state->max;
     }   
-    #endif
+#endif
 
 }
 
@@ -681,6 +681,6 @@ void setToken(ORAMState state, const unsigned int* token){
 void
 logStashes(ORAMState state){
 
-    logger(DEBUG, "Stash has %d blocks and max is %d\n", state->nblocksStashs, state->max); 
+    logger(DEBUG, "Stash has %d blocks and max is %d\n", state->nblocksStash, state->max); 
 }
 #endif    
