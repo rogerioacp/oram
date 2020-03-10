@@ -211,7 +211,7 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
     
     if(target == -1){
         logger(DEBUG, "No available space to write or update out of %d", stash->size);
-        exit(-1);
+        abort();
     }
 
     memcpy(aux, block, sizeof(struct PLBlock));
