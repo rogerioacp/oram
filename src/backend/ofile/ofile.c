@@ -97,7 +97,7 @@ FileHandler fileInit(const char *filename, unsigned int nblocks,
         errno = save_errno;
         
         handler->file[offset]->blkno = -1;
-               handler->file[offset]->size = blocksize;
+        handler->file[offset]->size = blocksize;
 
         /*TODO: Add verification code for available size*/
         handler->file[offset]->block = (void *) malloc(blocksize);

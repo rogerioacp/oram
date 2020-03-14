@@ -550,6 +550,11 @@ int
 read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 {
 
+    if(blkno < 0 || blkno > state->nblocks){
+        logger(DEBUG, "Requested read_oram on invalid address %d", blkno);
+        abort();
+    }
+
 	Location	    location;
     struct Location nLocation;
 	unsigned int    leaf = 0;
@@ -620,6 +625,11 @@ int
 write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state, void *appData)
 {
 
+    if(blkno < 0 || blkno > state->nblocks){
+        logger(DEBUG, "Requested write_oram on invalid address %d", blkno);
+        abort();
+    }
+    
    	Location	location;
     /*current location*/
     struct Location nLocation;

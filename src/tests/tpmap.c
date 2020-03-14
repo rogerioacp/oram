@@ -66,7 +66,7 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
 
     }
 
-    state = init_oram("teste", 40, blockSize, bucketCapcity, &amgr, NULL);
+    state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
     //printf("Going to write strings\n");
 
     for (index = 0; index < nwrites; index++) {
@@ -97,7 +97,7 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
 
         setToken(state, token);
         
-        //printf("going to write to oram offset %zu the string %s at locations %d and %d\n", wOffset, strings[wOffset], token[0], token[1]);
+       // printf("going to write to oram offset %zu the string %s at locations %d and %d\n", wOffset, strings[wOffset], token[0], token[1]);
         write_oram(strings[wOffset], blockWriteOffset, wOffset, state, NULL);
         leafs[wOffset] = nextLeaf;
         partitions[wOffset] = nextPartition;
@@ -111,7 +111,7 @@ int test(size_t nblocks, size_t blockSize, size_t bucketCapcity, size_t nwrites)
             token[2] = partitions[readi];
             token[3] = nextPartition;
             setToken(state, token); 
-            //printf("going to rea from oram offset %d at location %d and %d \n", readi, token[0], token[1]);
+            //printf("going to read from oram offset %d at location %d and %d \n", readi, token[0], token[1]);
 
             result = read_oram(&data, readi, state, NULL);
             leafs[readi] = nextLeaf;

@@ -64,6 +64,8 @@ struct ORAMState
 	PMap		pmap;
     FileHandler fhandler;
 
+    unsigned int nblocks;
+    
     #ifdef STASH_COUNT
         unsigned int nblocksStash;
         //unsigned int *blocksPerBucket;
@@ -176,7 +178,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	state = buildORAMState(file, blockSize, treeHeight, bucketCapacity, 
                            nPartitions, partitionTreeHeight, partitionNodes,
                            amgr);
-  
+    state->nblocks = nblocks;
 
     #ifdef STASH_COUNT
         state->max = 0;
@@ -808,6 +810,11 @@ close_oram(ORAMState state, void *appData)
 int
 read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 {
+    if(blkno < 0 || blkno > state->nblocks){
+        logger(DEBUG, "Requested read_oram on invalid address %d", blkno);
+        abort();
+    }
+
 	int			blockSize = 0;
 	blockSize = read_foram(ptr, blkno, state, appData);
 	evict_foram(*ptr, (unsigned int) blockSize, blkno, state, appData);
@@ -819,6 +826,11 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 int
 write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state, void *appData)
 {
+    if(blkno < 0 || blkno > state->nblocks){
+        logger(DEBUG, "Requested write_oram on invalid address %d", blkno);
+        abort();
+    }
+
 	char	   *tmp_data = NULL;
 	int			result = 0;
 	result = read_foram(&tmp_data, blkno, state, appData);
