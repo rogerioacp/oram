@@ -18,6 +18,7 @@
 
 #include "oram/pmap.h"
 #include "oram/orandom.h"
+#include "oram/logger.h"
 #include "oram/pmapdefs/pdeforam.h"
 
 //The token size is 4 integers (128 bits, the size of an AES block)

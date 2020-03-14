@@ -48,6 +48,8 @@ struct ORAMState
 	unsigned int bucketCapacity;
 	/* Number of buckets in a Tree node(Z) */
 
+    unsigned int nblocks;
+
 	char	   *file;
 	/* File name of the protected file. */
 
@@ -108,10 +110,12 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	treeHeight = calculateTreeHeight(nblocks);
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
 
-	
     logger(DEBUG, "Init pathoram for %d bocks with tree height %d and bucket capacity %d\n", nblocks, treeHeight, bucketCapacity);
     state = buildORAMState(file, blockSize, treeHeight, bucketCapacity, amgr);
 	
+
+	state->nblocks = nblocks;
+    
     struct TreeConfig config;
 	config.treeHeight = treeHeight;
 
@@ -350,11 +354,12 @@ void
 addBlocksToStash(ORAMState state, PLBList list, void *appData)
 {
 
-	int			index = 0;
-
+	int			index, blkno = 0;
 	for (index = 0; index < (state->treeHeight + 1) * state->bucketCapacity; index++)
 	{
-		if (list[index]->blkno != DUMMY_BLOCK)
+        blkno = list[index]->blkno;
+        //logger(DEBUG, "block no %d", blkno);
+		if (blkno != DUMMY_BLOCK && blkno >= 0 && blkno <= state->nblocks)
 		{
 
             #ifdef STASH_COUNT
@@ -363,7 +368,7 @@ addBlocksToStash(ORAMState state, PLBList list, void *appData)
             #endif
 			state->amgr->am_stash->stashadd(state->stash, state->file, list[index], appData);
 		}
-		else
+		else if(blkno == DUMMY_BLOCK)
 		{
 			/*
 			 * If it's a dummy block, a PLBlock had to be allocated and a
@@ -372,7 +377,10 @@ addBlocksToStash(ORAMState state, PLBList list, void *appData)
 			 */
 			free(list[index]->block);
 			free(list[index]);
-		}
+		}else{
+            logger(DEBUG, "Invalid block %d", blkno);
+            abort();
+        }
 	}
 }
 
@@ -420,6 +428,7 @@ getBlocksToWrite(PLBList *blocksToWrite, unsigned int a_leaf, ORAMState state, v
 			//s_leaf = state->amgr->am_pmap->pmget(state->pmap, state->file, (BlockNumber) pl_block->blkno)->leaf;
             s_leaf = pl_block->location[0];
 
+            //logger(DEBUG, "Found block with leaf %d", s_leaf);
             //logger(DEBUG, "leaf values are %d %d\n", s_leaf, s_leaf2);
 			if (a_leaf_level == ((s_leaf + s_leaf_node) >> level_offset))
 			{
@@ -540,6 +549,7 @@ updateStashWithNewBlock(void *data, unsigned int blkSize, BlockNumber blkno,
 int
 read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 {
+
 	Location	    location;
     struct Location nLocation;
 	unsigned int    leaf = 0;
@@ -610,8 +620,7 @@ int
 write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state, void *appData)
 {
 
-
-	Location	location;
+   	Location	location;
     /*current location*/
     struct Location nLocation;
 

@@ -44,7 +44,7 @@ static void stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const cha
 
 static void stashRemove(Stash stash, const char *filename, const PLBlock block, void *appData);
 
-int			stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData);
+int	stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData);
 
 
 static void stashClose(Stash stash, const char *filename, void *appData);
@@ -192,10 +192,12 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
     
 
     target = -1;
-    
-    for(offset = 0; offset < stash->size; offset++){
-        
+
+    //logger(DEBUG, "---------- Stash Update %d -------", block->blkno);
+
+    for(offset = 0; offset < stash->size; offset++){ 
         aux = stash->blocks[offset];
+        //logger(DEBUG, "stash offset %d has block %d", offset, aux->blkno);
         if(!found && (unsigned int) aux->blkno == block->blkno){
             free(aux->block);
             //free(aux->location);
