@@ -22,6 +22,7 @@
 #include <string.h>
 #include "oram/stash.h"
 #include "oram/logger.h"
+#include <time.h>
 
 
 struct Stash
@@ -143,8 +144,14 @@ void stashPrint(Stash stash){
 void
 stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename, void *appData)
 {
+
 	PLBlock		aux;
 	int         offset;
+
+    struct timespec ts_start;
+    struct timespec ts_end;
+    double elapsedTime;
+    clock_gettime(CLOCK_MONOTONIC, &ts_start);
 
 
     for(offset = 0; offset < stash->size; offset++){
@@ -160,11 +167,23 @@ stashGet(Stash stash, PLBlock block, BlockNumber pl_blkno, const char *filename,
         }
     }
 
+    
+
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
+    logger(PROFILE, "STASH_GET %s %f\n", filename, elapsedTime);     
+    
+
+
 }
 
 void
 stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData)
 {
+    struct timespec ts_start;
+    struct timespec ts_end;
+    double elapsedTime;
+    clock_gettime(CLOCK_MONOTONIC, &ts_start);
 
 	PLBlock		aux;
 	int         offset, inserted;
@@ -180,6 +199,10 @@ stashAdd(Stash stash, const char *filename, const PLBlock block, void *appData)
         }
     }
 
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
+    logger(PROFILE, "STASH_ADD %s %f\n", filename, elapsedTime);
+
 }
 
 int
@@ -190,6 +213,11 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
     int     found = 0;
     PLBlock aux;
     
+    struct timespec ts_start;
+    struct timespec ts_end;
+    double elapsedTime;
+    clock_gettime(CLOCK_MONOTONIC, &ts_start);
+
 
     target = -1;
 
@@ -218,6 +246,12 @@ stashUpdate(Stash stash, const char *filename, const PLBlock block, void *appDat
 
     memcpy(aux, block, sizeof(struct PLBlock));
     free(block);
+
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
+
+    logger(PROFILE, "STASH_UPDATE %s %f\n", filename, elapsedTime);
+
     return found;
 
 }
@@ -228,6 +262,10 @@ stashRemove(Stash stash, const char *filename, const PLBlock block, void *appDat
 
 	PLBlock	aux;
 	int     offset;
+    struct timespec ts_start;
+    struct timespec ts_end;
+    double elapsedTime;
+    clock_gettime(CLOCK_MONOTONIC, &ts_start);
 
     for(offset = 0; offset < stash->size; offset++){
         
@@ -242,6 +280,11 @@ stashRemove(Stash stash, const char *filename, const PLBlock block, void *appDat
         }
 
     }
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
+    logger(PROFILE, "STASH_REMOVE %s %f\n", filename, elapsedTime);
+
+
 }
 
 int
@@ -250,6 +293,12 @@ stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData)
 
 	PLBlock		aux;
 	int         offset, found = 0;
+
+    struct timespec ts_start;
+    struct timespec ts_end;
+    double elapsedTime;
+    clock_gettime(CLOCK_MONOTONIC, &ts_start);
+
 
     for(offset = 0; offset < stash->size; offset++){
         
@@ -266,6 +315,11 @@ stashTake(Stash stash, const char *filename, unsigned int blkno, void *appData)
         }
 
     }
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
+    logger(PROFILE, "STASH_TAKE %s %f\n", filename, elapsedTime);
+
+
     return found;
 }
 
@@ -297,6 +351,12 @@ stashStartIt(Stash stash, const char *filename, void *appData)
 unsigned int
 stashNext(Stash stash, const char *filename, PLBlock *block, void *appData)
 {
+
+    struct timespec ts_start;
+    struct timespec ts_end;
+    double elapsedTime;
+    clock_gettime(CLOCK_MONOTONIC, &ts_start);
+
     int offset;
     int onlyDummys = 1;
     PLBlock aux;
@@ -310,6 +370,11 @@ stashNext(Stash stash, const char *filename, PLBlock *block, void *appData)
     }
 
     stash->it = offset +1;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
+    logger(PROFILE, "STASH_NEXT %s %f\n", filename, elapsedTime);
+
     if(onlyDummys){
         return 0;
     }else{

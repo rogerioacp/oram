@@ -16,6 +16,7 @@
 
 #define OUT_OF_MEMORY 1
 #define DEBUG 2
+#define PROFILE 3
 
 #define LBUFSIZE 200
 
