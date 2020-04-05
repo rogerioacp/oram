@@ -31,13 +31,29 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
+#include <collectc/list.h>
 
 #include "oram/foram.h"
 #include "oram/logger.h"
 #include "oram/orandom.h"
 #include "oram/pmapdefs/fdeforam.h"
 #include <time.h>
+
+
+#define ORAM_WRITE 0
+#define ORAM_READ 1
+#define OFILE_WRITE 2
+#define OFILE_READ 3
+#define STASH_EVICT 4
+#define STASH_UPDATE 5
+#define STASH_GET 6
+
+typedef struct Timestamp{
+	struct timespec ts_start;
+	struct timespec ts_end;
+	int tag;
+}*Tstamp;
+
 
 
 struct ORAMState
@@ -72,6 +88,10 @@ struct ORAMState
         //unsigned int *blocksPerBucket;
         unsigned int max;   
     #endif
+
+
+	List *tstamps;
+
 };
 
 typedef unsigned int TreeNode;
@@ -122,7 +142,7 @@ static void updateStashWithNewBlock(void *data, unsigned int blockSize,
 
 
 static void full_eviction(ORAMState state);
-
+void logTStamps(ORAMState state);
 
 ORAMState
 init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsigned int bucketCapacity, Amgr *amgr, void *appData)
@@ -210,11 +230,13 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
         #endif*/
 	}
 
+
 	struct TreeConfig config;
 
 	config.treeHeight = partitionTreeHeight;
 	config.nPartitions = nPartitions;
     partitionBlocks = partitionBlocks*bucketCapacity;
+
 
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
 
@@ -264,6 +286,7 @@ buildORAMState(const char *filename, unsigned int blockSize,
 	memcpy(state->file, filename, namelen);
 	/* state->file = filename; */
 	state->amgr = amgr;
+    list_new(&state->tstamps);
 
 	return state;
 }
@@ -697,6 +720,7 @@ updateStashWithNewBlock(void *data,
 int
 read_foram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 {
+
 	Location	location;
 	unsigned int result = 0;
 	TreePath	path = NULL;
@@ -708,17 +732,35 @@ read_foram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 
 	/* line 1 and 2 of original paper */
 	location = pmap->pmget(state->pmap, state->file, blkno);
-
+	
+	Tstamp ts_oread = (Tstamp) malloc(sizeof(struct Timestamp));    
+	clock_gettime(CLOCK_MONOTONIC, &ts_oread->ts_start);
+    ts_oread->tag = OFILE_READ;
+	
 	/* line 3 to 5 of original paper */
 	path = getTreePath(state, location);
+
 	list = getTreeNodes(state, path, location, appData);
+
+	clock_gettime(CLOCK_MONOTONIC, &ts_oread->ts_end);
+	list_add(state->tstamps, ts_oread);
+
+
+
+	Tstamp ts_sget = (Tstamp) malloc(sizeof(struct Timestamp));    
+	clock_gettime(CLOCK_MONOTONIC, &ts_sget->ts_start);
+    ts_sget->tag = STASH_GET;
 
 	addBlocksToStash(state, list, location, appData);
 
 	/* Line 6 of original paper */
 	stash->stashget(state->stashes[location->partition], plblock, blkno, 
                     state->file, appData);
+	
+	clock_gettime(CLOCK_MONOTONIC, &ts_sget->ts_end);
+	list_add(state->tstamps, ts_sget);
 
+    
 	/* Free Resources */
 	free(path);
 	/* The plblocks of the list cannot be freed as they may be in the stash */
@@ -746,6 +788,7 @@ int
 evict_foram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state, void *appData)
 {
 
+
 	struct Location oldLocation;
 	struct Location	newLocation;
 	PLBList		blocks_to_write = NULL;
@@ -761,20 +804,57 @@ evict_foram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state
 
 	memcpy(&newLocation, pmap->pmget(state->pmap, state->file, blkno),
            sizeof(struct Location));
+    
 
 
 	if (blkSize != DUMMY_BLOCK)
-	{
+	{    
+		Tstamp ts_supdate = (Tstamp) malloc(sizeof(struct Timestamp));    
+
+   		clock_gettime(CLOCK_MONOTONIC, &ts_supdate->ts_start);
+    	ts_supdate->tag = STASH_UPDATE;
+
 		updateStashWithNewBlock(data, blkSize, blkno, 
                                 oldLocation.partition, 
                                 &newLocation, state, appData);
+		clock_gettime(CLOCK_MONOTONIC, &ts_supdate->ts_end);
+		list_add(state->tstamps, ts_supdate);
+
 	}
+
+
+
 	/* line 10 to 15 of original paper */
+	Tstamp ts_evict = (Tstamp) malloc(sizeof(struct Timestamp));    
+    clock_gettime(CLOCK_MONOTONIC, &ts_evict->ts_start);
+    ts_evict->tag = STASH_EVICT;
+
 	getBlocksToWrite(&blocks_to_write, &oldLocation, state, appData);
+
+    clock_gettime(CLOCK_MONOTONIC, &ts_evict->ts_end);
+    list_add(state->tstamps, ts_evict);
+    
+    Tstamp ts_oflush = (Tstamp) malloc(sizeof(struct Timestamp));    
+    clock_gettime(CLOCK_MONOTONIC, &ts_oflush->ts_start);
+    ts_evict->tag = OFILE_WRITE;
+	
 	writeBlocksToStorage(blocks_to_write, &oldLocation, state, appData);
+
+    clock_gettime(CLOCK_MONOTONIC, &ts_oflush->ts_end);
+    list_add(state->tstamps, ts_oflush);
+
 	free(blocks_to_write);
 
 	return blkSize;
+}
+
+void
+destroyTStamps(void*data){
+	free(data);
+}
+void evictTimers(ORAMState state){
+	logTStamps(state);
+	list_remove_all_cb(state->tstamps, &destroyTStamps);
 }
 
 void
@@ -782,10 +862,13 @@ close_oram(ORAMState state, void *appData)
 {
 	int			index = 0;
     
+	logTStamps(state);
+
     #ifdef STASH_COUNT
         logStashes(state);
     #endif
-    
+    list_remove_all_cb(state->tstamps, &destroyTStamps);
+    free(state->tstamps);
     #ifdef SFORAM
     state->amgr->am_stash->stashclose(state->stashes[0], state->file, appData);
     #else
@@ -812,11 +895,10 @@ int
 read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 {
 
-	struct timespec ts_start;
-	struct timespec ts_end;
-    double elapsedTime;
-    clock_gettime(CLOCK_MONOTONIC, &ts_start);
-    
+    Tstamp ts = (Tstamp) malloc(sizeof(struct Timestamp));    
+    clock_gettime(CLOCK_MONOTONIC, &ts->ts_start);
+    ts->tag = ORAM_READ;
+
     if(blkno < 0 || blkno > state->nblocks){
         logger(DEBUG, "Requested read_oram on invalid address %d", blkno);
         abort();
@@ -827,11 +909,11 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	evict_foram(*ptr, (unsigned int) blockSize, blkno, state, appData);
 
 
-    clock_gettime(CLOCK_MONOTONIC, &ts_end);
-
-    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
+    clock_gettime(CLOCK_MONOTONIC, &ts->ts_end);
+    list_add(state->tstamps, ts);
+    //elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
     
-    logger(PROFILE, "READ_ORAM %s %f\n", state->file, elapsedTime);     
+    //logger(PROFILE, "READ_ORAM %s %f\n", state->file, elapsedTime);     
 
 	return blockSize;
 }
@@ -842,11 +924,10 @@ int
 write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state, void *appData)
 {
 
-    struct timespec ts_start;
-	struct timespec ts_end;
-    double elapsedTime;
-    clock_gettime(CLOCK_MONOTONIC, &ts_start);
+    Tstamp ts = (Tstamp) malloc(sizeof(struct Timestamp));    
+    clock_gettime(CLOCK_MONOTONIC, &ts->ts_start);
 
+    ts->tag = ORAM_WRITE;
 
     if(blkno < 0 || blkno > state->nblocks){
         logger(DEBUG, "Requested write_oram on invalid address %d", blkno);
@@ -859,10 +940,11 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 	evict_foram(data, blkSize, blkno, state, appData);
     free(tmp_data);
 
-    clock_gettime(CLOCK_MONOTONIC, &ts_end);
-    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
+    clock_gettime(CLOCK_MONOTONIC, &ts->ts_end);
+    list_add(state->tstamps, ts);
+    //elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
       
-    logger(PROFILE, "WRITE_ORAM %s %f\n", state->file, elapsedTime);     
+   // logger(PROFILE, "WRITE_ORAM %s %f\n", state->file, elapsedTime);     
     return blkSize;
 }
 
@@ -910,3 +992,32 @@ logStashes(ORAMState state)
 }
 #endif
 
+
+void 
+logTStamps(ORAMState state){
+	ListIter iter;
+	Tstamp tstamp;
+	double elapsedTime;
+	void *element;
+	char* str;
+
+	list_iter_init(&iter, state->tstamps);
+
+	while(list_iter_next(&iter, &element) != CC_ITER_END){
+
+		tstamp = (Tstamp) element;
+		elapsedTime = (tstamp->ts_end.tv_nsec-tstamp->ts_start.tv_nsec);
+
+		switch(tstamp->tag){
+			case ORAM_WRITE: 	str = "ORAM_WRITE";		break;
+			case ORAM_READ: 	str = "ORAM_READ";		break;
+			case OFILE_WRITE: 	str = "OFILE_WRITE";	break;
+			case OFILE_READ: 	str = "OFILE_READ";		break;
+			case STASH_EVICT:  	str = "STASH_EVICT"; 	break;
+			case STASH_UPDATE: 	str = "STASH_UPDATE";	break;
+			case STASH_GET: 	str = "STASH_GET";		break;
+		}
+
+   		logger(PROFILE, "%s %s%d %f\n",str, state->file,state->nPartitions,q elapsedTime);     
+	}
+}

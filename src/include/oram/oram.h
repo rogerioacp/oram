@@ -90,5 +90,6 @@ void		close_oram(ORAMState state, void *appData);
 #ifdef STASH_COUNT
 void        logStashes(ORAMState state);
 #endif
+void        evictTimers(ORAMState state);
 
 #endif							/* ORAM_H */

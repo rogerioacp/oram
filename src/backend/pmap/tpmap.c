@@ -69,19 +69,7 @@ void pmapSetToken(PMap pmap, const unsigned int* token){
 Location
 pmapGet(PMap pmap, const char *fileName, const BlockNumber blkno)
 {
-  
-    struct timespec ts_start;
-	struct timespec ts_end;
-    double elapsedTime;
-    clock_gettime(CLOCK_MONOTONIC, &ts_start);
-
 	pmap->loc->leaf = (pmap->token[0] % ((BlockNumber) (pow(2, pmap->treeHeight))));
-
-    clock_gettime(CLOCK_MONOTONIC, &ts_end);
-    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
-    
-    logger(PROFILE, "PMAP_GET %s %f\n", fileName, elapsedTime);   
-
     return pmap->loc;
 
     
@@ -90,21 +78,10 @@ pmapGet(PMap pmap, const char *fileName, const BlockNumber blkno)
 
 void
 pmapUpdate(PMap pmap, const char *fileName, const BlockNumber realBlkno){
-    struct timespec ts_start;
-    struct timespec ts_end;
-    double elapsedTime;
-    clock_gettime(CLOCK_MONOTONIC, &ts_start);
-
     //Simply shifts the next token to the first posstion
     //Both the path oram and forest oram will issue a new pmapGet request
     //that will return a new leaf location.
     pmap->token[0] = pmap->token[1]; 
-  
-    clock_gettime(CLOCK_MONOTONIC, &ts_end);
-    elapsedTime = (ts_end.tv_nsec-ts_start.tv_nsec);
-
-    logger(PROFILE, "PMAP_UPDATE %s %f\n", fileName, elapsedTime);   
-
 }
 
 void

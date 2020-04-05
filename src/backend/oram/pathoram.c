@@ -30,6 +30,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <collectc/list.h>
 
 
 #include "oram/oram.h"
@@ -37,6 +38,22 @@
 #include "oram/logger.h"
 #include "oram/orandom.h"
 #include "oram/pmapdefs/pdeforam.h"
+#include <time.h>
+
+
+#define ORAM_WRITE 0
+#define ORAM_READ 1
+#define OFILE_WRITE 2
+#define OFILE_READ 3
+#define STASH_EVICT 4
+#define STASH_UPDATE 5
+#define STASH_GET 6
+
+typedef struct Timestamp{
+	struct timespec ts_start;
+	struct timespec ts_end;
+	int tag;
+}*Tstamp;
 
 
 struct ORAMState
@@ -64,6 +81,9 @@ struct ORAMState
     unsigned int max;
     unsigned int nblocksStash;
     #endif
+
+    List *tstamps;
+
 };
 
 typedef unsigned int TreeNode;
@@ -95,6 +115,7 @@ static void writeBlocksToStorage(PLBList list, unsigned int leaf, ORAMState stat
 static void updateStashWithNewBlock(void *data, unsigned int blockSize, 
                                     BlockNumber blkno, ORAMState state,
                                     Location location, void *appData);
+void logTStamps(ORAMState state);
 
 
 ORAMState
@@ -171,6 +192,8 @@ buildORAMState(const char *filename, unsigned int blockSize, unsigned int treeHe
 	memcpy(state->file, filename, namelen);
 	/* state->file = filename; */
 	state->amgr = amgr;
+
+    list_new(&state->tstamps);
 
 	return state;
 }
@@ -577,9 +600,22 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
 	/* printf("getting updateBlockLeaf\n"); */
 	pmap->pmupdate(state->pmap, state->file, blkno);
 
+	Tstamp ts_oread = (Tstamp) malloc(sizeof(struct Timestamp));    
+	clock_gettime(CLOCK_MONOTONIC, &ts_oread->ts_start);
+	ts_oread->tag = OFILE_READ;
+
 	/* line 3 to 5 of original paper */
 	path = getTreePath(state, leaf);
 	list = getTreeNodes(state, path, appData);
+
+	clock_gettime(CLOCK_MONOTONIC, &ts_oread->ts_end);
+	list_add(state->tstamps, ts_oread);
+
+	Tstamp ts_sget = (Tstamp) malloc(sizeof(struct Timestamp));    
+	clock_gettime(CLOCK_MONOTONIC, &ts_sget->ts_start);
+    ts_sget->tag = STASH_UPDATE;
+
+
 	/* printf("Add blocks to stash\n"); */
 	addBlocksToStash(state, list, appData);
 	/* printf("Getting block to stash\n"); */
@@ -593,11 +629,27 @@ read_oram(char **ptr, BlockNumber blkno, ORAMState state, void *appData)
     //logger(DEBUG, "read ORAM offset %d from leaf %d to leaf %d\n", blkno, leaf, nLocation.leaf); 
     updateStashWithNewBlock(plblock->block, plblock->size, plblock->blkno, 
                             state, &nLocation, appData);
+	
+	clock_gettime(CLOCK_MONOTONIC, &ts_sget->ts_end);
+	list_add(state->tstamps, ts_sget);
+
+	Tstamp ts_evict = (Tstamp) malloc(sizeof(struct Timestamp));    
+    clock_gettime(CLOCK_MONOTONIC, &ts_evict->ts_start);
+    ts_evict->tag = STASH_EVICT;
 	/* printf("get blocks to write\n"); */
 	/* line 10 to 15 of original paper */
 	getBlocksToWrite(&blocks_to_write, leaf, state, appData);
+
+ 	clock_gettime(CLOCK_MONOTONIC, &ts_evict->ts_end);
+    list_add(state->tstamps, ts_evict);
+    Tstamp ts_oflush = (Tstamp) malloc(sizeof(struct Timestamp));    
+    clock_gettime(CLOCK_MONOTONIC, &ts_oflush->ts_start);
+    ts_oflush->tag = OFILE_WRITE;
+
 	/* printf("Write blocks to storage\n"); */
 	writeBlocksToStorage(blocks_to_write, leaf, state, appData);
+    clock_gettime(CLOCK_MONOTONIC, &ts_oflush->ts_end);
+    list_add(state->tstamps, ts_oflush);
 
 	/* Free Resources */
 	free(path);
@@ -646,19 +698,43 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 
     pmap->pmupdate(state->pmap, state->file, blkno);
 	
+	Tstamp ts_oread = (Tstamp) malloc(sizeof(struct Timestamp));    
+	clock_gettime(CLOCK_MONOTONIC, &ts_oread->ts_start);
+	ts_oread->tag = OFILE_READ;
+
     /* line 3 to 5 of original paper */
 	path = getTreePath(state, leaf);
 	list = getTreeNodes(state, path, appData);
+	clock_gettime(CLOCK_MONOTONIC, &ts_oread->ts_end);
+	list_add(state->tstamps, ts_oread);
+
+	Tstamp ts_sget = (Tstamp) malloc(sizeof(struct Timestamp));    
+	clock_gettime(CLOCK_MONOTONIC, &ts_sget->ts_start);
+    ts_sget->tag = STASH_UPDATE;
 	addBlocksToStash(state, list, appData);
 
     nLocation.leaf = pmap->pmget(state->pmap, state->file, blkno)->leaf;
     //logger(DEBUG, "Write ORAM offset %d from leaf %d to leaf %d\n", blkno, leaf, nLocation.leaf); 
 	/* line 7 to 9 of original paper */
 	updateStashWithNewBlock(data, blkSize, blkno, state, &nLocation, appData);
+	clock_gettime(CLOCK_MONOTONIC, &ts_sget->ts_end);
+	list_add(state->tstamps, ts_sget);
 
+	Tstamp ts_evict = (Tstamp) malloc(sizeof(struct Timestamp));    
+    clock_gettime(CLOCK_MONOTONIC, &ts_evict->ts_start);
+    ts_evict->tag = STASH_EVICT;
 	/* line 10 to 15 of original paper */
 	getBlocksToWrite(&blocks_to_write, leaf, state, appData);
+    clock_gettime(CLOCK_MONOTONIC, &ts_evict->ts_end);
+    list_add(state->tstamps, ts_evict);
+
+    Tstamp ts_oflush = (Tstamp) malloc(sizeof(struct Timestamp));    
+    clock_gettime(CLOCK_MONOTONIC, &ts_oflush->ts_start);
+    ts_oflush->tag = OFILE_WRITE;
 	writeBlocksToStorage(blocks_to_write, leaf, state, appData);
+	
+    clock_gettime(CLOCK_MONOTONIC, &ts_oflush->ts_end);
+    list_add(state->tstamps, ts_oflush);
 
 	/* Free Resources */
 	free(path);
@@ -670,8 +746,21 @@ write_oram(char *data, unsigned int blkSize, BlockNumber blkno, ORAMState state,
 }
 
 void
+destroyTStamps(void*data){
+	free(data);
+}
+void evictTimers(ORAMState state){
+	logTStamps(state);
+	list_remove_all_cb(state->tstamps, &destroyTStamps);
+}
+
+
+void
 close_oram(ORAMState state, void *appData)
 {
+	logTStamps(state);
+    list_remove_all_cb(state->tstamps, &destroyTStamps);
+    free(state->tstamps);
 
     #ifdef STASH_COUNT
     logStashes(state);
@@ -702,4 +791,33 @@ logStashes(ORAMState state){
 
     logger(DEBUG, "Stash has %d blocks and max is %d\n", state->nblocksStash, state->max); 
 }
-#endif    
+#endif
+
+void 
+logTStamps(ORAMState state){
+	ListIter iter;
+	Tstamp tstamp;
+	double elapsedTime;
+	void *element;
+	char* str;
+
+	list_iter_init(&iter, state->tstamps);
+
+	while(list_iter_next(&iter, &element) != CC_ITER_END){
+
+		tstamp = (Tstamp) element;
+		elapsedTime = (tstamp->ts_end.tv_nsec-tstamp->ts_start.tv_nsec);
+
+		switch(tstamp->tag){
+			case ORAM_WRITE: 	str = "ORAM_WRITE";		break;
+			case ORAM_READ: 	str = "ORAM_READ";		break;
+			case OFILE_WRITE: 	str = "OFILE_WRITE";	break;
+			case OFILE_READ: 	str = "OFILE_READ";		break;
+			case STASH_EVICT:  	str = "STASH_EVICT"; 	break;
+			case STASH_UPDATE: 	str = "STASH_UPDATE";	break;
+			case STASH_GET: 	str = "STASH_GET";		break;
+		}
+
+   		logger(PROFILE, "%s %s %f\n",str, state->file, elapsedTime);     
+	}
+}
