@@ -33,8 +33,6 @@ function run_test {
     local bsize=$((2**($3+0)))
     local bcap=$4
 
-    #echo "f input is $system $nblocks $bsize"
-    #echo "file is $file"
 
     mkdir -p path
     for run in $(seq 0 $NRUNS);
@@ -44,16 +42,15 @@ function run_test {
         pid=$!
         sleep $MAX_EXEC_TIME
         local stats=$(./stats.py -i "$RESULTS_PATH/$file")
-        echo "$system, $nblocks, $bsize, $bcap, $run, $stats" >> results/stats.csv
-    kill $pid
-
+        printf "%20s %6d %4d %d %d" "$system" "$nblocks" "$bsize" "$bcap" "$run" >> results/stats.csv
+        echo "$stats" >> results/stats.csv
+        kill $pid
+        sleep $COOL_DOWN
     done
-    #cp "src/$system" .
-    #sleep $COOL_DOWN
+
 }
 
-#mkdir -p "$RESULTS_PATH/dstat"
-touch "RESULTS_PATH/stats.csv"
+touch $RESULTS_PATH/stats.csv
 
 nblocks_size="${#NBLOCKS[@]}"
 nblocks_size=$((nblocks_size - 1))
