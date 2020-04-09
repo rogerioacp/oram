@@ -5,27 +5,32 @@
 #The number of blocks and block size are powers of 2, e.g.: 2^7, 2^8,...
 #SYSTEMS=(randomreadbench randomreadbenchf randomwritebench randomwritebenchf)
 
-SYSTEMS=(randomreadbenchd randomreadbenchfd randomwritebenchd randomwritebenchfd)
-#SYSTEMS=(randomreadbench)
-NBLOCKS=(12)
+#SYSTEMS=(randomreadbenchd randomreadbenchfd randomwritebenchd randomwritebenchfd)
+SYSTEMS=(randomreadbenchfd randomwritebenchd randomwritebenchfd)
+
 BSIZES=(13)
 BCAP=(4)
 #NBLOCKS=(10 12 14 16 18 20)
-#BSIZES=(10 11 12)
-#BCAP=(1 2 3 4)
+NBLOCKS=(10 12 14 16)
 
 NOPS=1000000
 
 # Max execution time. Timeout after the specified time.
 # 1020s = 20min = 5min ramp-up + 15min execution time
-#MAX_EXEC_TIME=1800
-MAX_EXEC_TIME=10
+MAX_EXEC_TIME=2100
+#MAX_EXEC_TIME=10
 COOL_DOWN=120
-NRUNS=1
+NRUNS=5
 
 
 RESULTS_PATH="results"
 
+clean_caches()
+{
+    sudo sh -c 'echo 1 > /proc/sys/vm/drop_caches'        
+    sudo sh -c 'echo 2 > /proc/sys/vm/drop_caches'
+    sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'        
+}
 
 function run_test {
     local system=$1
@@ -45,6 +50,7 @@ function run_test {
         printf "%20s %6d %4d %d %d" "$system" "$nblocks" "$bsize" "$bcap" "$run" >> results/stats.csv
         echo "$stats" >> results/stats.csv
         kill $pid
+	clean_caches
         sleep $COOL_DOWN
     done
 
