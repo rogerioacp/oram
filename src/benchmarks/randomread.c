@@ -53,12 +53,8 @@ int test(size_t nblocks,
     state = init_oram("teste", nblocks, blockSize, bucketCapcity, &amgr, NULL);
 
     for (index = 0; index < nblocks; index++) {
-
         value = gen_random(blockSize);
-        
-        
         write_oram(value, blockSize, index, state, NULL);
-        
         free(value);
     }
 

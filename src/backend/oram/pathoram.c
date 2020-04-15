@@ -129,7 +129,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
     state->nblocksStash = 0;
     #endif
     
-    totalNodes = totalNodes*bucketCapacity;
+    totalNodes = totalNodes * bucketCapacity;
 
 	state->fhandler = amgr->am_ofile->ofileinit(state->file, totalNodes, 
                                                 blockSize, 

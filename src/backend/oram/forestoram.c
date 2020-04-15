@@ -142,20 +142,16 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	treeHeight = calculateTreeHeight(nblocks);
 
 	totalNodes = ((unsigned int) pow(2, treeHeight + 1)) - 1;
-    //logger(DEBUG, "tree height is %d and total nodes are %d\n", treeHeight, totalNodes);
 #ifdef SFORAM
 	nPartitions = ceil(log2(nblocks));
     blocksPerPartition = ceil(nblocks / nPartitions);
 
-    if(blocksPerPartition*nPartitions < totalNodes){
-        blocksPerPartition += 1;
+    if(blocksPerPartition*nPartitions < nblocks){
+        nPartitions += 1;
     }
     partitionTreeHeight = calculateTreeHeight(blocksPerPartition);
     partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 
-    //logger(DEBUG, "blocks per partition is %d\n", blocksPerPartition);
-    //logger(DEBUG, "Partition tree height is %d\n", partitionTreeHeight);
-    //logger(DEBUG, "partition nodes is %d\n", partitionNodes);
 #else
     partitionTreeHeight = calculatePartitionTreeHeight(treeHeight);
 
@@ -164,7 +160,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
 	partitionNodes = ((unsigned int) pow(2, partitionTreeHeight + 1)) - 1;
 #endif
 
-	partitionBlocks = partitionNodes * nPartitions*bucketCapacity;
+	partitionBlocks = partitionNodes * nPartitions * bucketCapacity;
     
     logger(DEBUG, "Initializing ORAM for %d blocks with %d partitions of height %d and bucketCapacity %d\n", nblocks, nPartitions, partitionTreeHeight, bucketCapacity);
 
@@ -183,9 +179,7 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
     #ifdef STASH_COUNT
         state->max = 0;
         state->nblocksStash = 0;
-        //state->blocksPerBucket = (unsigned int*) malloc(sizeof(unsigned int)*partitionBlocks);
-        //memset(state->blocksPerBucket,0,partitionBlocks*sizeof(unsigned int));
-        //state->nblocksStashs = (unsigned int*) malloc(sizeof(unsigned int)*nPartitions);
+     
     #endif
 
 	/* Initialize external files (oblivious file, stash, positionMap) */
@@ -203,17 +197,12 @@ init_oram(const char *file, unsigned int nblocks, unsigned int blockSize, unsign
         #else
 		state->stashes[index] = amgr->am_stash->stashinit(state->file, nPartitions*2, state->blockSize, appData);
         #endif
-
-       /* #ifdef STASH_COUNT
-            state->nblocksStashs[index] = 0;
-        #endif*/
 	}
 
 	struct TreeConfig config;
 
 	config.treeHeight = partitionTreeHeight;
 	config.nPartitions = nPartitions;
-    partitionBlocks = partitionBlocks*bucketCapacity;
 
 	state->pmap = amgr->am_pmap->pminit(state->file, nblocks, &config);
 
